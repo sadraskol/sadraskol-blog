@@ -1,123 +1,130 @@
 extern crate actix_web;
 
-use std::str::FromStr;
+use std::collections::BTreeMap;
+use std::ops::Deref;
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, web};
+use actix_web::{App, Error, HttpResponse, HttpServer, Responder, web};
+use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
 use env_logger;
-use postgres::Connection;
-use pulldown_cmark::{html, Parser};
-use serde::Deserialize;
+use handlebars::Handlebars;
+use pulldown_cmark::{Options, Parser};
+use pulldown_cmark::html::push_html;
+use serde_json::to_value;
 
-use pool::Pool;
-use post::Post;
-use post_repository::{PgPostRepository, PostRepository};
+use crate::post::Post;
+use crate::post_repository::{PgPostRepository, PostRepository};
+use std::time::Duration;
 
-mod pool;
-mod post;
-mod post_repository;
+pub mod api;
+pub mod pool;
+pub mod post;
+pub mod post_repository;
+pub mod slugify;
+pub mod config;
 
-fn index(pool: web::Data<Pool>) -> impl Responder {
-    let conn: &Connection = &pool.get().unwrap();
-    let repo = PgPostRepository::new(conn);
-    let all_sections: Vec<String> = repo.find()
-        .iter()
-        .map(|post| {
-            let markdown_input = match post {
-                Post::Draft { markdown_content, .. } => markdown_content.clone(),
-                Post::Post { markdown_content, .. } => markdown_content.clone(),
-                Post::NonExisting { .. } => "".to_string(),
-            };
-            let parser = Parser::new(&*markdown_input);
+async fn dist(filename: web::Path<String>) -> Result<HttpResponse, Error> {
+    let mut d = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    d.push("front");
+    d.push("dist");
+    d.push(filename.into_inner());
+    Ok(serve_file(d))
+}
 
-            let mut html_output = String::new();
-            html::push_html(&mut html_output, parser);
-            return html_output;
+async fn index(hb: web::Data<Handlebars<'_>>) -> Result<HttpResponse, Error> {
+    let mut map = BTreeMap::new();
+    map.insert("some", "value");
+    let data = to_value(map).unwrap();
+    let body = hb.render("index", &data).unwrap();
+    Ok(HttpResponse::Ok().body(body))
+}
+
+fn serve_file(d: std::path::PathBuf) -> HttpResponse {
+    std::fs::read_to_string(d)
+        .map(|content| {
+            HttpResponse::Ok().body(content)
         })
-        .collect();
-    return HttpResponse::Ok()
-        .body("<html><section>".to_owned() + &*all_sections.join("</section><section>") + "</section></html>");
+        .unwrap_or(HttpResponse::NotFound().body(""))
 }
 
-fn list_drafts(pool: web::Data<Pool>) -> impl Responder {
-    let conn: &Connection = &pool.get().unwrap();
-    let repo = PgPostRepository::new(conn);
-    let all_sections: Vec<String> = repo.all_drafts()
-        .iter()
-        .map(|post| {
-            let markdown_input = match post {
-                Post::Draft { markdown_content, .. } => markdown_content.clone(),
-                Post::Post { markdown_content, .. } => markdown_content.clone(),
-                Post::NonExisting { .. } => "".to_string(),
-            };
-            let parser = Parser::new(&*markdown_input);
-
-            let mut html_output = String::new();
-            html::push_html(&mut html_output, parser);
-            return html_output;
-        })
-        .collect();
-    return HttpResponse::Ok()
-        .body("<html><section>".to_owned() + &*all_sections.join("</section><section>") + "</section></html>");
+async fn health(pool: web::Data<pool::Pool>) -> impl Responder {
+    pool.get()
+        .map_err(|_| "no connection in pool".to_string())
+        .and_then(|mut connection| connection.query("values (1)", &[])
+            .map_err(|_| "query failed".to_string()))
+        .map(|_| HttpResponse::Ok().body(""))
+        .unwrap_or_else(|err| HttpResponse::InternalServerError().body(err))
 }
 
-#[derive(Deserialize)]
-pub struct SubmitDraft {
-    language: String,
-    title: String,
-    description: String,
-    markdown_content: String,
+pub async fn post_by_slug(
+    slug: web::Path<String>,
+    pool: web::Data<pool::Pool>,
+) -> Result<HttpResponse, Error> {
+    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+        return repo.find_by_slug(slug.to_string())
+            .map(|post| {
+                match post {
+                    Post::Post { markdown_content, .. } => {
+                        let mut options = Options::empty();
+                        options.insert(Options::ENABLE_STRIKETHROUGH);
+                        let parser = Parser::new_ext(markdown_content.as_str(), options);
+
+                        // Write to String buffer.
+                        let mut html_output: String = String::with_capacity(markdown_content.len() * 3 / 2);
+                        push_html(&mut html_output, parser);
+
+                        HttpResponse::Ok().body(html_output)
+                    },
+                    _ => HttpResponse::NotFound().json(""),
+                }
+            }).unwrap_or(HttpResponse::NotFound().json(""));
+    }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
 }
 
-fn submit_draft(
-    params: web::Json<SubmitDraft>,
-    pool: web::Data<Pool>,
-) -> impl Responder {
-    let conn: &Connection = &pool.get().unwrap();
-    let mut repo = PgPostRepository::new(conn);
-
-    let draft = Post::NonExisting { aggregate_id: uuid::Uuid::new_v4() };
-    let parameters = params.into_inner();
-    let result = draft.submit_draft(
-        FromStr::from_str(parameters.language.as_str()).unwrap(),
-        parameters.title.to_owned(),
-        parameters.description.to_owned(),
-        parameters.markdown_content.to_owned(),
-    );
-    return match result {
-        Ok(new_draft) => {
-            repo.submit_draft(new_draft.clone());
-            return HttpResponse::Ok().json(new_draft.aggregate_id);
-        }
-        Err(err) => HttpResponse::Forbidden().json(err.to_string()),
-    };
-}
-
-
-fn main() {
-    std::env::set_var("RUST_LOG", "actix_web=info");
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
-    let manager = pool::ConnectionManager::new("postgres://postgres:postgres@localhost:5432/sadraskol_dev");
-    let pool: pool::Pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+    let config = config::cfg();
 
-    HttpServer::new(move || App::new()
-        .data(pool.clone())
-        .wrap(Logger::default())
-        .service(
-            web::scope("/")
-                .route("", web::get().to(index))
-                .route("/api/v2/drafts", web::get().to(list_drafts))
-                .route("/api/v2/drafts", web::put().to(submit_draft))
-            // .route("/api/v2/drafts/:draft_id", web::get().to(show_draft))
-            // .route("/api/v2/drafts/:draft_id/make-public", web::post().to(make_draft_public))
-            // .route("/api/v2/drafts/:draft_id", web::patch().to(edit_draft))
-            // .route("/api/v2/drafts/:draft_id", web::delete().to(delete_draft))
-        ))
-        .bind("127.0.0.1:4000")
-        .unwrap()
-        .run()
-        .unwrap();
+    let pool: pool::Pool = r2d2::Pool::builder()
+        .connection_timeout(Duration::from_secs(4))
+        .build(pool::ConnectionManager::new(config.postgres.clone()))
+        .expect("Failed to create pool");
+
+    let mut handlebars: Handlebars<'_> = Handlebars::new();
+    handlebars.register_template_file("index", "./front/templates/index.html").unwrap();
+    let hb_ref = web::Data::new(handlebars);
+
+    let listen_address = format!("{}:{}", config.host, config.port);
+    HttpServer::new(move || {
+        App::new()
+            .data(pool.clone())
+            .app_data(hb_ref.clone())
+            .wrap(Compress::default())
+            .wrap(Logger::default())
+            .service(web::scope("/api")
+                .service(
+                    web::resource("/drafts")
+                        .route(web::get().to(api::list_drafts))
+                        .route(web::put().to(api::submit_draft)))
+                .service(web::resource("/drafts/{draft_id}")
+                    .route(web::get().to(api::show_draft))
+                    .route(web::patch().to(api::edit_draft))
+                    .route(web::delete().to(api::delete_draft)))
+                .service(web::resource("/drafts/{draft_id}/make-public").route(web::post().to(api::make_draft_public)))
+                .service(web::resource("/drafts/{draft_id}/publish").route(web::post().to(api::publish_draft)))
+                .service(web::resource("/posts").route(web::get().to(api::list_posts)))
+                .service(web::resource("/posts/{post_id}").route(web::patch().to(api::edit_post)))
+            )
+            .service(web::resource("/health").route(web::get().to(health)))
+            .service(web::resource("/").route(web::get().to(index)))
+            .service(web::resource("/drafts").route(web::get().to(index)))
+            .service(web::resource("/posts").route(web::get().to(index)))
+            .service(web::resource("/posts/{slug:.*}").route(web::get().to(post_by_slug)))
+            .service(web::resource("/dist/{filename:.*}").route(web::get().to(dist)))
+    })
+        .bind(listen_address.clone())?.run()
+        .await
 }
