@@ -2,7 +2,7 @@ module Style where
 
 import CSS
 
-import CSS.Common (class None, auto, center, inherit, none)
+import CSS.Common (class None, auto, center, none)
 import CSS.ListStyle.Type (listStyleType)
 import CSS.Overflow (hidden, overflow)
 import Data.Maybe (fromJust)

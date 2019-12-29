@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use postgres::{Row, Transaction};
 use uuid::Uuid;
 
-use crate::pool;
+use crate::pool::Pool;
 use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Post, PostEvent};
 
 pub trait PostRepository {
@@ -20,7 +20,7 @@ pub struct PgPostRepository<'a> {
 }
 
 impl<'a> PgPostRepository<'a> {
-    pub fn from_pool<T, F: FnOnce(&mut PgPostRepository) -> T>(pool: &pool::Pool, f: F) -> Result<T, String> {
+    pub fn from_pool<T, F: FnOnce(&mut PgPostRepository) -> T>(pool: &Pool, f: F) -> Result<T, String> {
         let mut connection = pool.get().map_err(|_| { "pool empty".to_string() })?;
         let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
         let mut repository = PgPostRepository { transaction };

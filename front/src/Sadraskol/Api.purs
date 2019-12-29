@@ -4,7 +4,6 @@ import Prelude
 
 import Affjax (defaultRequest)
 import Affjax as AJ
-import Affjax.RequestBody (RequestBody(..))
 import Affjax.RequestBody as RequestBody
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat (string)

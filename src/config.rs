@@ -1,10 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Config {
     pub host: String,
     pub port: u16,
     pub postgres: Postgres,
+    pub admin: Admin,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Admin {
+    pub login: String,
+    pub password: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

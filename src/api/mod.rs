@@ -1,5 +1,4 @@
 use std::convert::identity;
-use std::ops::Deref;
 use std::str::FromStr;
 
 use actix_web::{Error, HttpResponse, web};
@@ -18,7 +17,7 @@ pub mod requests;
 pub mod resources;
 
 pub async fn list_drafts(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         let all_drafts: Vec<DraftResource> = repo.all_drafts()
             .iter()
             .map(DraftResource::from)
@@ -28,7 +27,7 @@ pub async fn list_drafts(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
 }
 
 pub async fn list_posts(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         let all_posts: Vec<PostResource> = repo.all_posts()
             .iter()
             .map(PostResource::from)
@@ -41,7 +40,7 @@ pub async fn show_draft(
     draft_id: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return uuid::Uuid::from_str(&*draft_id)
             .map_err(|err| bad_request(err.to_string()))
             .and_then(|id| repo.read(id)
@@ -64,7 +63,7 @@ pub async fn submit_draft(
     params: web::Json<SubmitDraft>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         let draft = Post::NonExisting { aggregate_id: uuid::Uuid::new_v4() };
         return submit_or_edit_draft(params, repo, draft);
     })
@@ -91,7 +90,7 @@ pub async fn make_draft_public(
     paths: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return get_post_from_params(paths, repo)
             .map(|post| {
                 let event = post.make_public();
@@ -109,7 +108,7 @@ pub async fn edit_draft(
     params: web::Json<SubmitDraft>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return get_post_from_params(paths, repo)
             .map(|draft| { return submit_or_edit_draft(params, repo, draft); })
             .unwrap_or_else(identity);
@@ -120,7 +119,7 @@ pub async fn delete_draft(
     paths: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return get_post_from_params(paths, repo)
             .map(|post| {
                 let event = post.delete_draft();
@@ -137,7 +136,7 @@ pub async fn publish_draft(
     paths: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return get_post_from_params(paths, repo)
             .map(|post| {
                 let event = post.publish_draft(chrono::Utc::now());
@@ -155,7 +154,7 @@ pub async fn edit_post(
     params: web::Json<EditPost>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.deref(), |repo| {
+    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         return get_post_from_params(paths, repo)
             .map(|post| {
                 let event = post.edit_post(
