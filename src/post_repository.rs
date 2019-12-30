@@ -297,7 +297,7 @@ impl RowsToPostsBuilder {
         self.clone().head
             .map(|builder| {
                 let mut results = self.clone().materialized_posts;
-                results.insert(0, builder.build());
+                results.push(builder.build());
                 results
             })
             .unwrap_or(self.clone().materialized_posts)

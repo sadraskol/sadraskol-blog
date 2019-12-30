@@ -1,4 +1,5 @@
 extern crate actix_web;
+extern crate askama;
 
 use std::time::Duration;
 
@@ -6,10 +7,8 @@ use actix_web::{App, HttpServer};
 use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
 use env_logger;
-use handlebars::Handlebars;
 
 use crate::identity::{CheckAdmin, identity_service};
-use crate::web::post::post_by_slug;
 
 pub mod api;
 pub mod web;
@@ -32,15 +31,10 @@ async fn main() -> std::io::Result<()> {
         .build(pool::ConnectionManager::new(config.postgres.clone()))
         .expect("Failed to create pool");
 
-    let mut handlebars: Handlebars<'_> = Handlebars::new();
-    handlebars.register_template_file("index", "./front/templates/index.html").unwrap();
-    let hb_ref = actix_web::web::Data::new(handlebars);
-
     let listen_address = format!("{}:{}", config.host, config.port);
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            .app_data(hb_ref.clone())
             .wrap(identity_service())
             .wrap(Compress::default())
             .wrap(Logger::default())
@@ -59,12 +53,16 @@ async fn main() -> std::io::Result<()> {
                 .service(actix_web::web::resource("/posts").route(actix_web::web::get().to(api::list_posts)))
                 .service(actix_web::web::resource("/posts/{post_id}").route(actix_web::web::patch().to(api::edit_post)))
             )
-            .service(actix_web::web::resource("/login").route(actix_web::web::get().to(web::login)))
+            .service(actix_web::web::resource("/login")
+                .route(actix_web::web::get().to(web::login))
+                .route(actix_web::web::post().to(web::submit_login))
+            )
             .service(actix_web::web::resource("/health").route(actix_web::web::get().to(web::health)))
-            .service(actix_web::web::resource("/").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::index)))
-            .service(actix_web::web::resource("/drafts").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::index)))
-            .service(actix_web::web::resource("/posts").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::index)))
-            .service(actix_web::web::resource("/posts/{slug:.*}").route(actix_web::web::get().to(post_by_slug)))
+            .service(actix_web::web::resource("/").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::post::index)))
+            .service(actix_web::web::resource("/admin").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::admin)))
+            .service(actix_web::web::resource("/admin/drafts").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::admin)))
+            .service(actix_web::web::resource("/admin/posts").wrap(CheckAdmin {}).route(actix_web::web::get().to(web::admin)))
+            .service(actix_web::web::resource("/posts/{slug:.*}").route(actix_web::web::get().to(web::post::post_by_slug)))
             .service(actix_web::web::resource("/dist/{filename:.*}").route(actix_web::web::get().to(web::dist)))
     })
         .bind(listen_address.clone())?.run()

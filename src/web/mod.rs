@@ -1,17 +1,46 @@
-use std::collections::BTreeMap;
-
 use actix_identity::Identity;
 use actix_web::{Error, HttpResponse, Responder, web};
-use handlebars::Handlebars;
-use serde_json::to_value;
+use actix_web::http::header::LOCATION;
+use askama::Template;
+use serde::{Deserialize, Serialize};
 
+use crate::config;
 use crate::pool::Pool;
 
 pub mod post;
 
-pub async fn login(id: Identity) -> Result<HttpResponse, Error> {
-    id.remember("admin".to_owned());
-    Ok(HttpResponse::Ok().body(""))
+#[derive(Template)]
+#[template(path = "admin.html")]
+struct AdminTemplate {}
+
+pub async fn admin() -> Result<HttpResponse, Error> {
+    let template = AdminTemplate {};
+    Ok(HttpResponse::Ok().body(template.render().unwrap()))
+}
+
+#[derive(Template)]
+#[template(path = "login.html")]
+struct LoginTemplate {}
+
+pub async fn login() -> Result<HttpResponse, Error> {
+    let template = LoginTemplate {};
+    Ok(HttpResponse::Ok().body(template.render().unwrap()))
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginForm {
+    login: String,
+    password: String,
+}
+
+pub async fn submit_login(params: web::Form<LoginForm>, id: Identity) -> Result<HttpResponse, Error> {
+    let config = config::cfg();
+    if config.admin.login == params.login && config.admin.password == params.password {
+        id.remember("admin".to_string());
+        Ok(HttpResponse::Found().header(LOCATION, "/").body(""))
+    } else {
+        Ok(HttpResponse::Found().header(LOCATION, "/").body(""))
+    }
 }
 
 pub async fn dist(filename: web::Path<String>) -> Result<HttpResponse, Error> {
@@ -20,14 +49,6 @@ pub async fn dist(filename: web::Path<String>) -> Result<HttpResponse, Error> {
     d.push("dist");
     d.push(filename.into_inner());
     Ok(serve_file(d))
-}
-
-pub async fn index(hb: web::Data<Handlebars<'_>>) -> Result<HttpResponse, Error> {
-    let mut map = BTreeMap::new();
-    map.insert("some", "value");
-    let data = to_value(map).unwrap();
-    let body = hb.render("index", &data).unwrap();
-    Ok(HttpResponse::Ok().body(body))
 }
 
 fn serve_file(d: std::path::PathBuf) -> HttpResponse {
