@@ -6,10 +6,12 @@ use pulldown_cmark::html::push_html;
 use crate::pool::Pool;
 use crate::post::Post;
 use crate::post_repository::{PgPostRepository, PostRepository};
+use crate::web::BaseTemplate;
 
 #[derive(Template)]
 #[template(path = "post.html")]
-struct PostTemplate {
+struct PostTemplate<'a> {
+    _parent: BaseTemplate<'a>,
     raw_content: String,
 }
 
@@ -30,9 +32,11 @@ pub async fn post_by_slug(
                         let mut html_output: String = String::with_capacity(markdown_content.len() * 3 / 2);
                         push_html(&mut html_output, parser);
 
-                        let page = PostTemplate { raw_content: html_output.clone() };
+                        let page = PostTemplate { _parent: BaseTemplate::default(), raw_content: html_output.clone() };
 
-                        HttpResponse::Ok().body(page.render().unwrap())
+                        HttpResponse::Ok()
+                            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                            .body(page.render().unwrap())
                     }
                     _ => HttpResponse::NotFound().json(""),
                 }
@@ -40,6 +44,7 @@ pub async fn post_by_slug(
     }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
 }
 
+#[derive(Debug)]
 pub struct PostSummaryView {
     title: String,
     publication_date: String,
@@ -64,7 +69,8 @@ impl PostSummaryView {
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate {
+struct IndexTemplate<'a> {
+    _parent: BaseTemplate<'a>,
     posts: Vec<PostSummaryView>
 }
 
@@ -76,7 +82,9 @@ pub async fn index(
             .iter()
             .map(PostSummaryView::from)
             .collect();
-        let template = IndexTemplate { posts };
-        HttpResponse::Ok().body(template.render().unwrap())
+        let template = IndexTemplate { _parent: BaseTemplate::default(), posts };
+        HttpResponse::Ok()
+            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(template.render().unwrap())
     }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())))
 }

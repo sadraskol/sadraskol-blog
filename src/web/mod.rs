@@ -10,21 +10,41 @@ use crate::pool::Pool;
 pub mod post;
 
 #[derive(Template)]
+#[template(path = "base.html")]
+pub struct BaseTemplate<'a> {
+    pub title: &'a str,
+}
+
+impl <'a> BaseTemplate<'a> {
+    pub fn default() -> BaseTemplate<'a> {
+        BaseTemplate { title: "Sadraskol" }
+    }
+}
+
+#[derive(Template)]
 #[template(path = "admin.html")]
 struct AdminTemplate {}
 
 pub async fn admin() -> Result<HttpResponse, Error> {
     let template = AdminTemplate {};
-    Ok(HttpResponse::Ok().body(template.render().unwrap()))
+    Ok(HttpResponse::Ok()
+        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(template.render().unwrap()))
 }
 
 #[derive(Template)]
 #[template(path = "login.html")]
-struct LoginTemplate {}
+struct LoginTemplate<'a> {
+    _parent: BaseTemplate<'a>
+}
 
 pub async fn login() -> Result<HttpResponse, Error> {
-    let template = LoginTemplate {};
-    Ok(HttpResponse::Ok().body(template.render().unwrap()))
+    let template = LoginTemplate {
+        _parent: BaseTemplate::default()
+    };
+    Ok(HttpResponse::Ok()
+        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(template.render().unwrap()))
 }
 
 #[derive(Serialize, Deserialize)]
