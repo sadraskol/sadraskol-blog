@@ -8,6 +8,7 @@ use crate::config;
 use crate::pool::Pool;
 
 pub mod post;
+pub mod admin;
 
 #[derive(Template)]
 #[template(path = "base.html")]
@@ -15,21 +16,10 @@ pub struct BaseTemplate<'a> {
     pub title: &'a str,
 }
 
-impl <'a> BaseTemplate<'a> {
+impl<'a> BaseTemplate<'a> {
     pub fn default() -> BaseTemplate<'a> {
         BaseTemplate { title: "Sadraskol" }
     }
-}
-
-#[derive(Template)]
-#[template(path = "admin.html")]
-struct AdminTemplate {}
-
-pub async fn admin() -> Result<HttpResponse, Error> {
-    let template = AdminTemplate {};
-    Ok(HttpResponse::Ok()
-        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-        .body(template.render().unwrap()))
 }
 
 #[derive(Template)]

@@ -48,9 +48,7 @@ pub async fn show_draft(
             )
             .and_then(|post| {
                 return match post {
-                    Post::Draft { .. } => repo.read(post.aggregate_id())
-                        .ok_or(not_found("not found".to_string()))
-                        .map(|post| HttpResponse::Ok().json(DraftResource::from(&post))),
+                    Post::Draft { .. } => Ok(HttpResponse::Ok().json(DraftResource::from(&post))),
                     _ => Err(bad_request("not a draft".to_string())),
                 };
             })

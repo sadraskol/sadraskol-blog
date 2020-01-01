@@ -44,7 +44,6 @@ pub async fn post_by_slug(
     }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
 }
 
-#[derive(Debug)]
 pub struct PostSummaryView {
     title: String,
     publication_date: String,

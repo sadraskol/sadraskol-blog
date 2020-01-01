@@ -3,16 +3,10 @@
 <head>
     <title>{{ title }}</title>
     <style>
-        ul {
-            padding: 0 0 0 0;
-            margin: 0 0 0 0;
-            list-style-type: none
-        }
-
-        ol {
-            padding: 0 0 0 0;
-            margin: 0 0 0 0;
-            list-style-type: none
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
         }
 
         a {
@@ -43,40 +37,50 @@
             color: hsl(345.0, 13.33%, 17.65%)
         }
 
-        header ul {
-            align-self: center
-        }
-
         header nav {
             padding-top: 1.0em;
             padding-bottom: 1.0em
         }
 
         .container {
-            width: 900.0px;
-            margin: 0 auto 0 auto
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
         }
 
-        .overview-menu__item {
-            display: inline-block;
-            padding: 15.0px 30.0px 15.0px 0
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
         }
 
-        .draft-item {
-            margin: 1.0em 0 0 0
+        figure figcaption {
+            text-align: center;
         }
 
-        .draft-item:last-child {
-            margin-bottom: 1.0em
+        code {
+            background-color: #fffffe;
         }
 
-        .draft-item__actions {
-            padding: 3.0px 0 0 0
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
         }
 
-        .draft-item__actions__item {
-            display: inline-block;
-            padding: 0 30.0px 0 0
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
         }
 
         .post-item {
@@ -88,7 +92,9 @@
         }
 
         .post-item__actions {
-            padding: 3.0px 0 0 0
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
         }
 
         .post-item__actions__item {
@@ -96,72 +102,18 @@
             padding: 0 30.0px 0 0
         }
 
-        .editor-header {
-            width: 900.0px;
-            margin: 0 auto 0 auto;
-            height: 46.0px;
-            z-index: 20;
-            background-color: hsl(0.0, 0.0%, 100.0%);
-            display: flex;
-            align-items: center;
-            padding: 0 0 0 0;
-            position: fixed;
-            top: 158.0px;
-            left: 0;
-            right: 0
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
         }
 
-        .editor-header a {
-            margin-right: 10.0px
-        }
-
-        .editor-header__right {
-            display: flex;
-            margin-left: auto
-        }
-
-        .editor-language__select {
-            background-color: hsla(0.0, 0.0%, 0.0%, 0.0);
-            overflow: hidden;
-            border: solid 0 hsl(0.0, 0.0%, 0.0%);
-            border-radius: 0 0 0 0;
-            box-sizing: border-box;
-            padding: 6.0px 16.0px 6.0px 16.0px
-        }
-
-        .editor {
-            padding-top: 46.0px
-        }
-
-        .editor-title {
-            width: 700.0px;
-            margin: 0 auto 0 auto
-        }
-
-        .editor-title__input {
-            overflow: hidden;
-            border: solid 0 hsl(0.0, 0.0%, 0.0%);
-            border-bottom: solid 1.0px hsl(0.0, 0.0%, 0.0%);
-            border-radius: 0 0 0 0;
-            box-sizing: border-box;
-            width: 100.0%;
-            height: 100.0%;
-            padding: 6.0px 16.0px 6.0px 16.0px;
-            margin-bottom: 1.0em
-        }
-
-        .editor-content {
-            width: 700.0px;
-            margin: 0 auto 0 auto
-        }
-
-        .editor-content__textarea {
-            resize: none;
-            border: solid 0 hsl(0.0, 0.0%, 0.0%);
-            border-radius: 0 0 0 0;
-            box-sizing: border-box;
-            width: 100.0%;
-            padding: 6.0px 16.0px 6.0px 16.0px
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
         }
     </style>
 </head>

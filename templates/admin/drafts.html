@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+{% for draft in drafts %}
+<div class="post-item">
+    <div><strong>{{ draft.title }}</strong></div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a href="{{ draft.edit_link }}">Edit</a></li>
+        <li class="post-item__actions__item">
+            <form method="post" action="{{ draft.publish_link }}">
+                <button type="submit">Publish</button>
+            </form>
+        </li>
+        {% if !draft.public_yet -%}
+        <li class="post-item__actions__item">
+            <form method="post" action="{{ draft.make_public_link }}">
+                <button type="submit">Make public</button>
+            </form>
+        </li>
+        {% else -%}{% endif -%}
+        <li class="post-item__actions__item"><a href="{{ draft.preview_link }}">Preview</a></li>
+    </ul>
+</div>
+{% endfor %}
+{% endblock content %}
