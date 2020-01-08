@@ -238,11 +238,11 @@ impl Post {
         };
     }
 
-    pub fn edit_post<S: Into<String>, V: Into<String>>(
+    pub fn edit_post<Title: Into<String>, Content: Into<String>>(
         &self,
         language: Language,
-        new_title: S,
-        markdown_content: V,
+        new_title: Title,
+        markdown_content: Content,
     ) -> PostEvent {
         return match self {
             Post::Draft { .. } => PostError(PostErrors::CannotEditDraftAsPost),

@@ -47,7 +47,7 @@ pub async fn submit_login(params: web::Form<LoginForm>, id: Identity) -> Result<
     let config = config::cfg();
     if config.admin.login == params.login && config.admin.password == params.password {
         id.remember("admin".to_string());
-        Ok(HttpResponse::Found().header(LOCATION, "/").body(""))
+        Ok(HttpResponse::Found().header(LOCATION, "/admin").body(""))
     } else {
         Ok(HttpResponse::Found().header(LOCATION, "/").body(""))
     }

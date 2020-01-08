@@ -1,4 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<h2>{{title}}</h2>
 {{ raw_content|safe }}
+<a href="{{back_link}}">Back</a>
 {% endblock content %}

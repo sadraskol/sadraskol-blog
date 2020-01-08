@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form method="post" action="{{draft.edit_link}}">
+<form method="post" action="{{post.edit_link}}">
     <fieldset>
-        <label>Title: <input name="title" value="{{ draft.title }}" class="editor-title__input"
+        <label>Title: <input name="title" value="{{ post.title }}" class="editor-title__input"
                              autocomplete="false"></label>
         <label>Language: <select name="language" class="editor-language__select">
-            {% if draft.language == "fr" -%}
+            {% if post.language == "fr" -%}
             <option class="editor-language__option" value="fr" selected>Français</option>
             <option class="editor-language__option" value="en">English</option>
             {% else -%}
@@ -17,7 +17,7 @@
         </label>
     </fieldset>
     <label for="editor-content__textarea">Content:</label>
-    <textarea name="markdown_content" id="editor-content__textarea">{{ draft.markdown_content }}</textarea>
+    <textarea name="markdown_content" id="editor-content__textarea">{{ post.markdown_content }}</textarea>
     <div class="editor-header">
         <a href="/admin/drafts">Close</a>
         <button type="submit">Save</button>

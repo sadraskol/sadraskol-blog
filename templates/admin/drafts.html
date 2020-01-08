@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<div><a href="/admin/drafts/new">New Draft</a></div>
 {% for draft in drafts %}
 <div class="post-item">
     <div><strong>{{ draft.title }}</strong></div>
