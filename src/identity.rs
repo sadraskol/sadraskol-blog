@@ -4,17 +4,19 @@ use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures::future::{Either, ok, Ready};
 use futures::task::{Context, Poll};
 
-pub fn identity_service() -> IdentityService<CookieIdentityPolicy> {
+use crate::config::Config;
+
+pub fn identity_service(config: Config) -> IdentityService<CookieIdentityPolicy> {
     if cfg!(features = "production") {
         IdentityService::new(
-            CookieIdentityPolicy::new(&[0; 32])
-                .name("auth-example")
+            CookieIdentityPolicy::new(config.cookie_seed.as_bytes())
+                .name("sadraskol")
                 .secure(true),
         )
     } else {
         IdentityService::new(
-            CookieIdentityPolicy::new(&[0; 32])
-                .name("auth-example")
+            CookieIdentityPolicy::new(config.cookie_seed.as_bytes())
+                .name("sadraskol")
                 .secure(false),
         )
     }
@@ -30,8 +32,8 @@ impl<S, B> Transform<S> for CheckAdmin
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type InitError = ();
     type Transform = CheckAdminMiddleware<S>;
+    type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {

@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a href="/admin/drafts">Drafts</a></li>
+    </ul>
+</div>
 {% for post in posts %}
 <div class="post-item">
     <div><strong>{{ post.title }}</strong></div>

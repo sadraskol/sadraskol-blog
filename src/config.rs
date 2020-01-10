@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub host: String,
     pub port: u16,
+    pub cookie_seed: String,
     pub postgres: Postgres,
     pub admin: Admin,
 }
@@ -28,7 +29,7 @@ pub struct SslConfig {
 }
 
 pub fn cfg() -> Config {
-    let cfg_path = if cfg!(features = "production") { "config/prod.toml" } else { "config/dev.toml" };
+    let cfg_path = if cfg!(feature = "production") { "config/prod.toml" } else { "config/dev.toml" };
     let file_content = std::fs::read_to_string(std::path::PathBuf::from(cfg_path))
         .expect(format!("could not access {}", cfg_path).as_str());
     return toml::from_str(file_content.as_str())
