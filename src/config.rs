@@ -18,14 +18,6 @@ pub struct Admin {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Postgres {
     pub url: String,
-    pub ssl: Option<SslConfig>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SslConfig {
-    pub cert_path: String,
-    pub ca_path: String,
-    pub key_path: String,
 }
 
 pub fn cfg() -> Config {
