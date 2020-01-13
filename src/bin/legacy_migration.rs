@@ -6,10 +6,10 @@ use std::path::PathBuf;
 use postgres::{Client, NoTls};
 
 fn main() {
-    let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    d.push("sadraskol.sql");
-    let mut connection = Client::connect("postgres://postgres:postgres@localhost:5433/sadraskol_dev", NoTls).unwrap();
-    let contents = fs::read_to_string(d).unwrap();
+    let sql_file = std::env::var("SQL_FILE").unwrap_or("./sadraskol.sql".to_string());
+    let config = sadraskol::config::cfg();
+    let mut connection = Client::connect(config.postgres.url.as_str(), NoTls).unwrap();
+    let contents = fs::read_to_string(PathBuf::from(sql_file)).unwrap();
     let mut transaction = connection.transaction().unwrap();
     transaction.batch_execute(contents.as_str()).unwrap();
     transaction.batch_execute("\

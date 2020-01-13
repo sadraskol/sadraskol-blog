@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         fieldset {
             border: 0;
@@ -92,13 +93,16 @@
         }
 
         .post-item__actions {
+            display: flex;
+            flex-direction: row;
             margin: 0 0 0 0;
             padding: 3.0px 0 0 0;
             list-style-type: none
         }
 
         .post-item__actions__item {
-            display: inline-block;
+            position: relative;
+            display: block;
             padding: 0 30.0px 0 0
         }
 
