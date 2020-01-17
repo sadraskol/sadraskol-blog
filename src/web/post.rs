@@ -13,6 +13,7 @@ use crate::web::BaseTemplate;
 struct PostTemplate<'a> {
     _parent: BaseTemplate<'a>,
     title: String,
+    publication_date: String,
     back_link: String,
     raw_content: String,
 }
@@ -25,7 +26,7 @@ pub async fn post_by_slug(
         return repo.find_by_slug(slug.to_string())
             .map(|post| {
                 match post {
-                    Post::Post { markdown_content, title, current_slug, .. } => {
+                    Post::Post { markdown_content, title, current_slug, publication_date, .. } => {
                         if current_slug != slug.to_string() {
                             HttpResponse::Found()
                                 .header(actix_web::http::header::LOCATION, format!("/posts/{}", current_slug))
@@ -42,6 +43,7 @@ pub async fn post_by_slug(
                             let page = PostTemplate {
                                 _parent: BaseTemplate::default(),
                                 title: title.clone(),
+                                publication_date:publication_date.format("%d %B %Y").to_string(),
                                 back_link: "/".to_string(),
                                 raw_content: html_output.clone(),
                             };

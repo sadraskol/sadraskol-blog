@@ -141,6 +141,7 @@ pub async fn edit_draft(
 struct DraftPreviewTemplate<'a> {
     _parent: BaseTemplate<'a>,
     title: String,
+    publication_date: String,
     back_link: String,
     raw_content: String,
 }
@@ -163,6 +164,7 @@ pub async fn preview_draft(
                 let page = DraftPreviewTemplate {
                     _parent: BaseTemplate::default(),
                     title: title.clone(),
+                    publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
                     back_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
                     raw_content: html_output.clone(),
                 };

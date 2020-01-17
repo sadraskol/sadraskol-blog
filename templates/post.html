@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>{{title}}</h2>
+<time>{{ publication_date }}</time>
 {{ raw_content|safe }}
-<a href="{{back_link}}">Back</a>
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="{{back_link}}">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
 {% endblock content %}

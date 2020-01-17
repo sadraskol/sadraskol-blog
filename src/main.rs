@@ -1,5 +1,6 @@
 extern crate actix_web;
 extern crate askama;
+extern crate nom;
 
 use std::time::Duration;
 
@@ -10,7 +11,7 @@ use env_logger;
 
 use crate::identity::{CheckAdmin, identity_service};
 
-pub mod api;
+pub mod highlight;
 pub mod web;
 pub mod identity;
 pub mod pool;
@@ -38,22 +39,6 @@ async fn main() -> std::io::Result<()> {
             .wrap(identity_service(config.clone()))
             .wrap(Compress::default())
             .wrap(Logger::default())
-            .service(actix_web::web::scope("/api")
-                .wrap(CheckAdmin {})
-                .service(actix_web::web::resource("/drafts")
-                        .route(actix_web::web::get().to(api::list_drafts))
-                        .route(actix_web::web::put().to(api::submit_draft))
-                )
-                .service(actix_web::web::resource("/drafts/{draft_id}")
-                    .route(actix_web::web::get().to(api::show_draft))
-                    .route(actix_web::web::patch().to(api::edit_draft))
-                    .route(actix_web::web::delete().to(api::delete_draft))
-                )
-                .service(actix_web::web::resource("/drafts/{draft_id}/make-public").route(actix_web::web::post().to(api::make_draft_public)))
-                .service(actix_web::web::resource("/drafts/{draft_id}/publish").route(actix_web::web::post().to(api::publish_draft)))
-                .service(actix_web::web::resource("/posts").route(actix_web::web::get().to(api::list_posts)))
-                .service(actix_web::web::resource("/posts/{post_id}").route(actix_web::web::patch().to(api::edit_post)))
-            )
             .service(actix_web::web::scope("/admin")
                     .wrap(CheckAdmin {})
                     .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::index)))
