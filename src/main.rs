@@ -1,7 +1,3 @@
-extern crate actix_web;
-extern crate askama;
-extern crate nom;
-
 use std::time::Duration;
 
 use actix_web::{App, HttpServer};
@@ -9,16 +5,10 @@ use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
 use env_logger;
 
-use crate::identity::{CheckAdmin, identity_service};
-
-pub mod highlight;
-pub mod web;
-pub mod identity;
-pub mod pool;
-pub mod post;
-pub mod post_repository;
-pub mod slugify;
-pub mod config;
+use sadraskol::identity::{CheckAdmin, identity_service};
+use sadraskol::web;
+use sadraskol::config;
+use sadraskol::pool;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

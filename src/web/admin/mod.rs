@@ -156,6 +156,7 @@ pub async fn preview_draft(
             Post::Draft { aggregate_id, markdown_content, title, .. } => {
                 let mut options = Options::empty();
                 options.insert(Options::ENABLE_STRIKETHROUGH);
+                options.insert(Options::ENABLE_TABLES);
                 let parser = Parser::new_ext(markdown_content.as_str(), options);
 
                 let mut html_output: String = String::with_capacity(markdown_content.len() * 3 / 2);

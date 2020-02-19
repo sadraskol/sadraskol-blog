@@ -34,6 +34,7 @@ pub async fn post_by_slug(
                         } else {
                             let mut options = Options::empty();
                             options.insert(Options::ENABLE_STRIKETHROUGH);
+                            options.insert(Options::ENABLE_TABLES);
                             let parser = Parser::new_ext(markdown_content.as_str(), options);
 
                             // Write to String buffer.
