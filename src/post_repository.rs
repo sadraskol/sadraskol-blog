@@ -5,7 +5,7 @@ use postgres::{Row, Transaction};
 use uuid::Uuid;
 
 use crate::pool::Pool;
-use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Post, PostEvent};
+use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Post, PostEvent, Markdown};
 
 pub trait PostRepository {
     fn all_posts(&mut self) -> Vec<Post>;
@@ -184,9 +184,9 @@ impl PostBuilder {
     fn build(self) -> Post {
         match self {
             PostBuilder::Draft { aggregate_id, version, title, markdown_content, language, shareable } =>
-                Post::Draft { aggregate_id, version, title, markdown_content, language, shareable },
+                Post::Draft { aggregate_id, version, title, markdown_content: Markdown::new(markdown_content), language, shareable },
             PostBuilder::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, .. } =>
-                Post::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug: current_slug.expect("no current_slug found"), previous_slugs }
+                Post::Post { aggregate_id, version, title, markdown_content: Markdown::new(markdown_content), language, publication_date, current_slug: current_slug.expect("no current_slug found"), previous_slugs }
         }
     }
 

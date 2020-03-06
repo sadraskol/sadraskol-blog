@@ -1,7 +1,9 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
+use pulldown_cmark::{Options, Parser};
 
+use crate::custom_markdown::sad_push_html;
 use crate::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished};
 use crate::slugify::slugify;
 
@@ -32,6 +34,28 @@ impl ToString for Language {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
+pub struct Markdown {
+    raw: String
+}
+
+impl Markdown {
+    pub fn new<T: ToString>(value: T) -> Markdown {
+        Markdown { raw: value.to_string() }
+    }
+
+    pub fn format(&self) -> String {
+        let mut options = Options::empty();
+        options.insert(Options::ENABLE_STRIKETHROUGH);
+        options.insert(Options::ENABLE_TABLES);
+        let mut parser = Parser::new_ext(self.raw.as_str(), options);
+
+        let mut html_output: String = String::with_capacity(self.raw.len() * 3 / 2);
+        sad_push_html(&mut html_output, &mut parser);
+        html_output.clone()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Post {
     NonExisting {
         aggregate_id: AggregateId,
@@ -40,7 +64,7 @@ pub enum Post {
         aggregate_id: AggregateId,
         version: u32,
         title: String,
-        markdown_content: String,
+        markdown_content: Markdown,
         language: Language,
         shareable: bool,
     },
@@ -48,7 +72,7 @@ pub enum Post {
         aggregate_id: AggregateId,
         version: u32,
         title: String,
-        markdown_content: String,
+        markdown_content: Markdown,
         language: Language,
         publication_date: DateTime<Utc>,
         current_slug: String,
@@ -279,7 +303,7 @@ mod test {
     use rand::distributions::Distribution;
     use rand::distributions::Uniform;
 
-    use crate::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished};
+    use crate::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Markdown};
     use crate::post::Language;
     use crate::post::Post;
     use crate::post::PostErrors;
@@ -512,7 +536,7 @@ mod test {
             aggregate_id: uuid::Uuid::new_v4(),
             version: rand_version(),
             title: rand_str(),
-            markdown_content: rand_str(),
+            markdown_content: Markdown::new(rand_str()),
             language: rand_lang(),
             shareable: false,
         };
@@ -523,7 +547,7 @@ mod test {
             aggregate_id: uuid::Uuid::new_v4(),
             version: rand_version(),
             title: rand_str(),
-            markdown_content: rand_str(),
+            markdown_content: Markdown::new(rand_str()),
             language: rand_lang(),
             shareable: true,
         };
@@ -577,7 +601,7 @@ mod test {
                 aggregate_id: self.aggregate_id.clone(),
                 version: self.version.clone(),
                 title: self.title.clone(),
-                markdown_content: self.markdown_content.clone(),
+                markdown_content: Markdown::new(self.markdown_content.clone()),
                 language: self.language.clone(),
                 publication_date: self.publication_date.clone(),
                 current_slug: self.current_slug.clone(),

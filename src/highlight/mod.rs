@@ -1,16 +1,30 @@
-use crate::highlight::java::Code;
+use std::io;
+
+use nom::bytes::complete::{tag, take_till};
+use nom::IResult;
+
+use crate::custom_markdown::StrWrite;
 
 pub mod java;
 
-pub fn parse(_input: &str) -> Code {
-    return vec![];
+pub fn highlight<W: StrWrite>(mut w: W, s: &str) -> io::Result<()> {
+    let xd: IResult<&str, &str, ()> = take_till(|c| c == '/')(s);
+    let (after, before) = xd.unwrap();
+    w.write_str(before)?;
+    w.write_str("super")?;
+    let xd: IResult<&str, &str, ()> = tag("//")(after);
+    let (rest, tag) = xd.unwrap();
+    w.write_str(tag)?;
+    let xd: IResult<&str, &str, ()> = take_till(|c| c == '\n')(rest);
+    let (last, comment) = xd.unwrap();
+    w.write_str(comment)?;
+    w.write_str("super")?;
+    w.write_str(last)?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod test {
-    use crate::highlight::java::Token::{Keyword, Literal};
-    use crate::highlight::parse;
-
     /*
     class Cell {
      private final boolean isAlive;
@@ -43,10 +57,5 @@ mod test {
     #[test]
     fn submit_draft_successfully() {
         let code = "class Cell {";
-
-        assert_eq!(vec![
-            Keyword("class"),
-            Literal(" Cell {")
-        ], parse(code));
     }
 }

@@ -2,8 +2,6 @@ use std::str::FromStr;
 
 use actix_web::{Error, HttpResponse, web};
 use askama::Template;
-use pulldown_cmark::{Options, Parser};
-use pulldown_cmark::html::push_html;
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -45,7 +43,7 @@ impl DraftSummaryView {
             },
             Post::Draft { title, aggregate_id, markdown_content, language, shareable, .. } => DraftSummaryView {
                 title: title.clone(),
-                markdown_content: markdown_content.to_string(),
+                markdown_content: markdown_content.format(),
                 language: language.to_string(),
                 preview_link: format!("/admin/drafts/{}/preview", aggregate_id.to_hyphenated().to_string()),
                 edit_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
@@ -154,20 +152,12 @@ pub async fn preview_draft(
         let post = find_post(repo, draft_id.clone());
         match post {
             Post::Draft { aggregate_id, markdown_content, title, .. } => {
-                let mut options = Options::empty();
-                options.insert(Options::ENABLE_STRIKETHROUGH);
-                options.insert(Options::ENABLE_TABLES);
-                let parser = Parser::new_ext(markdown_content.as_str(), options);
-
-                let mut html_output: String = String::with_capacity(markdown_content.len() * 3 / 2);
-                push_html(&mut html_output, parser);
-
                 let page = DraftPreviewTemplate {
                     _parent: BaseTemplate::default(),
                     title: title.clone(),
                     publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
                     back_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
-                    raw_content: html_output.clone(),
+                    raw_content: markdown_content.format(),
                 };
 
                 HttpResponse::Ok()
@@ -239,7 +229,7 @@ impl PostSummaryView {
         match post {
             Post::Post { title, aggregate_id, markdown_content, language, publication_date, current_slug, .. } => PostSummaryView {
                 title: title.clone(),
-                markdown_content: markdown_content.to_string(),
+                markdown_content: markdown_content.format(),
                 language: language.to_string(),
                 publication_date: publication_date.format("%d %B %Y").to_string(),
                 edit_link: format!("/admin/posts/{}", aggregate_id.to_hyphenated().to_string()),

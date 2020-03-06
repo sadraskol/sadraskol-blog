@@ -8,7 +8,7 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, Language, Post, InnerPostEdited, InnerPostPublished};
+use sadraskol::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, Language, Post, InnerPostEdited, InnerPostPublished, Markdown};
 use sadraskol::post_repository::{PgPostRepository, PostRepository};
 use sadraskol::post::PostEvent::{DraftSubmitted, PostPublished, DraftDeleted, DraftMadePublic, PostEdited};
 
@@ -38,7 +38,7 @@ fn test_publish_draft(repo: &mut PgPostRepository) {
         aggregate_id,
         version: 2,
         title: "some title".to_string(),
-        markdown_content: "some content".to_string(),
+        markdown_content: Markdown::new("some content"),
         language: Language::Fr,
         publication_date: date,
         current_slug: "post-slug".to_string(),
@@ -126,7 +126,7 @@ fn test_edit_post(repo: &mut PgPostRepository) {
         aggregate_id,
         version: 4,
         title: "other title".to_string(),
-        markdown_content: "other content".to_string(),
+        markdown_content: Markdown::new("other content"),
         language: Language::En,
         publication_date: date,
         current_slug: "other-title".to_string(),
@@ -150,7 +150,7 @@ fn test_submit_non_existing_draft(repo: &mut PgPostRepository) {
         aggregate_id,
         version: 1,
         title: "some title".to_string(),
-        markdown_content: "some content".to_string(),
+        markdown_content: Markdown::new("some content"),
         language: Language::Fr,
         shareable: false,
     };
@@ -179,7 +179,7 @@ fn test_edit_draft(repo: &mut PgPostRepository) {
         aggregate_id,
         version: 2,
         title: "other title".to_string(),
-        markdown_content: "other content".to_string(),
+        markdown_content: Markdown::new("other content"),
         language: Language::En,
         shareable: false,
     };
@@ -202,7 +202,7 @@ fn test_make_draft_public(repo: &mut PgPostRepository) {
         aggregate_id,
         version: 1,
         title: "some title".to_string(),
-        markdown_content: "some content".to_string(),
+        markdown_content: Markdown::new("some content"),
         language: Language::Fr,
         shareable: true,
     };

@@ -1,7 +1,5 @@
 use actix_web::{Error, HttpResponse, web};
 use askama::Template;
-use pulldown_cmark::{Options, Parser};
-use pulldown_cmark::html::push_html;
 
 use crate::pool::Pool;
 use crate::post::Post;
@@ -32,21 +30,12 @@ pub async fn post_by_slug(
                                 .header(actix_web::http::header::LOCATION, format!("/posts/{}", current_slug))
                                 .body("")
                         } else {
-                            let mut options = Options::empty();
-                            options.insert(Options::ENABLE_STRIKETHROUGH);
-                            options.insert(Options::ENABLE_TABLES);
-                            let parser = Parser::new_ext(markdown_content.as_str(), options);
-
-                            // Write to String buffer.
-                            let mut html_output: String = String::with_capacity(markdown_content.len() * 3 / 2);
-                            push_html(&mut html_output, parser);
-
                             let page = PostTemplate {
                                 _parent: BaseTemplate::default(),
                                 title: title.clone(),
                                 publication_date:publication_date.format("%d %B %Y").to_string(),
                                 back_link: "/".to_string(),
-                                raw_content: html_output.clone(),
+                                raw_content: markdown_content.format(),
                             };
 
                             HttpResponse::Ok()
