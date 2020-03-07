@@ -49,9 +49,13 @@ impl Markdown {
         options.insert(Options::ENABLE_TABLES);
         let mut parser = Parser::new_ext(self.raw.as_str(), options);
 
-        let mut html_output: String = String::with_capacity(self.raw.len() * 3 / 2);
+        let mut html_output: String = String::with_capacity(self.raw.len() * 2);
         sad_push_html(&mut html_output, &mut parser);
         html_output.clone()
+    }
+
+    pub fn to_edit(&self) -> String {
+        self.raw.clone()
     }
 }
 

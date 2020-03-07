@@ -4,7 +4,9 @@ use std::io::{self, ErrorKind, Write};
 use std::str::from_utf8;
 
 use pulldown_cmark::{Alignment, CowStr, Event, LinkType, Tag};
-use crate::highlight::highlight;
+
+use crate::highlight::{highlight, SadLang};
+use crate::highlight::SadLang::{Java, Text};
 
 enum TableState {
     Head,
@@ -179,7 +181,7 @@ struct HtmlWriter<'a, I, W> {
     end_newline: bool,
 
     /// Whether we're in the middle of a block
-    within_code: bool, // TODO provide a lang if possible
+    within_code: Option<SadLang>,
 
     table_state: TableState,
     table_alignments: Vec<Alignment>,
@@ -197,7 +199,7 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
             iter,
             writer,
             end_newline: true,
-            within_code: false,
+            within_code: None,
             table_state: TableState::Head,
             table_alignments: vec![],
             table_cell_index: 0,
@@ -232,8 +234,8 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                     self.end_tag(tag)?;
                 }
                 Event::Text(text) => {
-                    if self.within_code {
-                        highlight(&mut self.writer, &text)?;
+                    if self.within_code.is_some() {
+                        highlight(&mut self.writer, &text, self.within_code.unwrap())?;
                     } else {
                         escape_html(&mut self.writer, &text)?;
                     }
@@ -346,7 +348,10 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                     escape_html(&mut self.writer, lang)?;
                     self.write("\">")?;
                 }
-                self.within_code = true;
+                match lang {
+                    "java" => self.within_code = Some(Java),
+                    _ => self.within_code = Some(Text),
+                }
                 Ok(())
             }
             Tag::List(Some(1)) => {
@@ -462,7 +467,7 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                 self.write("</blockquote>\n")?;
             }
             Tag::CodeBlock(_) => {
-                self.within_code = false;
+                self.within_code = None;
                 self.write("</code></pre>\n")?;
             }
             Tag::List(Some(_)) => {

@@ -43,7 +43,7 @@ impl DraftSummaryView {
             },
             Post::Draft { title, aggregate_id, markdown_content, language, shareable, .. } => DraftSummaryView {
                 title: title.clone(),
-                markdown_content: markdown_content.format(),
+                markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 preview_link: format!("/admin/drafts/{}/preview", aggregate_id.to_hyphenated().to_string()),
                 edit_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
