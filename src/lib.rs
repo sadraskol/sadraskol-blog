@@ -1,6 +1,5 @@
 extern crate actix_web;
 extern crate askama;
-extern crate nom;
 
 pub mod highlight;
 pub mod custom_markdown;

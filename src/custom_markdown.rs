@@ -6,7 +6,7 @@ use std::str::from_utf8;
 use pulldown_cmark::{Alignment, CowStr, Event, LinkType, Tag};
 
 use crate::highlight::{highlight, SadLang};
-use crate::highlight::SadLang::{Java, Text};
+use crate::highlight::SadLang::{Java, Text, Alloy};
 
 enum TableState {
     Head,
@@ -350,6 +350,7 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                 }
                 match lang {
                     "java" => self.within_code = Some(Java),
+                    "alloy" => self.within_code = Some(Alloy),
                     _ => self.within_code = Some(Text),
                 }
                 Ok(())
