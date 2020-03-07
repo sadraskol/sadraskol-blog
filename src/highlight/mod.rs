@@ -29,38 +29,30 @@ fn highlight_java<W: StrWrite>(w: &mut W, s: &&str) -> io::Result<()> {
 
     for c in s.chars() {
         if inline_comment.is_some() {
-            println!("inline comment");
             if c == '\n' {
-                println!("inline comment \\n");
                 spans.push((inline_comment.unwrap(), size, "inline-comment"));
                 inline_comment = None;
             } else {
-                println!("inline comment .");
                 size += c.len_utf8();
                 continue;
             }
         }
         if slash.is_some() {
-            println!("slash");
             if c == '/' {
-                println!("//");
                 inline_comment = Some(slash.unwrap());
             } else {
-                println!("/.");
             }
             slash = None;
             size += c.len_utf8();
             continue;
         }
         if c == '/' {
-            println!("/");
             slash = Some(size);
         }
         size += c.len_utf8();
     }
 
     if inline_comment.is_some() {
-        println!("inline comment eof");
         spans.push((inline_comment.unwrap(), size, "inline-comment"));
     }
 
