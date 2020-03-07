@@ -29,30 +29,38 @@ fn highlight_java<W: StrWrite>(w: &mut W, s: &&str) -> io::Result<()> {
 
     for c in s.chars() {
         if inline_comment.is_some() {
+            println!("inline comment");
             if c == '\n' {
+                println!("inline comment \\n");
                 spans.push((inline_comment.unwrap(), size, "inline-comment"));
                 inline_comment = None;
             } else {
-                size += 1;
+                println!("inline comment .");
+                size += c.len_utf8();
                 continue;
             }
         }
         if slash.is_some() {
+            println!("slash");
             if c == '/' {
-                inline_comment = Some(slash.unwrap())
+                println!("//");
+                inline_comment = Some(slash.unwrap());
             } else {
-                slash = None
+                println!("/.");
             }
-            size += 1;
+            slash = None;
+            size += c.len_utf8();
             continue;
         }
         if c == '/' {
+            println!("/");
             slash = Some(size);
         }
-        size += 1;
+        size += c.len_utf8();
     }
 
     if inline_comment.is_some() {
+        println!("inline comment eof");
         spans.push((inline_comment.unwrap(), size, "inline-comment"));
     }
 
@@ -70,7 +78,7 @@ fn highlight_java<W: StrWrite>(w: &mut W, s: &&str) -> io::Result<()> {
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Java, Text};
+    use crate::highlight::SadLang::{Java, Text, Alloy};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -98,5 +106,12 @@ mod test {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "some // java code", Java).unwrap();
         assert_eq!("some <span class=\"h-inline-comment\">// java code</span>", s.as_str());
+    }
+
+    #[test]
+    fn it_should_work_with_accents_as_well() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n", Alloy).unwrap();
+        assert_eq!("verified: set User, <span class=\"h-inline-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 }
