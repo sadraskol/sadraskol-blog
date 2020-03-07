@@ -229,7 +229,7 @@ impl PostSummaryView {
         match post {
             Post::Post { title, aggregate_id, markdown_content, language, publication_date, current_slug, .. } => PostSummaryView {
                 title: title.clone(),
-                markdown_content: markdown_content.format(),
+                markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 publication_date: publication_date.format("%d %B %Y").to_string(),
                 edit_link: format!("/admin/posts/{}", aggregate_id.to_hyphenated().to_string()),

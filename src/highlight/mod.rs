@@ -22,31 +22,24 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
 
             for c in s.chars() {
                 if inline_comment.is_some() {
-                    println!("some inline comment");
                     if c == '\n' {
-                        println!("\\n");
                         spans.push((inline_comment.unwrap(), size, "inline-comment"));
                         inline_comment = None;
                     } else {
-                        println!("\\n other");
                         size += 1;
                         continue;
                     }
                 }
                 if slash.is_some() {
-                    println!("some /");
                     if c == '/' {
-                        println!("//");
                         inline_comment = Some(slash.unwrap())
                     } else {
-                        println!("/ other");
                         slash = None
                     }
                     size += 1;
                     continue;
                 }
                 if c == '/' {
-                    println!("/");
                     slash = Some(size);
                 }
                 size += 1;
