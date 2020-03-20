@@ -30,24 +30,29 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 keyword("extends"),
                 keyword("implements"),
                 keyword("try"),
+                keyword("while"),
                 keyword("catch"),
                 keyword("finally"),
                 keyword("if"),
                 keyword("else"),
                 keyword("return"),
                 keyword("new"),
-                inline_comment("//")
+                inline_comment("//"),
+                string('"'),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Alloy => {
             let cs = def_lang("alloy", vec![
-                keyword("sig"),
-                keyword("no"),
-                keyword("one"),
-                keyword("lone"),
-                keyword("pred"),
-                inline_comment("//")
+                keyword("abstract"), keyword("all"), keyword("and"), keyword("as"), keyword("assert"),
+                keyword("but"), keyword("check"), keyword("disj"), keyword("else"), keyword("exactly"),
+                keyword("extends"), keyword("fact"), keyword("for"), keyword("fun"), keyword("iden"),
+                keyword("iff"), keyword("implies"), keyword("in"), keyword("Int"), keyword("let"),
+                keyword("lone"), keyword("module"), keyword("no"), keyword("none"), keyword("not"),
+                keyword("one"), keyword("open"), keyword("or"), keyword("pred"), keyword("run"),
+                keyword("set"), keyword("sig"), keyword("some"), keyword("sum"), keyword("univ"),
+                inline_comment("//"), inline_comment("--"),
+                string('"'),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
@@ -58,17 +63,18 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 keyword("of"),
                 keyword("end"),
                 keyword("pred"),
-                inline_comment("//")
+                inline_comment("//"),
+                string('"'),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Elixir => {
             let cs = def_lang("elixir", vec![
-                keyword("def "),
-                keyword("defmodule "),
-                keyword("defmacro "),
-                keyword("defstruct "),
-                keyword("quote "),
+                keyword("def"),
+                keyword("defmodule"),
+                keyword("defmacro"),
+                keyword("defstruct"),
+                keyword("quote"),
                 keyword("cond"),
                 keyword("true"),
                 keyword("false"),
@@ -76,7 +82,8 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 keyword("do"),
                 keyword("end"),
                 keyword("import"),
-                inline_comment("#")
+                inline_comment("#"),
+                string('"'),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
@@ -87,7 +94,8 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 keyword("one"),
                 keyword("lone"),
                 keyword("pred"),
-                inline_comment("//")
+                inline_comment("//"),
+                string('"'),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
@@ -101,7 +109,9 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 keyword("null"),
                 keyword("if"),
                 keyword("else"),
-                inline_comment("//")
+                inline_comment("//"),
+                string('"'),
+                string('\''),
             ]);
             highlight_structure(&mut w, &s, cs)
         }
@@ -123,35 +133,80 @@ fn def_lang(lang: &str, tokens: Vec<Tokenizer>) -> Structure {
 fn keyword(keyword: &str) -> Tokenizer {
     return Tokenizer {
         start: 0,
+        end: 0,
+        state: TokenizerState::Waiting,
+        escape_chars: vec!['\n', ' '],
         valid_acc: vec![],
         missing_acc: keyword.chars().collect(),
         token: keyword.to_string(),
         class: "keyword".to_string(),
         structure: None,
+        include: false,
     };
 }
 
 fn inline_comment(start_with: &str) -> Tokenizer {
     return Tokenizer {
         start: 0,
+        end: 0,
+        state: TokenizerState::Waiting,
         valid_acc: vec![],
+        escape_chars: vec!['\n', ' '],
         missing_acc: start_with.chars().collect(),
         token: start_with.to_string(),
         class: "comment".to_string(),
+        include: false,
         structure: Some(Structure {
             start: 0,
             inside_tokens: vec![],
             final_tokens: vec![Tokenizer {
                 start: 0,
+                end: 0,
+                escape_chars: vec![],
+                state: TokenizerState::Waiting,
                 valid_acc: vec![],
                 missing_acc: vec!['\n'],
                 token: "\n".to_string(),
                 class: "end-comment".to_string(),
                 structure: None,
+                include: false,
             }],
             spans: vec![],
             parent: None,
             class: "inline-comment".to_string(),
+        }),
+    };
+}
+
+fn string(separator: char) -> Tokenizer {
+    return Tokenizer {
+        start: 0,
+        end: 0,
+        state: TokenizerState::Waiting,
+        valid_acc: vec![],
+        escape_chars: vec![],
+        missing_acc: vec![separator],
+        token: separator.to_string(),
+        class: "string".to_string(),
+        include: false,
+        structure: Some(Structure {
+            start: 0,
+            inside_tokens: vec![],
+            final_tokens: vec![Tokenizer {
+                start: 0,
+                end: 0,
+                state: TokenizerState::Waiting,
+                valid_acc: vec![],
+                escape_chars: vec![],
+                missing_acc: vec![separator],
+                token: separator.to_string(),
+                class: "end-comment".to_string(),
+                structure: None,
+                include: true,
+            }],
+            spans: vec![],
+            parent: None,
+            class: "string".to_string(),
         }),
     };
 }
@@ -177,11 +232,17 @@ impl Structure {
     fn to_parent(&self, end: usize) -> Structure {
         let some_parent = self.parent.clone();
         let mut p = *some_parent.unwrap();
-        if self.final_tokens[0].start == 0 {
-            p.add((self.start, end, self.class.clone()));
+
+        if self.final_tokens[0].is_at_least_candidate() {
+            if self.final_tokens[0].include {
+                p.add((self.start, self.final_tokens[0].end, self.class.clone()));
+            } else {
+                p.add((self.start, self.final_tokens[0].start, self.class.clone()));
+            }
         } else {
-            p.add((self.start, self.final_tokens[0].start, self.class.clone()));
+            p.add((self.start, end, self.class.clone()));
         }
+
         p
     }
     fn is_complete(&self) -> bool {
@@ -202,41 +263,115 @@ impl Structure {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum TokenizerState {
+    Waiting,
+    Matching,
+    Candidate,
+    Completed,
+    Sleeping,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct Tokenizer {
     start: usize,
+    end: usize,
+    state: TokenizerState,
+    escape_chars: Vec<char>,
+    // TODO replace with Predicate
     valid_acc: Vec<char>,
     missing_acc: Vec<char>,
     token: String,
     class: String,
     structure: Option<Structure>,
+    include: bool,
 }
 
 impl Tokenizer {
     fn accumulate(&mut self, c: char, s: usize) {
-        if self.missing_acc[0] == c {
-            if self.valid_acc.is_empty() {
-                self.start = s;
+        match self.state {
+            TokenizerState::Waiting => {
+                if self.missing_acc[0] == c {
+                    if self.valid_acc.is_empty() {
+                        self.start = s;
+                    }
+                    self.valid_acc.push(c);
+                    self.missing_acc.remove(0);
+                    if self.missing_acc.is_empty() {
+                        self.end = s + c.len_utf8();
+                        self.state = TokenizerState::Candidate;
+                    } else {
+                        self.state = TokenizerState::Matching;
+                    }
+                } else if !self.escape_chars.is_empty() && !self.escape_chars.contains(&c) {
+                    self.state = TokenizerState::Sleeping;
+                }
             }
-            self.valid_acc.push(c);
-            self.missing_acc.remove(0);
-        } else {
-            self.valid_acc = vec![];
-            self.missing_acc = self.token.chars().collect();
+            TokenizerState::Candidate => {
+                if self.escape_chars.is_empty() || self.escape_chars.contains(&c) {
+                    self.state = TokenizerState::Completed;
+                } else {
+                    self.state = TokenizerState::Sleeping;
+                }
+            }
+            TokenizerState::Completed => {}
+            TokenizerState::Matching => {
+                if self.missing_acc[0] == c {
+                    if self.valid_acc.is_empty() {
+                        self.start = s;
+                    }
+                    self.valid_acc.push(c);
+                    self.missing_acc.remove(0);
+                    if self.missing_acc.is_empty() {
+                        self.end = s + c.len_utf8();
+                        if self.escape_chars.is_empty() {
+                            self.valid_acc = vec![];
+                            self.missing_acc = self.token.chars().collect();
+                            self.state = TokenizerState::Waiting;
+                        } else {
+                            self.state = TokenizerState::Candidate;
+                        }
+                    } else {
+                        self.state = TokenizerState::Matching;
+                    }
+                } else {
+                    self.valid_acc = vec![];
+                    self.missing_acc = self.token.chars().collect();
+                    if !self.escape_chars.is_empty() && !self.escape_chars.contains(&c) {
+                        self.state = TokenizerState::Sleeping;
+                    } else {
+                        self.state = TokenizerState::Waiting;
+                    }
+                }
+            }
+            TokenizerState::Sleeping => {
+                if self.escape_chars.is_empty() || self.escape_chars.contains(&c) {
+                    self.valid_acc = vec![];
+                    self.missing_acc = self.token.chars().collect();
+                    self.state = TokenizerState::Waiting;
+                }
+            }
         }
     }
     fn is_complete(&self) -> bool {
-        self.missing_acc.is_empty()
+        self.state == TokenizerState::Completed
     }
-    fn as_span(&mut self, end: usize) -> Span {
+    fn is_at_least_candidate(&self) -> bool {
+        self.state == TokenizerState::Completed || self.state == TokenizerState::Candidate
+    }
+    fn as_span(&mut self) -> Span {
         self.valid_acc = vec![];
         self.missing_acc = self.token.chars().collect();
-        (self.start, end, self.class.clone())
+        self.state = TokenizerState::Waiting;
+        (self.start, self.end, self.class.clone())
     }
     fn structure_starts(&self) -> bool {
         self.structure.is_some()
     }
     fn as_struct(&mut self) -> Structure {
+        self.valid_acc = vec![];
+        self.missing_acc = self.token.chars().collect();
+        self.state = TokenizerState::Waiting;
         let mut structure = self.structure.clone().unwrap();
         structure.start(self.start);
         structure
@@ -248,21 +383,24 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
     for c in s.chars() {
         let mut opt_span = None;
         let mut opt_structure = None;
-        cs.every_token(|t| {
-            t.accumulate(c, size);
-        });
+        cs.inside_tokens.iter_mut()
+            .chain(cs.final_tokens.iter_mut())
+            .for_each(|t| {
+                t.accumulate(c, size);
+            });
 
         size += c.len_utf8();
 
-        cs.every_token(|t| {
-            if t.is_complete() {
-                if t.structure_starts() {
-                    opt_structure = Some(t.as_struct());
-                } else {
-                    opt_span = Some(t.as_span(size));
+        cs.inside_tokens.iter_mut()
+            .for_each(|t| {
+                if t.is_complete() {
+                    if t.structure_starts() {
+                        opt_structure = Some(t.as_struct());
+                    } else {
+                        opt_span = Some(t.as_span());
+                    }
                 }
-            }
-        });
+            });
 
         if opt_structure.is_some() {
             let mut new_cs = opt_structure.unwrap();
@@ -271,10 +409,12 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
         } else if opt_span.is_some() {
             cs.add(opt_span.unwrap());
         }
-        if cs.is_complete() {
+
+        if !cs.final_tokens.is_empty() && cs.final_tokens[0].is_complete() {
             cs = cs.to_parent(size);
         }
     }
+
     let spans: Vec<Span> = cs.eof(size);
 
     let mut mark = 0;
@@ -291,7 +431,7 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Alloy, Java, Text};
+    use crate::highlight::SadLang::{Alloy, Elixir, Java, Text};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -329,9 +469,37 @@ mod test {
     }
 
     #[test]
-    fn it_should_work_with_accents_as_well() {
+    fn it_works_with_accents_as_well() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n", Alloy).unwrap();
-        assert_eq!("verified: set User, <span class=\"h-inline-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
+        assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-inline-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
+    }
+
+    #[test]
+    fn keywords_are_not_highlighted_if_in_the_end_of_names() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "innerclass", Java).unwrap();
+        assert_eq!("innerclass", s.as_str());
+    }
+
+    #[test]
+    fn keywords_are_not_highlighted_if_starting_of_names() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "classical", Java).unwrap();
+        assert_eq!("classical", s.as_str());
+    }
+
+    #[test]
+    fn highligh_strings() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "\"classical\" wow", Java).unwrap();
+        assert_eq!("<span class=\"h-string\">\"classical\"</span> wow", s.as_str());
+    }
+
+    #[test]
+    fn highligh_strings_within_the_rest_elixir() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend", Elixir).unwrap();
+        assert_eq!("      <span class=\"h-keyword\">def</span> unquote(:<span class=\"h-string\">\"add_#{name}\"</span>)(addend), do: unquote(base_addend) + addend", s.as_str());
     }
 }
