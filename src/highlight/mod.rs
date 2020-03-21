@@ -119,7 +119,7 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
     };
 }
 
-fn def_lang(lang: &str, tokens: Vec<Tokenizer>) -> Structure {
+fn def_lang(lang: &str, tokens: Vec<STokenizer>) -> Structure {
     return Structure {
         start: 0,
         class: lang.to_string(),
@@ -130,91 +130,76 @@ fn def_lang(lang: &str, tokens: Vec<Tokenizer>) -> Structure {
     };
 }
 
-fn keyword(keyword: &str) -> Tokenizer {
-    return Tokenizer {
-        start: 0,
-        end: 0,
-        state: TokenizerState::Waiting,
-        escape_chars: vec!['\n', ' '],
-        valid_acc: vec![],
-        missing_acc: keyword.chars().collect(),
-        token: keyword.to_string(),
-        class: "keyword".to_string(),
-        structure: None,
-        include: false,
+fn keyword(keyword: &str) -> STokenizer {
+    return STokenizer::WaitingToken {
+        params: TokenParams {
+            escape_chars: vec!['\n', ' '],
+            token: keyword.to_string(),
+            class: "keyword".to_string(),
+            structure: None,
+            include: false,
+        }
     };
 }
 
-fn inline_comment(start_with: &str) -> Tokenizer {
-    return Tokenizer {
-        start: 0,
-        end: 0,
-        state: TokenizerState::Waiting,
-        valid_acc: vec![],
-        escape_chars: vec!['\n', ' '],
-        missing_acc: start_with.chars().collect(),
-        token: start_with.to_string(),
-        class: "comment".to_string(),
-        include: false,
-        structure: Some(Structure {
-            start: 0,
-            inside_tokens: vec![],
-            final_tokens: vec![Tokenizer {
+fn inline_comment(start_with: &str) -> STokenizer {
+    return STokenizer::WaitingToken {
+        params: TokenParams {
+            escape_chars: vec!['\n', ' '],
+            token: start_with.to_string(),
+            class: start_with.to_string(),
+            structure: Some(Structure {
                 start: 0,
-                end: 0,
-                escape_chars: vec![],
-                state: TokenizerState::Waiting,
-                valid_acc: vec![],
-                missing_acc: vec!['\n'],
-                token: "\n".to_string(),
-                class: "end-comment".to_string(),
-                structure: None,
-                include: false,
-            }],
-            spans: vec![],
-            parent: None,
-            class: "inline-comment".to_string(),
-        }),
+                inside_tokens: vec![],
+                final_tokens: vec![STokenizer::WaitingToken {
+                    params: TokenParams {
+                        escape_chars: vec![],
+                        token: "\n".to_string(),
+                        class: "end-comment".to_string(),
+                        structure: None,
+                        include: false,
+                    }
+                }],
+                spans: vec![],
+                parent: None,
+                class: "inline-comment".to_string(),
+            }),
+            include: false,
+        }
     };
 }
 
-fn string(separator: char) -> Tokenizer {
-    return Tokenizer {
-        start: 0,
-        end: 0,
-        state: TokenizerState::Waiting,
-        valid_acc: vec![],
-        escape_chars: vec![],
-        missing_acc: vec![separator],
-        token: separator.to_string(),
-        class: "string".to_string(),
-        include: false,
-        structure: Some(Structure {
-            start: 0,
-            inside_tokens: vec![],
-            final_tokens: vec![Tokenizer {
-                start: 0,
-                end: 0,
-                state: TokenizerState::Waiting,
-                valid_acc: vec![],
-                escape_chars: vec![],
-                missing_acc: vec![separator],
-                token: separator.to_string(),
-                class: "end-comment".to_string(),
-                structure: None,
-                include: true,
-            }],
-            spans: vec![],
-            parent: None,
+fn string(separator: char) -> STokenizer {
+    return STokenizer::WaitingToken {
+        params: TokenParams {
+            escape_chars: vec![],
+            token: separator.to_string(),
             class: "string".to_string(),
-        }),
+            structure: Some(Structure {
+                start: 0,
+                inside_tokens: vec![],
+                final_tokens: vec![STokenizer::WaitingToken {
+                    params: TokenParams {
+                        escape_chars: vec![],
+                        token: separator.to_string(),
+                        class: "end-comment".to_string(),
+                        structure: None,
+                        include: true,
+                    }
+                }],
+                spans: vec![],
+                parent: None,
+                class: "string".to_string(),
+            }),
+            include: false,
+        }
     };
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct Structure {
-    inside_tokens: Vec<Tokenizer>,
-    final_tokens: Vec<Tokenizer>,
+    inside_tokens: Vec<STokenizer>,
+    final_tokens: Vec<STokenizer>,
     spans: Vec<Span>,
     parent: Option<Box<Structure>>,
     start: usize,
@@ -222,31 +207,30 @@ struct Structure {
 }
 
 impl Structure {
-    fn every_token<F>(&mut self, f: F)
-        where F: FnMut(&mut Tokenizer)
-    {
-        self.inside_tokens.iter_mut()
-            .chain(self.final_tokens.iter_mut())
-            .for_each(f)
-    }
-    fn to_parent(&self, end: usize) -> Structure {
+    fn to_parent(&self, eof_size: usize) -> Structure {
         let some_parent = self.parent.clone();
         let mut p = *some_parent.unwrap();
 
-        if self.final_tokens[0].is_at_least_candidate() {
-            if self.final_tokens[0].include {
-                p.add((self.start, self.final_tokens[0].end, self.class.clone()));
-            } else {
-                p.add((self.start, self.final_tokens[0].start, self.class.clone()));
+        match self.final_tokens[0].clone() {
+            STokenizer::WaitingToken { .. } => { p.add((self.start, eof_size, self.class.clone())); }
+            STokenizer::MatchingToken { .. } => { p.add((self.start, eof_size, self.class.clone())); }
+            STokenizer::SleepingToken { .. } => { p.add((self.start, eof_size, self.class.clone())); }
+            STokenizer::CandidateToken { params, start, end } => {
+                if params.include {
+                    p.add((self.start, end, self.class.clone()));
+                } else {
+                    p.add((self.start, start, self.class.clone()));
+                }
             }
-        } else {
-            p.add((self.start, end, self.class.clone()));
+            STokenizer::CompletedToken { params, start, end } => {
+                if params.include {
+                    p.add((self.start, end, self.class.clone()));
+                } else {
+                    p.add((self.start, start, self.class.clone()));
+                }
+            }
         }
-
         p
-    }
-    fn is_complete(&self) -> bool {
-        self.final_tokens.iter().any(|t| t.is_complete())
     }
     fn add(&mut self, s: Span) {
         self.spans.push(s);
@@ -263,118 +247,186 @@ impl Structure {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum TokenizerState {
-    Waiting,
-    Matching,
-    Candidate,
-    Completed,
-    Sleeping,
-}
-
 #[derive(Clone, Debug, PartialEq)]
-struct Tokenizer {
-    start: usize,
-    end: usize,
-    state: TokenizerState,
+struct TokenParams {
     escape_chars: Vec<char>,
-    // TODO replace with Predicate
-    valid_acc: Vec<char>,
-    missing_acc: Vec<char>,
     token: String,
     class: String,
     structure: Option<Structure>,
     include: bool,
 }
 
-impl Tokenizer {
-    fn accumulate(&mut self, c: char, s: usize) {
-        match self.state {
-            TokenizerState::Waiting => {
-                if self.missing_acc[0] == c {
-                    if self.valid_acc.is_empty() {
-                        self.start = s;
-                    }
-                    self.valid_acc.push(c);
-                    self.missing_acc.remove(0);
-                    if self.missing_acc.is_empty() {
-                        self.end = s + c.len_utf8();
-                        self.state = TokenizerState::Candidate;
-                    } else {
-                        self.state = TokenizerState::Matching;
-                    }
-                } else if !self.escape_chars.is_empty() && !self.escape_chars.contains(&c) {
-                    self.state = TokenizerState::Sleeping;
-                }
-            }
-            TokenizerState::Candidate => {
-                if self.escape_chars.is_empty() || self.escape_chars.contains(&c) {
-                    self.state = TokenizerState::Completed;
-                } else {
-                    self.state = TokenizerState::Sleeping;
-                }
-            }
-            TokenizerState::Completed => {}
-            TokenizerState::Matching => {
-                if self.missing_acc[0] == c {
-                    if self.valid_acc.is_empty() {
-                        self.start = s;
-                    }
-                    self.valid_acc.push(c);
-                    self.missing_acc.remove(0);
-                    if self.missing_acc.is_empty() {
-                        self.end = s + c.len_utf8();
-                        if self.escape_chars.is_empty() {
-                            self.valid_acc = vec![];
-                            self.missing_acc = self.token.chars().collect();
-                            self.state = TokenizerState::Waiting;
-                        } else {
-                            self.state = TokenizerState::Candidate;
+#[derive(Clone, Debug, PartialEq)]
+enum STokenizer {
+    WaitingToken {
+        params: TokenParams
+    },
+    MatchingToken {
+        start: usize,
+        valid_acc: Vec<char>,
+        missing_acc: Vec<char>,
+        params: TokenParams,
+    },
+    CandidateToken {
+        start: usize,
+        end: usize,
+        params: TokenParams,
+    },
+    CompletedToken {
+        start: usize,
+        end: usize,
+        params: TokenParams,
+    },
+    SleepingToken {
+        params: TokenParams
+    },
+}
+
+impl STokenizer {
+    fn accumulate(&self, c: char, s: usize) -> Self {
+        match self {
+            STokenizer::WaitingToken { params } => {
+                let mut valid_acc = vec![];
+                let mut missing_acc: Vec<char> = params.token.chars().collect();
+                if missing_acc[0] == c {
+                    valid_acc.push(c);
+                    missing_acc.remove(0);
+                    if missing_acc.is_empty() {
+                        STokenizer::CandidateToken {
+                            start: s,
+                            end: s + c.len_utf8(),
+                            params: params.clone(),
                         }
                     } else {
-                        self.state = TokenizerState::Matching;
+                        STokenizer::MatchingToken {
+                            start: s,
+                            valid_acc,
+                            missing_acc,
+                            params: params.clone(),
+                        }
+                    }
+                } else if !params.escape_chars.is_empty() && !params.escape_chars.contains(&c) {
+                    STokenizer::SleepingToken {
+                        params: params.clone(),
                     }
                 } else {
-                    self.valid_acc = vec![];
-                    self.missing_acc = self.token.chars().collect();
-                    if !self.escape_chars.is_empty() && !self.escape_chars.contains(&c) {
-                        self.state = TokenizerState::Sleeping;
-                    } else {
-                        self.state = TokenizerState::Waiting;
+                    STokenizer::WaitingToken {
+                        params: params.clone()
                     }
                 }
             }
-            TokenizerState::Sleeping => {
-                if self.escape_chars.is_empty() || self.escape_chars.contains(&c) {
-                    self.valid_acc = vec![];
-                    self.missing_acc = self.token.chars().collect();
-                    self.state = TokenizerState::Waiting;
+            STokenizer::MatchingToken { params, start, valid_acc, missing_acc } => {
+                if missing_acc[0] == c {
+                    let mut valids = valid_acc.clone();
+                    let mut missings = missing_acc.clone();
+                    valids.push(c);
+                    missings.remove(0);
+                    if missings.is_empty() {
+                        if params.escape_chars.is_empty() {
+                            // TODO This is a special case for structure finalizing token (should be a special case indeed!)
+                            STokenizer::WaitingToken {
+                                params: params.clone(),
+                            }
+                        } else {
+                            STokenizer::CandidateToken {
+                                start: *start,
+                                end: s + c.len_utf8(),
+                                params: params.clone(),
+                            }
+                        }
+                    } else {
+                        STokenizer::MatchingToken {
+                            missing_acc: missings,
+                            valid_acc: valids,
+                            start: *start,
+                            params: params.clone(),
+                        }
+                    }
+                } else {
+                    if !params.escape_chars.is_empty() && !params.escape_chars.contains(&c) {
+                        STokenizer::SleepingToken {
+                            params: params.clone(),
+                        }
+                    } else {
+                        STokenizer::WaitingToken {
+                            params: params.clone(),
+                        }
+                    }
                 }
             }
+            STokenizer::CandidateToken { params, start, end } => {
+                if params.escape_chars.is_empty() || params.escape_chars.contains(&c) {
+                    STokenizer::CompletedToken {
+                        start: *start,
+                        end: *end,
+                        params: params.clone(),
+                    }
+                } else {
+                    STokenizer::SleepingToken {
+                        params: params.clone()
+                    }
+                }
+            }
+            STokenizer::SleepingToken { params } => {
+                if params.escape_chars.is_empty() || params.escape_chars.contains(&c) {
+                    STokenizer::WaitingToken {
+                        params: params.clone()
+                    }
+                } else {
+                    self.clone()
+                }
+            }
+            STokenizer::CompletedToken { .. } => { self.clone() }
         }
     }
     fn is_complete(&self) -> bool {
-        self.state == TokenizerState::Completed
+        match self {
+            STokenizer::WaitingToken { .. } => false,
+            STokenizer::SleepingToken { .. } => false,
+            STokenizer::MatchingToken { .. } => false,
+            STokenizer::CandidateToken { .. } => false,
+            STokenizer::CompletedToken { .. } => true,
+        }
     }
-    fn is_at_least_candidate(&self) -> bool {
-        self.state == TokenizerState::Completed || self.state == TokenizerState::Candidate
-    }
-    fn as_span(&mut self) -> Span {
-        self.valid_acc = vec![];
-        self.missing_acc = self.token.chars().collect();
-        self.state = TokenizerState::Waiting;
-        (self.start, self.end, self.class.clone())
+    fn as_span(&self) -> (Self, Span) {
+        match self {
+            STokenizer::WaitingToken { .. } => panic!("Waiting token cannot be converted to span"),
+            STokenizer::SleepingToken { .. } => panic!("Sleeping token cannot be converted to span"),
+            STokenizer::MatchingToken { .. } => panic!("Matching token cannot be converted to span"),
+            STokenizer::CandidateToken { params, start, end } => {
+                (
+                    STokenizer::WaitingToken { params: params.clone() },
+                    (*start, *end, params.class.clone())
+                )
+            }
+            STokenizer::CompletedToken { params, start, end } => {
+                (
+                    STokenizer::WaitingToken { params: params.clone() },
+                    (*start, *end, params.class.clone())
+                )
+            }
+        }
     }
     fn structure_starts(&self) -> bool {
-        self.structure.is_some()
+        match self {
+            STokenizer::WaitingToken { params } => { params.structure.is_some() }
+            STokenizer::SleepingToken { params } => { params.structure.is_some() }
+            STokenizer::MatchingToken { params, .. } => { params.structure.is_some() }
+            STokenizer::CandidateToken { params, .. } => { params.structure.is_some() }
+            STokenizer::CompletedToken { params, .. } => { params.structure.is_some() }
+        }
     }
-    fn as_struct(&mut self) -> Structure {
-        self.valid_acc = vec![];
-        self.missing_acc = self.token.chars().collect();
-        self.state = TokenizerState::Waiting;
-        let mut structure = self.structure.clone().unwrap();
-        structure.start(self.start);
-        structure
+    fn as_struct(&self) -> (Self, Structure) {
+        let (params, start) = match self {
+            STokenizer::WaitingToken { .. } => panic!("Waiting token cannot be converted to structure"),
+            STokenizer::SleepingToken { .. } => panic!("Waiting token cannot be converted to structure"),
+            STokenizer::MatchingToken { .. } => panic!("Waiting token cannot be converted to structure"),
+            STokenizer::CandidateToken { params, start, .. } => { (params, start) }
+            STokenizer::CompletedToken { params, start, .. } => { (params, start) }
+        };
+        let mut structure = params.structure.clone().unwrap();
+        structure.start(*start);
+        (STokenizer::WaitingToken { params: params.clone() }, structure)
     }
 }
 
@@ -383,24 +435,36 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
     for c in s.chars() {
         let mut opt_span = None;
         let mut opt_structure = None;
-        cs.inside_tokens.iter_mut()
-            .chain(cs.final_tokens.iter_mut())
-            .for_each(|t| {
-                t.accumulate(c, size);
-            });
+        cs.inside_tokens = cs.inside_tokens.iter()
+            .map(|t| {
+                t.accumulate(c, size)
+            })
+            .collect();
+        cs.final_tokens = cs.final_tokens.iter()
+            .map(|t| {
+                t.accumulate(c, size)
+            })
+            .collect();
 
         size += c.len_utf8();
 
-        cs.inside_tokens.iter_mut()
-            .for_each(|t| {
+        cs.inside_tokens = cs.inside_tokens.iter()
+            .map(|t| {
                 if t.is_complete() {
                     if t.structure_starts() {
-                        opt_structure = Some(t.as_struct());
+                        let (s, structure) = t.as_struct();
+                        opt_structure = Some(structure);
+                        s
                     } else {
-                        opt_span = Some(t.as_span());
+                        let (s, span) = t.as_span();
+                        opt_span = Some(span);
+                        s
                     }
+                } else {
+                    t.clone()
                 }
-            });
+            })
+            .collect();
 
         if opt_structure.is_some() {
             let mut new_cs = opt_structure.unwrap();
