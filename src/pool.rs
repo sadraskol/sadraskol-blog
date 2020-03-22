@@ -27,8 +27,8 @@ impl ManageConnection for ConnectionManager {
             .map(|_| ())
     }
 
-    fn has_broken(&self, _conn: &mut Client) -> bool {
-        false
+    fn has_broken(&self, conn: &mut Client) -> bool {
+        conn.is_closed()
     }
 }
 
