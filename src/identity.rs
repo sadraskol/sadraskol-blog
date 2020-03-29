@@ -24,6 +24,12 @@ pub fn identity_service(config: Config) -> IdentityService<CookieIdentityPolicy>
 
 pub struct CheckAdmin;
 
+impl CheckAdmin {
+    pub fn new() -> CheckAdmin {
+        CheckAdmin {}
+    }
+}
+
 impl<S, B> Transform<S> for CheckAdmin
     where
         S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=Error>,

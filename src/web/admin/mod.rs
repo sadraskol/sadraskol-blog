@@ -11,6 +11,8 @@ use crate::post::PostEvent;
 use crate::post_repository::{PgPostRepository, PostRepository};
 use crate::web::BaseTemplate;
 
+pub mod backup;
+
 pub async fn index() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Found()
         .header(actix_web::http::header::LOCATION, "/admin/drafts")

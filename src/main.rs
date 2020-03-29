@@ -5,10 +5,10 @@ use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
 use env_logger;
 
-use sadraskol::identity::{CheckAdmin, identity_service};
-use sadraskol::web;
 use sadraskol::config;
+use sadraskol::identity::{CheckAdmin, identity_service};
 use sadraskol::pool;
+use sadraskol::web;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -30,24 +30,27 @@ async fn main() -> std::io::Result<()> {
             .wrap(Compress::default())
             .wrap(Logger::default())
             .service(actix_web::web::scope("/admin")
-                    .wrap(CheckAdmin {})
-                    .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::index)))
-                    .service(actix_web::web::scope("/drafts")
-                            .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::drafts)))
-                            .service(actix_web::web::resource("/{draft_id}")
-                                .route(actix_web::web::get().to(web::admin::draft))
-                                .route(actix_web::web::post().to(web::admin::edit_draft)))
-                            .service(actix_web::web::resource("/{draft_id}/preview").route(actix_web::web::get().to(web::admin::preview_draft)))
-                            .service(actix_web::web::resource("/{draft_id}/publish").route(actix_web::web::post().to(web::admin::publish_draft)))
-                            .service(actix_web::web::resource("/{draft_id}/make-public").route(actix_web::web::post().to(web::admin::make_draft_public)))
-                            .service(actix_web::web::resource("/{draft_id}/delete").route(actix_web::web::post().to(web::admin::draft)))
-                    )
-                    .service(actix_web::web::scope("/posts")
-                            .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::posts)))
-                            .service(actix_web::web::resource("/{post_id}")
-                                .route(actix_web::web::get().to(web::admin::post))
-                                .route(actix_web::web::post().to(web::admin::edit_post)))
-                    )
+                .wrap(CheckAdmin::new())
+                .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::index)))
+                .service(actix_web::web::scope("/drafts")
+                    .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::drafts)))
+                    .service(actix_web::web::resource("/{draft_id}")
+                        .route(actix_web::web::get().to(web::admin::draft))
+                        .route(actix_web::web::post().to(web::admin::edit_draft)))
+                    .service(actix_web::web::resource("/{draft_id}/preview").route(actix_web::web::get().to(web::admin::preview_draft)))
+                    .service(actix_web::web::resource("/{draft_id}/publish").route(actix_web::web::post().to(web::admin::publish_draft)))
+                    .service(actix_web::web::resource("/{draft_id}/make-public").route(actix_web::web::post().to(web::admin::make_draft_public)))
+                    .service(actix_web::web::resource("/{draft_id}/delete").route(actix_web::web::post().to(web::admin::draft)))
+                )
+                .service(actix_web::web::scope("/posts")
+                    .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::posts)))
+                    .service(actix_web::web::resource("/{post_id}")
+                        .route(actix_web::web::get().to(web::admin::post))
+                        .route(actix_web::web::post().to(web::admin::edit_post)))
+                )
+                .service(actix_web::web::scope("/backup")
+                    .service(actix_web::web::resource("").route(actix_web::web::get().to(web::admin::backup::get)))
+                )
             )
             .service(actix_web::web::resource("/login")
                 .route(actix_web::web::get().to(web::login))

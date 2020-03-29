@@ -5,6 +5,7 @@ use crate::pool::Pool;
 use crate::post::Post;
 use crate::post_repository::{PgPostRepository, PostRepository};
 use crate::web::BaseTemplate;
+use chrono::{DateTime, Utc};
 
 #[derive(Template)]
 #[template(path = "post.html")]
@@ -57,14 +58,20 @@ pub struct PostSummaryView {
 }
 
 impl PostSummaryView {
-    fn from(post: &Post) -> PostSummaryView {
+    fn for_human(post: &Post) -> PostSummaryView {
+        Self::from(post, |d| d.format("%d %B %Y").to_string())
+    }
+    fn for_machine(post: &Post) -> PostSummaryView {
+        Self::from(post, |d| d.to_rfc3339())
+    }
+    fn from<F: FnOnce(&DateTime<Utc>) -> String>(post: &Post, f: F) -> PostSummaryView {
         match post {
             Post::Draft { .. } => panic!("expected a post"),
             Post::Post { title, publication_date, current_slug, language, .. } =>
                 PostSummaryView {
                     title: title.clone(),
                     language: language.to_string(),
-                    publication_date: publication_date.format("%d %B %Y").to_string(),
+                    publication_date: f(publication_date),
                     view_link: format!("/posts/{}", current_slug.clone()),
                 },
             Post::NonExisting { .. } => panic!("expected a post"),
@@ -85,7 +92,7 @@ pub async fn index(
     Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         let posts = repo.all_posts()
             .iter()
-            .map(PostSummaryView::from)
+            .map(PostSummaryView::for_human)
             .collect();
         let template = IndexTemplate { _parent: BaseTemplate::default(), posts };
         HttpResponse::Ok()
@@ -106,7 +113,7 @@ pub async fn feed(
     Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
         let posts = repo.all_posts()
             .iter()
-            .map(PostSummaryView::from)
+            .map(PostSummaryView::for_machine)
             .collect();
         let template = FeedTemplate { posts };
         HttpResponse::Ok()

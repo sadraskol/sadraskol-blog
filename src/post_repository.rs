@@ -5,9 +5,10 @@ use postgres::{Row, Transaction};
 use uuid::Uuid;
 
 use crate::pool::Pool;
-use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Post, PostEvent, Markdown};
+use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Markdown, Post, PostEvent};
 
 pub trait PostRepository {
+    fn all(&mut self) -> Vec<Post>;
     fn all_posts(&mut self) -> Vec<Post>;
     fn all_drafts(&mut self) -> Vec<Post>;
     fn find_by_slug(&mut self, slug: String) -> Option<Post>;
@@ -305,6 +306,22 @@ impl RowsToPostsBuilder {
 }
 
 impl<'a> PostRepository for PgPostRepository<'a> {
+    fn all(&mut self) -> Vec<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    order by blog_posts.publication_date desc nulls first",
+            &[],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
     fn all_posts(&mut self) -> Vec<Post> {
         return self.transaction.query(
             "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
