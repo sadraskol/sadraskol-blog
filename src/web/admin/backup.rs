@@ -1,7 +1,7 @@
 use actix_web::{Error, HttpResponse, web};
 
 use crate::pool::Pool;
-use crate::post::{ExportedPost, Post};
+use crate::post::ExportedPost;
 use crate::post_repository::{PgPostRepository, PostRepository};
 
 pub async fn get(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {

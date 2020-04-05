@@ -544,21 +544,21 @@ mod test {
     fn inline_comment_is_okay() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "some // java code\n", Java).unwrap();
-        assert_eq!("some <span class=\"h-inline-comment\">// java code</span>\n", s.as_str());
+        assert_eq!("some <span class=\"h-comment\">// java code</span>\n", s.as_str());
     }
 
     #[test]
     fn inline_comment_works_with_eol_delimiter() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "some // java code", Java).unwrap();
-        assert_eq!("some <span class=\"h-inline-comment\">// java code</span>", s.as_str());
+        assert_eq!("some <span class=\"h-comment\">// java code</span>", s.as_str());
     }
 
     #[test]
     fn it_works_with_accents_as_well() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n", Alloy).unwrap();
-        assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-inline-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
+        assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 
     #[test]
