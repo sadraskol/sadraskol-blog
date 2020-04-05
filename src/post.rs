@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
 use pulldown_cmark::{Options, Parser};
+use serde::{Deserialize, Serialize};
 
 use crate::custom_markdown::sad_push_html;
 use crate::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished};
@@ -141,6 +142,19 @@ pub struct InnerPostEdited {
 pub struct InnerDraftMadePublic {
     pub aggregate_id: AggregateId,
     pub version: u32,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct ExportedPost {
+    pub aggregate_id: String,
+    pub version: u32,
+    pub title: String,
+    pub markdown_content: String,
+    pub language: String,
+    pub shareable: bool,
+    pub publication_date: Option<String>,
+    pub current_slug: Option<String>,
+    pub previous_slugs: Vec<String>,
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -297,6 +311,34 @@ impl Post {
             }
             Post::NonExisting { .. } => PostError(PostErrors::CannotEditDraftAsPost),
         };
+    }
+
+    pub fn export_post(&self) -> Option<ExportedPost> {
+        match self {
+            Post::NonExisting { .. } => None,
+            Post::Draft { aggregate_id, version, title, markdown_content, language, shareable } => Some(ExportedPost {
+                aggregate_id: aggregate_id.to_hyphenated().to_string(),
+                version: *version,
+                title: title.clone(),
+                markdown_content: markdown_content.to_edit(),
+                language: language.to_string(),
+                shareable: *shareable,
+                publication_date: None,
+                current_slug: None,
+                previous_slugs: vec![],
+            }),
+            Post::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs } => Some(ExportedPost {
+                aggregate_id: aggregate_id.to_hyphenated().to_string(),
+                version: *version,
+                title: title.clone(),
+                markdown_content: markdown_content.to_edit(),
+                language: language.to_string(),
+                shareable: false,
+                publication_date: Some(publication_date.to_rfc3339()),
+                current_slug: Some(current_slug.to_string()),
+                previous_slugs: previous_slugs.clone(),
+            }),
+        }
     }
 }
 

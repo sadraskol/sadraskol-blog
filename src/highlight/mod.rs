@@ -160,7 +160,7 @@ fn inline_comment(start_with: &str) -> Tokenizer {
                 }],
                 spans: vec![],
                 parent: None,
-                class: "inline-comment".to_string(),
+                class: "comment".to_string(),
             }),
             include: false,
         }
