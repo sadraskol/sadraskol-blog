@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Thomas Bracher <thomas.bracher@cpe.fr>"]
 edition = "2018"
 
+default-run = "sadraskol"
+
 [dependencies]
 actix-identity = "0.2"
 actix-rt = "1.0"

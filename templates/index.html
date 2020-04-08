@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 {% for post in posts %}
-<div class="post-item">
-    <div><strong>{{ post.title }}</strong></div>
-    <ul class="post-item__actions">
-        <li class="post-item__actions__item">{{ post.publication_date }}</li>
-        <li class="post-item__actions__item"><a href="{{post.view_link}}">View</a></li>
-    </ul>
+<div class="index-item">
+    <div class="index-item_datetime">{{ post.publication_date }}</div>
+    <div><a href="{{post.view_link}}"><strong>{{ post.title }}</strong></a></div>
 </div>
 {% endfor %}
 {% endblock content %}
