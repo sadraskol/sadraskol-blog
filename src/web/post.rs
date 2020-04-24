@@ -1,11 +1,12 @@
+use actix::Addr;
 use actix_web::{Error, HttpResponse, web};
 use askama::Template;
-
-use crate::pool::Pool;
-use crate::post::Post;
-use crate::post_repository::{PgPostRepository, PostRepository};
-use crate::web::BaseTemplate;
 use chrono::{DateTime, Utc};
+
+use crate::infra::query::{Find, FindBy};
+use crate::post::Post;
+use crate::post_repository::DbExecutor;
+use crate::web::BaseTemplate;
 
 #[derive(Template)]
 #[template(path = "post.html")]
@@ -19,11 +20,11 @@ struct PostTemplate<'a> {
 
 pub async fn post_by_slug(
     slug: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        return repo.find_by_slug(slug.to_string())
-            .map(|post| {
+    addr.send(FindBy::slug(slug.to_string())).await.unwrap()
+        .map(|res| {
+            res.map(|post| {
                 match post {
                     Post::Post { markdown_content, title, current_slug, publication_date, .. } => {
                         if current_slug != slug.to_string() {
@@ -34,7 +35,7 @@ pub async fn post_by_slug(
                             let page = PostTemplate {
                                 _parent: BaseTemplate::default(),
                                 title: title.clone(),
-                                publication_date:publication_date.format("%d %B %Y").to_string(),
+                                publication_date: publication_date.format("%d %B %Y").to_string(),
                                 back_link: "/".to_string(),
                                 raw_content: markdown_content.format(),
                             };
@@ -46,8 +47,9 @@ pub async fn post_by_slug(
                     }
                     _ => HttpResponse::NotFound().json(""),
                 }
-            }).unwrap_or(HttpResponse::NotFound().json(""));
-    }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+            }).unwrap_or(HttpResponse::NotFound().json(""))
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 pub struct PostSummaryView {
@@ -87,18 +89,21 @@ struct IndexTemplate<'a> {
 }
 
 pub async fn index(
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let posts = repo.all_posts()
-            .iter()
-            .map(PostSummaryView::for_human)
-            .collect();
-        let template = IndexTemplate { _parent: BaseTemplate::default(), posts };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(template.render().unwrap())
-    }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())))
+    addr.send(Find::posts())
+        .await.unwrap()
+        .map(|res| {
+            let posts = res
+                .iter()
+                .map(PostSummaryView::for_human)
+                .collect();
+            let template = IndexTemplate { _parent: BaseTemplate::default(), posts };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 #[derive(Template)]
@@ -108,16 +113,17 @@ struct FeedTemplate {
 }
 
 pub async fn feed(
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let posts = repo.all_posts()
-            .iter()
-            .map(PostSummaryView::for_machine)
-            .collect();
-        let template = FeedTemplate { posts };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "application/rss+xml; charset=utf-8")
-            .body(template.render().unwrap())
-    }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())))
+    addr.send(Find::posts()).await.unwrap()
+        .map(|res| {
+            let posts = res.iter()
+                .map(PostSummaryView::for_machine)
+                .collect();
+            let template = FeedTemplate { posts };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "application/rss+xml; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }

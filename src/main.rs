@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use actix::SyncArbiter;
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
@@ -8,6 +9,7 @@ use env_logger;
 use sadraskol::config;
 use sadraskol::identity::{CheckAdmin, identity_service};
 use sadraskol::pool;
+use sadraskol::post_repository::DbExecutor;
 use sadraskol::web;
 
 #[actix_rt::main]
@@ -17,15 +19,17 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::cfg();
 
-    let pool: pool::Pool = r2d2::Pool::builder()
+    let pool = r2d2::Pool::builder()
         .connection_timeout(Duration::from_secs(4))
         .build(pool::ConnectionManager::new(config.postgres.clone()))
         .expect("Failed to create pool");
 
+    let addr = SyncArbiter::start(1, move || DbExecutor(pool.clone()));
+
     let listen_address = format!("{}:{}", config.host, config.port);
     HttpServer::new(move || {
         App::new()
-            .data(pool.clone())
+            .data(addr.clone())
             .wrap(identity_service(config.clone()))
             .wrap(Compress::default())
             .wrap(Logger::default())
@@ -62,6 +66,7 @@ async fn main() -> std::io::Result<()> {
             .service(actix_web::web::resource("/health").route(actix_web::web::get().to(web::health)))
             .service(actix_web::web::resource("/dist/{filename:.*}").route(actix_web::web::get().to(web::dist)))
     })
-        .bind(listen_address.clone())?.run()
+        .bind(listen_address.clone())?
+        .run()
         .await
 }

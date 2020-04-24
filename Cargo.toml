@@ -10,6 +10,7 @@ default-run = "sadraskol"
 actix-identity = "0.2"
 actix-rt = "1.0"
 actix-web = "2.0"
+actix = "0.10.0-alpha.2"
 r2d2 = "0.8.7"
 postgres = { version = "0.17.0-alpha.2", features = ["with-uuid-0_8", "with-chrono-0_4"] }
 postgres-derive = "0.4.0-alpha.1"

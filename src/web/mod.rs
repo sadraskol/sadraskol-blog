@@ -1,3 +1,4 @@
+use actix::Addr;
 use actix_identity::Identity;
 use actix_web::{Error, HttpResponse, Responder, web};
 use actix_web::http::header::LOCATION;
@@ -5,7 +6,8 @@ use askama::Template;
 use serde::{Deserialize, Serialize};
 
 use crate::config;
-use crate::pool::Pool;
+use crate::infra::health::Health;
+use crate::post_repository::DbExecutor;
 
 pub mod post;
 pub mod admin;
@@ -69,11 +71,14 @@ fn serve_file(d: std::path::PathBuf) -> HttpResponse {
         .unwrap_or(HttpResponse::NotFound().body(""))
 }
 
-pub async fn health(pool: web::Data<Pool>) -> impl Responder {
-    pool.get()
-        .map_err(|_| "no connection in pool".to_string())
-        .and_then(|mut connection| connection.query("values (1)", &[])
-            .map_err(|_| "query failed".to_string()))
-        .map(|_| HttpResponse::Ok().body(""))
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().body(err))
+pub async fn health(
+    addr: web::Data<Addr<DbExecutor>>
+) -> impl Responder {
+    addr.send(Health::new())
+        .await
+        .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()).into())
+        .and_then(|result| {
+            result.map(|_| HttpResponse::Ok().body(""))
+                .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()))
+        })
 }

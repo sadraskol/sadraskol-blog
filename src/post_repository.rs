@@ -4,8 +4,9 @@ use chrono::{DateTime, Utc};
 use postgres::{Row, Transaction};
 use uuid::Uuid;
 
-use crate::pool::Pool;
 use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Markdown, Post, PostEvent};
+use actix::{SyncContext, Actor};
+use crate::pool::Pool;
 
 pub trait PostRepository {
     fn all(&mut self) -> Vec<Post>;
@@ -401,4 +402,10 @@ impl<'a> PostRepository for PgPostRepository<'a> {
             PostEvent::PostError(_) => {}
         }
     }
+}
+
+pub struct DbExecutor(pub Pool);
+
+impl Actor for DbExecutor {
+    type Context = SyncContext<Self>;
 }

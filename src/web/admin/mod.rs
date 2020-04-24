@@ -1,14 +1,16 @@
 use std::str::FromStr;
 
+use actix::Addr;
 use actix_web::{Error, HttpResponse, web};
 use askama::Template;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::pool::Pool;
-use crate::post::Post;
+use crate::infra::command::Command;
+use crate::infra::query::{Find, FindBy};
+use crate::post::{AggregateId, Post};
 use crate::post::PostEvent;
-use crate::post_repository::{PgPostRepository, PostRepository};
+use crate::post_repository::DbExecutor;
 use crate::web::BaseTemplate;
 
 pub mod backup;
@@ -66,19 +68,19 @@ struct DraftsTemplate<'a> {
 }
 
 pub async fn drafts(
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let drafts = repo.all_drafts()
-            .iter()
-            .map(DraftSummaryView::from)
-            .collect();
-        let template = DraftsTemplate { _parent: BaseTemplate::default(), drafts };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(template.render().unwrap())
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())))
+    addr.send(Find::drafts()).await.unwrap()
+        .map(|res| {
+            let drafts = res.iter()
+                .map(DraftSummaryView::from)
+                .collect();
+            let template = DraftsTemplate { _parent: BaseTemplate::default(), drafts };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 #[derive(Template)]
@@ -90,18 +92,23 @@ struct EditDraftTemplate<'a> {
 
 pub async fn draft(
     draft_id: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let post = find_post(repo, draft_id.clone());
-        let draft_view = DraftSummaryView::from(&post);
+    let id = Uuid::parse_str(draft_id.as_str())
+        .unwrap_or(Uuid::new_v4());
 
-        let template = EditDraftTemplate { _parent: BaseTemplate::default(), draft: draft_view };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(template.render().unwrap())
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+    addr.send(FindBy::id(id))
+        .await.unwrap()
+        .map(|res| {
+            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            let draft_view = DraftSummaryView::from(&post);
+
+            let template = EditDraftTemplate { _parent: BaseTemplate::default(), draft: draft_view };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 #[derive(Deserialize)]
@@ -114,26 +121,19 @@ pub struct SubmitDraftForm {
 pub async fn edit_draft(
     draft_id: web::Path<String>,
     params: web::Form<SubmitDraftForm>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let draft = find_post(repo, draft_id.clone());
-        let event = draft.submit_draft(
-            FromStr::from_str(params.language.as_str()).unwrap(),
-            params.title.to_owned(),
-            params.markdown_content.to_owned(),
-        );
-        repo.save(event.clone());
-        match event {
-            PostEvent::DraftSubmitted(_) => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", draft.aggregate_id().clone()))
-                .body(""),
-            _ => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", draft_id.clone()))
-                .body("")
-        }
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+    let id = Uuid::parse_str(draft_id.as_str())
+        .unwrap_or(Uuid::new_v4());
+
+    addr.send(Command::SubmitDraft(
+        id,
+        FromStr::from_str(params.language.as_str()).unwrap(),
+        params.title.clone(),
+        params.markdown_content.clone(),
+    )).await.unwrap()
+        .map(|e| event_response(id, e))
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 #[derive(Template)]
@@ -148,73 +148,59 @@ struct DraftPreviewTemplate<'a> {
 
 pub async fn preview_draft(
     draft_id: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let post = find_post(repo, draft_id.clone());
-        match post {
-            Post::Draft { aggregate_id, markdown_content, title, .. } => {
-                let page = DraftPreviewTemplate {
-                    _parent: BaseTemplate::default(),
-                    title: title.clone(),
-                    publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
-                    back_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
-                    raw_content: markdown_content.format(),
-                };
+    let id = Uuid::parse_str(draft_id.as_str())
+        .unwrap_or(Uuid::new_v4());
 
-                HttpResponse::Ok()
-                    .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-                    .body(page.render().unwrap())
+    addr.send(FindBy::id(id))
+        .await.unwrap()
+        .map(|res| {
+            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            match post {
+                Post::Draft { aggregate_id, markdown_content, title, .. } => {
+                    let page = DraftPreviewTemplate {
+                        _parent: BaseTemplate::default(),
+                        title: title.clone(),
+                        publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
+                        back_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
+                        raw_content: markdown_content.format(),
+                    };
+
+                    HttpResponse::Ok()
+                        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                        .body(page.render().unwrap())
+                }
+                _ => HttpResponse::NotFound().json(""),
             }
-            _ => HttpResponse::NotFound().json(""),
-        }
-    }).unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 pub async fn publish_draft(
     draft_id: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let draft = find_post(repo, draft_id.clone());
-        let event = draft.publish_draft(chrono::Utc::now());
-        repo.save(event.clone());
-        match event {
-            PostEvent::PostPublished(_) => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", draft.aggregate_id().clone()))
-                .body(""),
-            _ => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", draft_id.clone()))
-                .body("")
-        }
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+    let id = Uuid::parse_str(draft_id.as_str())
+        .unwrap_or(Uuid::new_v4());
+
+    addr.send(Command::PublishDraft(id, chrono::Utc::now()))
+        .await.unwrap()
+        .map(|e| event_response(id, e))
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 pub async fn make_draft_public(
     draft_id: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let draft = find_post(repo, draft_id.clone());
-        let event = draft.make_public();
-        repo.save(event.clone());
-        match event {
-            PostEvent::DraftMadePublic(_) => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", draft.aggregate_id().clone()))
-                .body(""),
-            _ => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", draft_id.clone()))
-                .body("")
-        }
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
-}
+    let id = Uuid::parse_str(draft_id.as_str())
+        .unwrap_or(Uuid::new_v4());
 
-fn find_post(repo: &mut PgPostRepository, draft_id: String) -> Post {
-    Uuid::parse_str(draft_id.as_str()).ok()
-        .and_then(|i| repo.read(i))
-        .unwrap_or(Post::NonExisting { aggregate_id: uuid::Uuid::new_v4() })
+    addr.send(Command::MakePublic(id))
+        .await.unwrap()
+        .map(|e| event_response(id, e))
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 pub struct PostSummaryView {
@@ -250,19 +236,19 @@ struct PostsTemplate<'a> {
 }
 
 pub async fn posts(
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let posts = repo.all_posts()
-            .iter()
-            .map(PostSummaryView::from)
-            .collect();
-        let template = PostsTemplate { _parent: BaseTemplate::default(), posts };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(template.render().unwrap())
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())))
+    addr.send(Find::posts()).await.unwrap()
+        .map(|res| {
+            let posts = res.iter()
+                .map(PostSummaryView::from)
+                .collect();
+            let template = PostsTemplate { _parent: BaseTemplate::default(), posts };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
 #[derive(Template)]
@@ -274,20 +260,24 @@ struct EditPostTemplate<'a> {
 
 pub async fn post(
     post_id: web::Path<String>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let post = find_post(repo, post_id.clone());
-        let post_view = PostSummaryView::from(&post);
+    let id = Uuid::parse_str(post_id.as_str())
+        .unwrap_or(Uuid::new_v4());
 
-        let template = EditPostTemplate { _parent: BaseTemplate::default(), post: post_view };
-        HttpResponse::Ok()
-            .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(template.render().unwrap())
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+    addr.send(FindBy::id(id))
+        .await.unwrap()
+        .map(|res| {
+            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            let post_view = PostSummaryView::from(&post);
+
+            let template = EditPostTemplate { _parent: BaseTemplate::default(), post: post_view };
+            HttpResponse::Ok()
+                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
-
 
 #[derive(Deserialize)]
 pub struct EditPostForm {
@@ -299,24 +289,42 @@ pub struct EditPostForm {
 pub async fn edit_post(
     post_id: web::Path<String>,
     params: web::Form<EditPostForm>,
-    pool: web::Data<Pool>,
+    addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    return Ok(PgPostRepository::from_pool(pool.get_ref(), |repo| {
-        let post = find_post(repo, post_id.clone());
-        let event = post.edit_post(
-            FromStr::from_str(params.language.as_str()).unwrap(),
-            params.title.to_owned(),
-            params.markdown_content.to_owned(),
-        );
-        repo.save(event.clone());
-        match event {
-            PostEvent::PostEdited(_) => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", post.aggregate_id().clone()))
-                .body(""),
-            _ => HttpResponse::Found()
-                .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", post_id.clone()))
-                .body("")
-        }
-    })
-        .unwrap_or_else(|err| HttpResponse::InternalServerError().json(err.to_string())));
+    let id = Uuid::parse_str(post_id.as_str())
+        .unwrap_or(Uuid::new_v4());
+
+    addr.send(Command::EditPost(
+        id,
+        FromStr::from_str(params.language.as_str()).unwrap(),
+        params.title.clone(),
+        params.markdown_content.clone(),
+    ))
+        .await.unwrap()
+        .map(|e| event_response(id, e))
+        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+}
+
+fn event_response(id: AggregateId, e: PostEvent) -> HttpResponse {
+    let id_str = id.to_hyphenated().to_string();
+    match e {
+        PostEvent::DraftDeleted(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin/drafts"))
+            .body(""),
+        PostEvent::DraftSubmitted(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", id_str))
+            .body(""),
+        PostEvent::DraftMadePublic(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", id_str))
+            .body(""),
+        PostEvent::PostPublished(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", id_str))
+            .body(""),
+        PostEvent::PostEdited(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", id_str))
+            .body(""),
+        PostEvent::PostError(_) => HttpResponse::Found()
+            .header(actix_web::http::header::LOCATION, format!("/admin"))
+            .body("")
+    }
 }
