@@ -3,10 +3,10 @@ use std::fmt::{Arguments, Write as FmtWrite};
 use std::io::{self, ErrorKind, Write};
 use std::str::from_utf8;
 
-use pulldown_cmark::{Alignment, CowStr, Event, LinkType, Tag};
+use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
 use crate::highlight::{highlight, SadLang};
-use crate::highlight::SadLang::{Java, Text, Alloy, Haskell, Erlang, Elixir, Javascript};
+use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Text};
 
 enum TableState {
     Head,
@@ -340,24 +340,32 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                 if !self.end_newline {
                     self.write_newline()?;
                 }
-                let lang = info.split(' ').next().unwrap();
-                if lang.is_empty() {
-                    self.write("<pre><code>")?;
-                } else {
-                    self.write("<pre><code class=\"language-")?;
-                    escape_html(&mut self.writer, lang)?;
-                    self.write("\">")?;
+                match info {
+                    CodeBlockKind::Fenced(info) => {
+                        let lang = info.split(' ').next().unwrap().clone();
+                        if lang.is_empty() {
+                            self.within_code = Some(Text);
+                            self.write("<pre><code>")
+                        } else {
+                            match lang {
+                                "java" => self.within_code = Some(Java),
+                                "alloy" => self.within_code = Some(Alloy),
+                                "haskell" => self.within_code = Some(Haskell),
+                                "erlang" => self.within_code = Some(Erlang),
+                                "elixir" => self.within_code = Some(Elixir),
+                                "javascript" => self.within_code = Some(Javascript),
+                                _ => self.within_code = Some(Text),
+                            }
+                            self.write("<pre><code class=\"language-")?;
+                            escape_html(&mut self.writer, lang)?;
+                            self.write("\">")
+                        }
+                    }
+                    CodeBlockKind::Indented => {
+                        self.within_code = Some(Text);
+                        self.write("<pre><code>")
+                    },
                 }
-                match lang {
-                    "java" => self.within_code = Some(Java),
-                    "alloy" => self.within_code = Some(Alloy),
-                    "haskell" => self.within_code = Some(Haskell),
-                    "erlang" => self.within_code = Some(Erlang),
-                    "elixir" => self.within_code = Some(Elixir),
-                    "javascript" => self.within_code = Some(Javascript),
-                    _ => self.within_code = Some(Text),
-                }
-                Ok(())
             }
             Tag::List(Some(1)) => {
                 if self.end_newline {
