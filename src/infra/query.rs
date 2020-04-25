@@ -1,6 +1,6 @@
 use actix::prelude::*;
 
-use crate::post::{AggregateId, Post};
+use crate::post::{PostId, Post};
 use crate::post_repository::{DbExecutor, PgPostRepository, PostRepository};
 
 enum FindCriteria {
@@ -42,14 +42,14 @@ impl Handler<Find> for DbExecutor {
 
 enum FindByCriteria {
     SLUG(String),
-    ID(AggregateId),
+    ID(PostId),
 }
 
 pub struct FindBy(FindByCriteria);
 
 impl FindBy {
     pub fn slug(slug: String) -> FindBy { FindBy(FindByCriteria::SLUG(slug)) }
-    pub fn id(id: AggregateId) -> FindBy { FindBy(FindByCriteria::ID(id)) }
+    pub fn id(id: PostId) -> FindBy { FindBy(FindByCriteria::ID(id)) }
 }
 
 impl Message for FindBy {

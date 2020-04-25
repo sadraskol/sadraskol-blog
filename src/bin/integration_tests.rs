@@ -8,7 +8,7 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, Language, Post, InnerPostEdited, InnerPostPublished, Markdown};
+use sadraskol::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, Language, Post, InnerPostEdited, InnerPostPublished, Markdown, PostId};
 use sadraskol::post_repository::{PgPostRepository, PostRepository};
 use sadraskol::post::PostEvent::{DraftSubmitted, PostPublished, DraftDeleted, DraftMadePublic, PostEdited};
 
@@ -18,9 +18,9 @@ pub struct RepositoryTestContainer<'a> {
 }
 
 fn test_publish_draft(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
@@ -29,13 +29,13 @@ fn test_publish_draft(repo: &mut PgPostRepository) {
     let date = chrono::Utc::now()
         .with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
-        aggregate_id,
+        post_id,
         version: 1,
         slug: "post-slug".to_string(),
         publication_date: date,
     }));
     let expected_post = Post::Post {
-        aggregate_id,
+        post_id,
         version: 2,
         title: "some title".to_string(),
         markdown_content: Markdown::new("some content"),
@@ -46,53 +46,53 @@ fn test_publish_draft(repo: &mut PgPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![expected_post.clone()]);
     assert_eq!(repo.all_drafts(), vec![]);
-    assert_eq!(repo.read(aggregate_id), Some(expected_post.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_post.clone()));
 }
 
 fn test_finding_post_by_slug(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
-    assert_eq!(repo.find_by_slug(aggregate_id.to_hyphenated().to_string()).is_some(), false);
+    let post_id = PostId::new(uuid::Uuid::new_v4());
+    assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), false);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), false);
     assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftMadePublic(InnerDraftMadePublic { aggregate_id, version: 0 }));
-    assert_eq!(repo.find_by_slug(aggregate_id.to_hyphenated().to_string()).is_some(), true);
+    repo.save(DraftMadePublic(InnerDraftMadePublic { post_id, version: 0 }));
+    assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), false);
     assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
     let date = chrono::Utc::now()
         .with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
-        aggregate_id,
+        post_id,
         version: 1,
         slug: "some-title".to_string(),
         publication_date: date,
     }));
-    assert_eq!(repo.find_by_slug(aggregate_id.to_hyphenated().to_string()).is_some(), true);
+    assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), true);
     assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
     repo.save(PostEdited(InnerPostEdited {
-        aggregate_id,
+        post_id,
         version: 2,
         title: Some("yet another title".to_string()),
         slug: Some("yet-another-title".to_string()),
         markdown_content: "markdown again".to_string(),
         language: Language::En,
     }));
-    assert_eq!(repo.find_by_slug(aggregate_id.to_hyphenated().to_string()).is_some(), true);
+    assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), true);
     assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), true);
 }
 
 fn test_edit_post(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
@@ -101,13 +101,13 @@ fn test_edit_post(repo: &mut PgPostRepository) {
     let date = chrono::Utc::now()
         .with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
-        aggregate_id,
+        post_id,
         version: 1,
         slug: "post-slug".to_string(),
         publication_date: date,
     }));
     repo.save(PostEdited(InnerPostEdited {
-        aggregate_id,
+        post_id,
         version: 2,
         title: Some("very other title".to_string()),
         slug: Some("very-old-slug".to_string()),
@@ -115,7 +115,7 @@ fn test_edit_post(repo: &mut PgPostRepository) {
         language: Language::En,
     }));
     repo.save(PostEdited(InnerPostEdited {
-        aggregate_id,
+        post_id,
         version: 3,
         title: Some("other title".to_string()),
         slug: Some("other-title".to_string()),
@@ -123,7 +123,7 @@ fn test_edit_post(repo: &mut PgPostRepository) {
         language: Language::En,
     }));
     let expected_post = Post::Post {
-        aggregate_id,
+        post_id,
         version: 4,
         title: "other title".to_string(),
         markdown_content: Markdown::new("other content"),
@@ -134,20 +134,20 @@ fn test_edit_post(repo: &mut PgPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![expected_post.clone()]);
     assert_eq!(repo.all_drafts(), vec![]);
-    assert_eq!(repo.read(aggregate_id), Some(expected_post.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_post.clone()));
 }
 
 fn test_submit_non_existing_draft(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
     let expected_draft = Post::Draft {
-        aggregate_id,
+        post_id,
         version: 1,
         title: "some title".to_string(),
         markdown_content: Markdown::new("some content"),
@@ -156,27 +156,27 @@ fn test_submit_non_existing_draft(repo: &mut PgPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(aggregate_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
 fn test_edit_draft(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 1,
         title: "other title".to_string(),
         markdown_content: "other content".to_string(),
         language: Language::En,
     }));
     let expected_draft = Post::Draft {
-        aggregate_id,
+        post_id,
         version: 2,
         title: "other title".to_string(),
         markdown_content: Markdown::new("other content"),
@@ -185,21 +185,21 @@ fn test_edit_draft(repo: &mut PgPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(aggregate_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
 fn test_make_draft_public(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftMadePublic(InnerDraftMadePublic { aggregate_id, version: 0 }));
+    repo.save(DraftMadePublic(InnerDraftMadePublic { post_id, version: 0 }));
     let expected_draft = Post::Draft {
-        aggregate_id,
+        post_id,
         version: 1,
         title: "some title".to_string(),
         markdown_content: Markdown::new("some content"),
@@ -208,22 +208,22 @@ fn test_make_draft_public(repo: &mut PgPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(aggregate_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
 fn test_delete_draft(repo: &mut PgPostRepository) {
-    let aggregate_id = uuid::Uuid::new_v4();
+    let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
-        aggregate_id,
+        post_id,
         version: 0,
         title: "some title".to_string(),
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftDeleted(InnerDraftDeleted { aggregate_id, version: 1 }));
+    repo.save(DraftDeleted(InnerDraftDeleted { post_id, version: 1 }));
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![]);
-    assert_eq!(repo.read(aggregate_id), None);
+    assert_eq!(repo.read(post_id), None);
 }
 
 fn main() {

@@ -1,22 +1,22 @@
 use actix::prelude::*;
 use chrono::{DateTime, Utc};
 
-use crate::post::{AggregateId, Language, Post, PostEvent};
+use crate::post::{PostId, Language, Post, PostEvent};
 use crate::post_repository::{DbExecutor, PgPostRepository, PostRepository};
 
 type Title = String;
 type Content = String;
 
 pub enum Command {
-    SubmitDraft(AggregateId, Language, Title, Content),
-    MakePublic(AggregateId),
-    DeleteDraft(AggregateId),
-    PublishDraft(AggregateId, DateTime<Utc>),
-    EditPost(AggregateId, Language, Title, Content),
+    SubmitDraft(PostId, Language, Title, Content),
+    MakePublic(PostId),
+    DeleteDraft(PostId),
+    PublishDraft(PostId, DateTime<Utc>),
+    EditPost(PostId, Language, Title, Content),
 }
 
 impl Command {
-    fn id(&self) -> AggregateId {
+    fn id(&self) -> PostId {
         match self {
             Command::SubmitDraft(id, _, _, _) => *id,
             Command::MakePublic(id) => *id,
@@ -59,7 +59,7 @@ impl Handler<Command> for DbExecutor {
     }
 }
 
-fn get_post(repository: &mut PgPostRepository, id: AggregateId) -> Post {
-    let draft = repository.read(id).unwrap_or(Post::NonExisting { aggregate_id: id });
+fn get_post(repository: &mut PgPostRepository, id: PostId) -> Post {
+    let draft = repository.read(id).unwrap_or(Post::NonExisting { post_id: id });
     draft
 }

@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::infra::command::Command;
 use crate::infra::query::{Find, FindBy};
-use crate::post::{AggregateId, Post};
+use crate::post::{PostId, Post};
 use crate::post::PostEvent;
 use crate::post_repository::DbExecutor;
 use crate::web::BaseTemplate;
@@ -45,15 +45,15 @@ impl DraftSummaryView {
                 public_yet: false,
                 make_public_link: format!("/admin/drafts/{}/make-public", "new"),
             },
-            Post::Draft { title, aggregate_id, markdown_content, language, shareable, .. } => DraftSummaryView {
+            Post::Draft { title, post_id, markdown_content, language, shareable, .. } => DraftSummaryView {
                 title: title.clone(),
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
-                preview_link: format!("/admin/drafts/{}/preview", aggregate_id.to_hyphenated().to_string()),
-                edit_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
-                publish_link: format!("/admin/drafts/{}/publish", aggregate_id.to_hyphenated().to_string()),
+                preview_link: format!("/admin/drafts/{}/preview", post_id.to_str()),
+                edit_link: format!("/admin/drafts/{}", post_id.to_str()),
+                publish_link: format!("/admin/drafts/{}/publish", post_id.to_str()),
                 public_yet: shareable.clone(),
-                make_public_link: format!("/admin/drafts/{}/make-public", aggregate_id.to_hyphenated().to_string()),
+                make_public_link: format!("/admin/drafts/{}/make-public", post_id.to_str()),
             },
             Post::Post { .. } => panic!("not a draft"),
         }
@@ -94,13 +94,12 @@ pub async fn draft(
     draft_id: web::Path<String>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(draft_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(draft_id);
 
     addr.send(FindBy::id(id))
         .await.unwrap()
         .map(|res| {
-            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            let post = res.unwrap_or(Post::NonExisting { post_id: id.clone() });
             let draft_view = DraftSummaryView::from(&post);
 
             let template = EditDraftTemplate { _parent: BaseTemplate::default(), draft: draft_view };
@@ -109,6 +108,11 @@ pub async fn draft(
                 .body(template.render().unwrap())
         })
         .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+}
+
+fn parse_or_new_id(id_str: web::Path<String>) -> PostId {
+    PostId::new(Uuid::parse_str(id_str.as_str())
+        .unwrap_or(Uuid::new_v4()))
 }
 
 #[derive(Deserialize)]
@@ -123,8 +127,7 @@ pub async fn edit_draft(
     params: web::Form<SubmitDraftForm>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(draft_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(draft_id);
 
     addr.send(Command::SubmitDraft(
         id,
@@ -150,20 +153,19 @@ pub async fn preview_draft(
     draft_id: web::Path<String>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(draft_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(draft_id);
 
     addr.send(FindBy::id(id))
         .await.unwrap()
         .map(|res| {
-            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            let post = res.unwrap_or(Post::NonExisting { post_id: id });
             match post {
-                Post::Draft { aggregate_id, markdown_content, title, .. } => {
+                Post::Draft { post_id, markdown_content, title, .. } => {
                     let page = DraftPreviewTemplate {
                         _parent: BaseTemplate::default(),
                         title: title.clone(),
                         publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
-                        back_link: format!("/admin/drafts/{}", aggregate_id.to_hyphenated().to_string()),
+                        back_link: format!("/admin/drafts/{}", post_id.to_str()),
                         raw_content: markdown_content.format(),
                     };
 
@@ -181,8 +183,7 @@ pub async fn publish_draft(
     draft_id: web::Path<String>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(draft_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(draft_id);
 
     addr.send(Command::PublishDraft(id, chrono::Utc::now()))
         .await.unwrap()
@@ -194,8 +195,7 @@ pub async fn make_draft_public(
     draft_id: web::Path<String>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(draft_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(draft_id);
 
     addr.send(Command::MakePublic(id))
         .await.unwrap()
@@ -215,12 +215,12 @@ pub struct PostSummaryView {
 impl PostSummaryView {
     fn from(post: &Post) -> PostSummaryView {
         match post {
-            Post::Post { title, aggregate_id, markdown_content, language, publication_date, current_slug, .. } => PostSummaryView {
+            Post::Post { title, post_id, markdown_content, language, publication_date, current_slug, .. } => PostSummaryView {
                 title: title.clone(),
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 publication_date: publication_date.format("%d %B %Y").to_string(),
-                edit_link: format!("/admin/posts/{}", aggregate_id.to_hyphenated().to_string()),
+                edit_link: format!("/admin/posts/{}", post_id.to_str()),
                 self_link: format!("/posts/{}", current_slug.clone()),
             },
             _ => panic!("not a draft"),
@@ -262,13 +262,12 @@ pub async fn post(
     post_id: web::Path<String>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(post_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(post_id);
 
     addr.send(FindBy::id(id))
         .await.unwrap()
         .map(|res| {
-            let post = res.unwrap_or(Post::NonExisting { aggregate_id: id });
+            let post = res.unwrap_or(Post::NonExisting { post_id: id });
             let post_view = PostSummaryView::from(&post);
 
             let template = EditPostTemplate { _parent: BaseTemplate::default(), post: post_view };
@@ -291,8 +290,7 @@ pub async fn edit_post(
     params: web::Form<EditPostForm>,
     addr: web::Data<Addr<DbExecutor>>,
 ) -> Result<HttpResponse, Error> {
-    let id = Uuid::parse_str(post_id.as_str())
-        .unwrap_or(Uuid::new_v4());
+    let id = parse_or_new_id(post_id);
 
     addr.send(Command::EditPost(
         id,
@@ -305,8 +303,8 @@ pub async fn edit_post(
         .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
 }
 
-fn event_response(id: AggregateId, e: PostEvent) -> HttpResponse {
-    let id_str = id.to_hyphenated().to_string();
+fn event_response(id: PostId, e: PostEvent) -> HttpResponse {
+    let id_str = id.to_str();
     match e {
         PostEvent::DraftDeleted(_) => HttpResponse::Found()
             .header(actix_web::http::header::LOCATION, format!("/admin/drafts"))

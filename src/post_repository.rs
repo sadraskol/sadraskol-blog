@@ -1,19 +1,19 @@
 use std::rc::Rc;
 
+use actix::{Actor, SyncContext};
 use chrono::{DateTime, Utc};
 use postgres::{Row, Transaction};
 use uuid::Uuid;
 
-use crate::post::{AggregateId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Markdown, Post, PostEvent};
-use actix::{SyncContext, Actor};
 use crate::pool::Pool;
+use crate::post::{PostId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Markdown, Post, PostEvent};
 
 pub trait PostRepository {
     fn all(&mut self) -> Vec<Post>;
     fn all_posts(&mut self) -> Vec<Post>;
     fn all_drafts(&mut self) -> Vec<Post>;
     fn find_by_slug(&mut self, slug: String) -> Option<Post>;
-    fn read(&mut self, aggregate_id: AggregateId) -> Option<Post>;
+    fn read(&mut self, post_id: PostId) -> Option<Post>;
     fn save(&mut self, event: PostEvent);
 }
 
@@ -22,15 +22,6 @@ pub struct PgPostRepository<'a> {
 }
 
 impl<'a> PgPostRepository<'a> {
-    pub fn from_pool<T, F: FnOnce(&mut PgPostRepository) -> T>(pool: &Pool, f: F) -> Result<T, String> {
-        let mut connection = pool.get().map_err(|_| { "pool empty".to_string() })?;
-        let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
-        let mut repository = PgPostRepository { transaction };
-        let t = f(&mut repository);
-        repository.transaction.commit().map_err(|_| { "commit failed".to_string() })?;
-        return Ok(t);
-    }
-
     fn submit_draft(&mut self, event: InnerDraftSubmitted) {
         self.transaction.execute(
             "insert into blog_posts (aggregate_id, status, language, title, markdown_content, version) \
@@ -41,7 +32,7 @@ impl<'a> PgPostRepository<'a> {
             markdown_content = $5, \
             version = $7\
             where blog_posts.version = $6",
-            &[&event.aggregate_id, &"draft", &event.language.to_string(), &event.title, &event.markdown_content, &event.version, &(event.version + 1)],
+            &[&event.post_id.to_uuid(), &"draft", &event.language.to_string(), &event.title, &event.markdown_content, &event.version, &(event.version + 1)],
         ).unwrap();
     }
 
@@ -49,36 +40,36 @@ impl<'a> PgPostRepository<'a> {
         self.transaction.execute(
             "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3)",
             &[
-                &event.aggregate_id,
-                &event.aggregate_id.to_hyphenated().to_string(),
+                &event.post_id.to_uuid(),
+                &event.post_id.to_str(),
                 &true
             ],
         ).unwrap();
 
         self.transaction.execute(
             "update blog_posts set slug = $1, version = $3 where aggregate_id = $1 and blog_posts.version = $2",
-            &[&event.aggregate_id, &event.version, &(event.version + 1)],
+            &[&event.post_id.to_uuid(), &event.version, &(event.version + 1)],
         ).unwrap();
     }
 
     fn delete_draft(&mut self, event: InnerDraftDeleted) {
         self.transaction.execute(
             "delete from blog_posts where aggregate_id = $1 and blog_posts.version = $2",
-            &[&event.aggregate_id, &event.version],
+            &[&event.post_id.to_uuid(), &event.version],
         ).unwrap();
     }
 
     fn publish_post(&mut self, event: InnerPostPublished) {
         self.transaction.execute(
             "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3)",
-            &[&event.aggregate_id, &event.slug, &true],
+            &[&event.post_id.to_uuid(), &event.slug, &true],
         ).unwrap();
         self.transaction.execute(
             "update blog_posts \
             set status = $2, slug = $3, publication_date = $4, \
                 version = $6 \
             where aggregate_id = $1 and blog_posts.version = $5",
-            &[&event.aggregate_id, &"published", &event.slug, &event.publication_date, &event.version, &(event.version + 1)],
+            &[&event.post_id.to_uuid(), &"published", &event.slug, &event.publication_date, &event.version, &(event.version + 1)],
         ).unwrap();
     }
 
@@ -86,11 +77,11 @@ impl<'a> PgPostRepository<'a> {
         event.slug.clone().map(|slug| {
             self.transaction.execute(
                 "update blog_slugs set current = $2 where aggregate_id = $1",
-                &[&event.aggregate_id, &false],
+                &[&event.post_id.to_uuid(), &false],
             ).unwrap();
             self.transaction.execute(
                 "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3)",
-                &[&event.aggregate_id, &slug, &true],
+                &[&event.post_id.to_uuid(), &slug, &true],
             ).unwrap()
         }).unwrap_or(0);
         event.title.clone().map(|title|
@@ -99,7 +90,7 @@ impl<'a> PgPostRepository<'a> {
                 set markdown_content = $2, language = $3, title = $4, version = $6 \
                 where aggregate_id = $1 and blog_posts.version = $5",
                 &[
-                    &event.aggregate_id,
+                    &event.post_id.to_uuid(),
                     &event.markdown_content,
                     &event.language.to_string(),
                     &title,
@@ -113,7 +104,7 @@ impl<'a> PgPostRepository<'a> {
                 set markdown_content = $2, language = $3, version = $5 \
                 where aggregate_id = $1 and blog_posts.version = $4",
                 &[
-                    &event.aggregate_id,
+                    &event.post_id.to_uuid(),
                     &event.markdown_content,
                     &event.language.to_string(),
                     &event.version,
@@ -127,7 +118,7 @@ impl<'a> PgPostRepository<'a> {
 #[derive(Clone)]
 enum PostBuilder {
     Draft {
-        aggregate_id: uuid::Uuid,
+        post_id: uuid::Uuid,
         version: u32,
         title: String,
         markdown_content: String,
@@ -135,7 +126,7 @@ enum PostBuilder {
         shareable: bool,
     },
     Post {
-        aggregate_id: uuid::Uuid,
+        post_id: uuid::Uuid,
         version: u32,
         title: String,
         markdown_content: String,
@@ -149,7 +140,7 @@ enum PostBuilder {
 
 impl PostBuilder {
     fn post_builder_from_row(row: &Row) -> PostBuilder {
-        let aggregate_id = row.get(0);
+        let post_id = row.get(0);
         let status: String = row.get(1);
         let lang_string: String = row.get(2);
         let language = lang_string.parse().unwrap();
@@ -161,7 +152,7 @@ impl PostBuilder {
         let version: u32 = row.get(8);
         return match &*status {
             "draft" => PostBuilder::Draft {
-                aggregate_id,
+                post_id,
                 version,
                 language,
                 title,
@@ -169,7 +160,7 @@ impl PostBuilder {
                 shareable: slug.is_some(),
             },
             "published" => PostBuilder::Post {
-                aggregate_id,
+                post_id,
                 version,
                 language,
                 title,
@@ -185,10 +176,10 @@ impl PostBuilder {
 
     fn build(self) -> Post {
         match self {
-            PostBuilder::Draft { aggregate_id, version, title, markdown_content, language, shareable } =>
-                Post::Draft { aggregate_id, version, title, markdown_content: Markdown::new(markdown_content), language, shareable },
-            PostBuilder::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, .. } =>
-                Post::Post { aggregate_id, version, title, markdown_content: Markdown::new(markdown_content), language, publication_date, current_slug: current_slug.expect("no current_slug found"), previous_slugs }
+            PostBuilder::Draft { post_id, version, title, markdown_content, language, shareable } =>
+                Post::Draft { post_id: PostId::new(post_id), version, title, markdown_content: Markdown::new(markdown_content), language, shareable },
+            PostBuilder::Post { post_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, .. } =>
+                Post::Post { post_id: PostId::new(post_id), version, title, markdown_content: Markdown::new(markdown_content), language, publication_date, current_slug: current_slug.expect("no current_slug found"), previous_slugs }
         }
     }
 
@@ -196,8 +187,8 @@ impl PostBuilder {
         if current_slug {
             match self {
                 PostBuilder::Draft { .. } => self,
-                PostBuilder::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, .. } =>
-                    PostBuilder::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, next_slug_is_current: true }
+                PostBuilder::Post { post_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, .. } =>
+                    PostBuilder::Post { post_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, next_slug_is_current: true }
             }
         } else {
             self
@@ -206,12 +197,12 @@ impl PostBuilder {
 
     fn with_slug(self, slug: String) -> PostBuilder {
         match self {
-            PostBuilder::Draft { aggregate_id, version, title, markdown_content, language, .. } =>
-                PostBuilder::Draft { aggregate_id, version, title, markdown_content, language, shareable: true },
-            PostBuilder::Post { aggregate_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, next_slug_is_current } =>
+            PostBuilder::Draft { post_id, version, title, markdown_content, language, .. } =>
+                PostBuilder::Draft { post_id, version, title, markdown_content, language, shareable: true },
+            PostBuilder::Post { post_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs, next_slug_is_current } =>
                 if next_slug_is_current {
                     PostBuilder::Post {
-                        aggregate_id,
+                        post_id,
                         version,
                         title,
                         markdown_content,
@@ -225,7 +216,7 @@ impl PostBuilder {
                     let mut new_previous_slugs = previous_slugs.clone();
                     new_previous_slugs.push(slug.clone());
                     PostBuilder::Post {
-                        aggregate_id,
+                        post_id,
                         version,
                         title,
                         markdown_content,
@@ -239,10 +230,10 @@ impl PostBuilder {
         }
     }
 
-    fn aggregate_id(self) -> Uuid {
+    fn post_id(self) -> Uuid {
         return match self {
-            PostBuilder::Draft { aggregate_id, .. } => aggregate_id,
-            PostBuilder::Post { aggregate_id, .. } => aggregate_id,
+            PostBuilder::Draft { post_id, .. } => post_id,
+            PostBuilder::Post { post_id, .. } => post_id,
         };
     }
 }
@@ -264,8 +255,8 @@ impl RowsToPostsBuilder {
     fn fold_rows(self, row: Rc<&Row>) -> RowsToPostsBuilder {
         return self.clone().head
             .map(|existing| -> RowsToPostsBuilder {
-                let aggregate_id: Uuid = row.get(0);
-                if aggregate_id == existing.clone().aggregate_id() {
+                let post_id: Uuid = row.get(0);
+                if post_id == existing.clone().post_id() {
                     let builder = existing
                         .current_slug(row.get(7))
                         .with_slug(row.get(6));
@@ -376,7 +367,7 @@ impl<'a> PostRepository for PgPostRepository<'a> {
             .first_post();
     }
 
-    fn read(&mut self, aggregate_id: AggregateId) -> Option<Post> {
+    fn read(&mut self, post_id: PostId) -> Option<Post> {
         return self.transaction.query(
             "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
                            blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
@@ -384,7 +375,7 @@ impl<'a> PostRepository for PgPostRepository<'a> {
                     from blog_posts
                     left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
                     where blog_posts.aggregate_id = $1",
-            &[&aggregate_id],
+            &[&post_id.to_uuid()],
         )
             .unwrap().iter()
             .map(|row| Rc::new(row))
