@@ -8,16 +8,18 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, Language, Post, InnerPostEdited, InnerPostPublished, Markdown, PostId};
-use sadraskol::post_repository::{PgPostRepository, PostRepository};
-use sadraskol::post::PostEvent::{DraftSubmitted, PostPublished, DraftDeleted, DraftMadePublic, PostEdited};
+use sadraskol::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post};
+use sadraskol::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished};
+use sadraskol::domain::repository::PostRepository;
+use sadraskol::domain::types::{Language, Markdown, PostId};
+use sadraskol::infra::post_repository::TransactionalPostRepository;
 
 pub struct RepositoryTestContainer<'a> {
     pub name: &'a str,
-    pub f: Box<dyn FnOnce(&mut PgPostRepository) -> ()>,
+    pub f: Box<dyn FnOnce(&mut TransactionalPostRepository) -> ()>,
 }
 
-fn test_publish_draft(repo: &mut PgPostRepository) {
+fn test_publish_draft(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -49,7 +51,7 @@ fn test_publish_draft(repo: &mut PgPostRepository) {
     assert_eq!(repo.read(post_id), Some(expected_post.clone()));
 }
 
-fn test_finding_post_by_slug(repo: &mut PgPostRepository) {
+fn test_finding_post_by_slug(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), false);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), false);
@@ -89,7 +91,7 @@ fn test_finding_post_by_slug(repo: &mut PgPostRepository) {
     assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), true);
 }
 
-fn test_edit_post(repo: &mut PgPostRepository) {
+fn test_edit_post(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -137,7 +139,7 @@ fn test_edit_post(repo: &mut PgPostRepository) {
     assert_eq!(repo.read(post_id), Some(expected_post.clone()));
 }
 
-fn test_submit_non_existing_draft(repo: &mut PgPostRepository) {
+fn test_submit_non_existing_draft(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -159,7 +161,7 @@ fn test_submit_non_existing_draft(repo: &mut PgPostRepository) {
     assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
-fn test_edit_draft(repo: &mut PgPostRepository) {
+fn test_edit_draft(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -188,7 +190,7 @@ fn test_edit_draft(repo: &mut PgPostRepository) {
     assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
-fn test_make_draft_public(repo: &mut PgPostRepository) {
+fn test_make_draft_public(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -211,7 +213,7 @@ fn test_make_draft_public(repo: &mut PgPostRepository) {
     assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
 }
 
-fn test_delete_draft(repo: &mut PgPostRepository) {
+fn test_delete_draft(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
@@ -262,7 +264,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
         let mut transaction = connection.transaction().unwrap();
         transaction.batch_execute(contents.as_str()).unwrap();
         println!("{}", container.name);
-        (container.f)(&mut PgPostRepository { transaction });
+        (container.f)(&mut TransactionalPostRepository { transaction });
     }
 
     let process_to_kill = std::str::from_utf8(output.stdout.as_slice())

@@ -1,8 +1,10 @@
 use actix::prelude::*;
 use chrono::{DateTime, Utc};
 
-use crate::post::{PostId, Language, Post, PostEvent};
-use crate::post_repository::{DbExecutor, PgPostRepository, PostRepository};
+use crate::domain::post::{Post, PostEvent};
+use crate::domain::repository::PostRepository;
+use crate::domain::types::{Language, PostId};
+use crate::infra::post_repository::{PgActor, TransactionalPostRepository};
 
 type Title = String;
 type Content = String;
@@ -31,13 +33,13 @@ impl Message for Command {
     type Result = Result<PostEvent, String>;
 }
 
-impl Handler<Command> for DbExecutor {
+impl Handler<Command> for PgActor {
     type Result = Result<PostEvent, String>;
 
     fn handle(&mut self, command: Command, _: &mut Self::Context) -> Self::Result {
         let mut connection = self.0.get().map_err(|_| { "pool empty".to_string() })?;
         let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
-        let mut repository = PgPostRepository { transaction };
+        let mut repository = TransactionalPostRepository { transaction };
 
         let post = get_post(&mut repository, command.id());
         let e = match command {
@@ -59,7 +61,7 @@ impl Handler<Command> for DbExecutor {
     }
 }
 
-fn get_post(repository: &mut PgPostRepository, id: PostId) -> Post {
+fn get_post(repository: &mut TransactionalPostRepository, id: PostId) -> Post {
     let draft = repository.read(id).unwrap_or(Post::NonExisting { post_id: id });
     draft
 }

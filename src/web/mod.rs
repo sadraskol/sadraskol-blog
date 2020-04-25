@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::config;
 use crate::infra::health::Health;
-use crate::post_repository::DbExecutor;
+use crate::infra::post_repository::PgActor;
 
 pub mod post;
 pub mod admin;
@@ -72,7 +72,7 @@ fn serve_file(d: std::path::PathBuf) -> HttpResponse {
 }
 
 pub async fn health(
-    addr: web::Data<Addr<DbExecutor>>
+    addr: web::Data<Addr<PgActor>>
 ) -> impl Responder {
     addr.send(Health::new())
         .await

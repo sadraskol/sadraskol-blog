@@ -4,8 +4,8 @@ use askama::Template;
 use chrono::{DateTime, Utc};
 
 use crate::infra::query::{Find, FindBy};
-use crate::post::Post;
-use crate::post_repository::DbExecutor;
+use crate::domain::post::Post;
+use crate::infra::post_repository::PgActor;
 use crate::web::BaseTemplate;
 
 #[derive(Template)]
@@ -20,7 +20,7 @@ struct PostTemplate<'a> {
 
 pub async fn post_by_slug(
     slug: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     addr.send(FindBy::slug(slug.to_string())).await.unwrap()
         .map(|res| {
@@ -89,7 +89,7 @@ struct IndexTemplate<'a> {
 }
 
 pub async fn index(
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     addr.send(Find::posts())
         .await.unwrap()
@@ -113,7 +113,7 @@ struct FeedTemplate {
 }
 
 pub async fn feed(
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     addr.send(Find::posts()).await.unwrap()
         .map(|res| {

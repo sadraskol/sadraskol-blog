@@ -1,12 +1,15 @@
 use actix::prelude::*;
 
-use crate::post::{PostId, Post};
-use crate::post_repository::{DbExecutor, PgPostRepository, PostRepository};
+use crate::domain::post::Post;
+use crate::domain::repository::PostRepository;
+use crate::domain::types::PostId;
+use crate::infra::post_repository::{PgActor, ReadOnlyPostRepository};
+use std::ops::DerefMut;
 
 enum FindCriteria {
     POSTS,
     DRAFTS,
-    ALL
+    ALL,
 }
 
 pub struct Find(FindCriteria);
@@ -21,13 +24,12 @@ impl Message for Find {
     type Result = Result<Vec<Post>, String>;
 }
 
-impl Handler<Find> for DbExecutor {
+impl Handler<Find> for PgActor {
     type Result = Result<Vec<Post>, String>;
 
     fn handle(&mut self, f: Find, _: &mut Self::Context) -> Self::Result {
         let mut connection = self.0.get().map_err(|_| { "pool empty".to_string() })?;
-        let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
-        let mut repository = PgPostRepository { transaction };
+        let mut repository = ReadOnlyPostRepository { client: connection.deref_mut() };
 
         let vec = match f.0 {
             FindCriteria::POSTS => repository.all_posts(),
@@ -35,7 +37,6 @@ impl Handler<Find> for DbExecutor {
             FindCriteria::ALL => repository.all()
         };
 
-        repository.transaction.commit().map_err(|_| { "commit failed".to_string() })?;
         Ok(vec)
     }
 }
@@ -56,20 +57,18 @@ impl Message for FindBy {
     type Result = Result<Option<Post>, String>;
 }
 
-impl Handler<FindBy> for DbExecutor {
+impl Handler<FindBy> for PgActor {
     type Result = Result<Option<Post>, String>;
 
     fn handle(&mut self, f: FindBy, _: &mut Self::Context) -> Self::Result {
         let mut connection = self.0.get().map_err(|_| { "pool empty".to_string() })?;
-        let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
-        let mut repository = PgPostRepository { transaction };
+        let mut repository = ReadOnlyPostRepository { client: connection.deref_mut() };
 
         let opt = match f.0 {
             FindByCriteria::SLUG(slug) => repository.find_by_slug(slug),
             FindByCriteria::ID(id) => repository.read(id),
         };
 
-        repository.transaction.commit().map_err(|_| { "commit failed".to_string() })?;
         Ok(opt)
     }
 }

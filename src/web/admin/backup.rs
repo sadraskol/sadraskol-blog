@@ -2,10 +2,10 @@ use actix::Addr;
 use actix_web::{Error, HttpResponse, web};
 
 use crate::infra::query::Find;
-use crate::post::ExportedPost;
-use crate::post_repository::DbExecutor;
+use crate::domain::post::ExportedPost;
+use crate::infra::post_repository::PgActor;
 
-pub async fn get(pool: web::Data<Addr<DbExecutor>>) -> Result<HttpResponse, Error> {
+pub async fn get(pool: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Error> {
     pool.send(Find::all()).await.unwrap()
         .map(|res| {
             let all_of_them: Vec<ExportedPost> = res.iter()

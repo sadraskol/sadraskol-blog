@@ -6,11 +6,11 @@ use askama::Template;
 use serde::Deserialize;
 use uuid::Uuid;
 
+use crate::domain::post::{Post, PostEvent};
+use crate::domain::types::PostId;
 use crate::infra::command::Command;
 use crate::infra::query::{Find, FindBy};
-use crate::post::{PostId, Post};
-use crate::post::PostEvent;
-use crate::post_repository::DbExecutor;
+use crate::infra::post_repository::PgActor;
 use crate::web::BaseTemplate;
 
 pub mod backup;
@@ -68,7 +68,7 @@ struct DraftsTemplate<'a> {
 }
 
 pub async fn drafts(
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     addr.send(Find::drafts()).await.unwrap()
         .map(|res| {
@@ -92,7 +92,7 @@ struct EditDraftTemplate<'a> {
 
 pub async fn draft(
     draft_id: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(draft_id);
 
@@ -125,7 +125,7 @@ pub struct SubmitDraftForm {
 pub async fn edit_draft(
     draft_id: web::Path<String>,
     params: web::Form<SubmitDraftForm>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(draft_id);
 
@@ -151,7 +151,7 @@ struct DraftPreviewTemplate<'a> {
 
 pub async fn preview_draft(
     draft_id: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(draft_id);
 
@@ -181,7 +181,7 @@ pub async fn preview_draft(
 
 pub async fn publish_draft(
     draft_id: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(draft_id);
 
@@ -193,7 +193,7 @@ pub async fn publish_draft(
 
 pub async fn make_draft_public(
     draft_id: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(draft_id);
 
@@ -236,7 +236,7 @@ struct PostsTemplate<'a> {
 }
 
 pub async fn posts(
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     addr.send(Find::posts()).await.unwrap()
         .map(|res| {
@@ -260,7 +260,7 @@ struct EditPostTemplate<'a> {
 
 pub async fn post(
     post_id: web::Path<String>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(post_id);
 
@@ -288,7 +288,7 @@ pub struct EditPostForm {
 pub async fn edit_post(
     post_id: web::Path<String>,
     params: web::Form<EditPostForm>,
-    addr: web::Data<Addr<DbExecutor>>,
+    addr: web::Data<Addr<PgActor>>,
 ) -> Result<HttpResponse, Error> {
     let id = parse_or_new_id(post_id);
 

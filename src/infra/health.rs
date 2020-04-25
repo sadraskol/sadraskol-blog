@@ -1,6 +1,6 @@
 use actix::{Handler, Message};
 
-use crate::post_repository::DbExecutor;
+use crate::infra::post_repository::PgActor;
 use postgres::Error;
 
 pub struct Health;
@@ -13,7 +13,7 @@ impl Message for Health {
     type Result = Result<(), Error>;
 }
 
-impl Handler<Health> for DbExecutor {
+impl Handler<Health> for PgActor {
     type Result = Result<(), Error>;
 
     fn handle(&mut self, _: Health, _: &mut Self::Context) -> Self::Result {

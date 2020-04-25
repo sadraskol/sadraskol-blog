@@ -9,7 +9,7 @@ use env_logger;
 use sadraskol::config;
 use sadraskol::identity::{CheckAdmin, identity_service};
 use sadraskol::pool;
-use sadraskol::post_repository::DbExecutor;
+use sadraskol::infra::post_repository::PgActor;
 use sadraskol::web;
 
 #[actix_rt::main]
@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
         .build(pool::ConnectionManager::new(config.postgres.clone()))
         .expect("Failed to create pool");
 
-    let addr = SyncArbiter::start(1, move || DbExecutor(pool.clone()));
+    let addr = SyncArbiter::start(1, move || PgActor(pool.clone()));
 
     let listen_address = format!("{}:{}", config.host, config.port);
     HttpServer::new(move || {

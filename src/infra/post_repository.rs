@@ -2,26 +2,19 @@ use std::rc::Rc;
 
 use actix::{Actor, SyncContext};
 use chrono::{DateTime, Utc};
-use postgres::{Row, Transaction};
+use postgres::{Client, Row, Transaction};
 use uuid::Uuid;
 
+use crate::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post, PostEvent};
+use crate::domain::repository::PostRepository;
+use crate::domain::types::{Language, Markdown, PostId};
 use crate::pool::Pool;
-use crate::post::{PostId, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Language, Markdown, Post, PostEvent};
 
-pub trait PostRepository {
-    fn all(&mut self) -> Vec<Post>;
-    fn all_posts(&mut self) -> Vec<Post>;
-    fn all_drafts(&mut self) -> Vec<Post>;
-    fn find_by_slug(&mut self, slug: String) -> Option<Post>;
-    fn read(&mut self, post_id: PostId) -> Option<Post>;
-    fn save(&mut self, event: PostEvent);
-}
-
-pub struct PgPostRepository<'a> {
+pub struct TransactionalPostRepository<'a> {
     pub transaction: Transaction<'a>,
 }
 
-impl<'a> PgPostRepository<'a> {
+impl<'a> TransactionalPostRepository<'a> {
     fn submit_draft(&mut self, event: InnerDraftSubmitted) {
         self.transaction.execute(
             "insert into blog_posts (aggregate_id, status, language, title, markdown_content, version) \
@@ -113,6 +106,205 @@ impl<'a> PgPostRepository<'a> {
             ).unwrap()
         });
     }
+}
+
+impl<'a> PostRepository for TransactionalPostRepository<'a> {
+    fn all(&mut self) -> Vec<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    order by blog_posts.publication_date desc nulls first",
+            &[],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn all_posts(&mut self) -> Vec<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1 \
+                    order by blog_posts.publication_date desc",
+            &[&"published"],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn all_drafts(&mut self) -> Vec<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1",
+            &[&"draft"],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn find_by_slug(&mut self, slug: String) -> Option<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.aggregate_id = (
+                        select blog_slugs.aggregate_id
+                        from blog_slugs
+                        where blog_slugs.slug = $1
+                    )",
+            &[&slug],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .first_post();
+    }
+
+    fn read(&mut self, post_id: PostId) -> Option<Post> {
+        return self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.aggregate_id = $1",
+            &[&post_id.to_uuid()],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .first_post();
+    }
+
+    fn save(&mut self, event: PostEvent) {
+        match event {
+            PostEvent::DraftDeleted(e) => self.delete_draft(e),
+            PostEvent::PostPublished(e) => self.publish_post(e),
+            PostEvent::DraftSubmitted(e) => self.submit_draft(e),
+            PostEvent::PostEdited(e) => self.edit_post(e),
+            PostEvent::DraftMadePublic(e) => self.make_draft_public(e),
+            PostEvent::PostError(_) => {}
+        }
+    }
+}
+
+pub struct ReadOnlyPostRepository<'a> {
+    pub client: &'a mut Client,
+}
+
+impl<'a> PostRepository for ReadOnlyPostRepository<'a> {
+    fn all(&mut self) -> Vec<Post> {
+        return self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    order by blog_posts.publication_date desc nulls first",
+            &[],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn all_posts(&mut self) -> Vec<Post> {
+        return self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1 \
+                    order by blog_posts.publication_date desc",
+            &[&"published"],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn all_drafts(&mut self) -> Vec<Post> {
+        return self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1",
+            &[&"draft"],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect();
+    }
+
+    fn find_by_slug(&mut self, slug: String) -> Option<Post> {
+        return self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.aggregate_id = (
+                        select blog_slugs.aggregate_id
+                        from blog_slugs
+                        where blog_slugs.slug = $1
+                    )",
+            &[&slug],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .first_post();
+    }
+
+    fn read(&mut self, post_id: PostId) -> Option<Post> {
+        return self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.aggregate_id = $1",
+            &[&post_id.to_uuid()],
+        )
+            .unwrap().iter()
+            .map(|row| Rc::new(row))
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .first_post();
+    }
+
+    fn save(&mut self, event: PostEvent) {
+        panic!("Could not save {:?} outside a transaction", event);
+    }
+}
+
+pub struct PgActor(pub Pool);
+
+impl Actor for PgActor {
+    type Context = SyncContext<Self>;
 }
 
 #[derive(Clone)]
@@ -295,108 +487,4 @@ impl RowsToPostsBuilder {
             })
             .unwrap_or(self.clone().materialized_posts)
     }
-}
-
-impl<'a> PostRepository for PgPostRepository<'a> {
-    fn all(&mut self) -> Vec<Post> {
-        return self.transaction.query(
-            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
-                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
-                           blog_slugs.slug, blog_slugs.current, blog_posts.version
-                    from blog_posts
-                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
-                    order by blog_posts.publication_date desc nulls first",
-            &[],
-        )
-            .unwrap().iter()
-            .map(|row| Rc::new(row))
-            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
-            .collect();
-    }
-
-    fn all_posts(&mut self) -> Vec<Post> {
-        return self.transaction.query(
-            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
-                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
-                           blog_slugs.slug, blog_slugs.current, blog_posts.version
-                    from blog_posts
-                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
-                    where blog_posts.status = $1 \
-                    order by blog_posts.publication_date desc",
-            &[&"published"],
-        )
-            .unwrap().iter()
-            .map(|row| Rc::new(row))
-            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
-            .collect();
-    }
-
-    fn all_drafts(&mut self) -> Vec<Post> {
-        return self.transaction.query(
-            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
-                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
-                           blog_slugs.slug, blog_slugs.current, blog_posts.version
-                    from blog_posts
-                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
-                    where blog_posts.status = $1",
-            &[&"draft"],
-        )
-            .unwrap().iter()
-            .map(|row| Rc::new(row))
-            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
-            .collect();
-    }
-
-    fn find_by_slug(&mut self, slug: String) -> Option<Post> {
-        return self.transaction.query(
-            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
-                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
-                           blog_slugs.slug, blog_slugs.current, blog_posts.version
-                    from blog_posts
-                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
-                    where blog_posts.aggregate_id = (
-                        select blog_slugs.aggregate_id
-                        from blog_slugs
-                        where blog_slugs.slug = $1
-                    )",
-            &[&slug],
-        )
-            .unwrap().iter()
-            .map(|row| Rc::new(row))
-            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
-            .first_post();
-    }
-
-    fn read(&mut self, post_id: PostId) -> Option<Post> {
-        return self.transaction.query(
-            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
-                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
-                           blog_slugs.slug, blog_slugs.current, blog_posts.version
-                    from blog_posts
-                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
-                    where blog_posts.aggregate_id = $1",
-            &[&post_id.to_uuid()],
-        )
-            .unwrap().iter()
-            .map(|row| Rc::new(row))
-            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
-            .first_post();
-    }
-
-    fn save(&mut self, event: PostEvent) {
-        match event {
-            PostEvent::DraftDeleted(e) => self.delete_draft(e),
-            PostEvent::PostPublished(e) => self.publish_post(e),
-            PostEvent::DraftSubmitted(e) => self.submit_draft(e),
-            PostEvent::PostEdited(e) => self.edit_post(e),
-            PostEvent::DraftMadePublic(e) => self.make_draft_public(e),
-            PostEvent::PostError(_) => {}
-        }
-    }
-}
-
-pub struct DbExecutor(pub Pool);
-
-impl Actor for DbExecutor {
-    type Context = SyncContext<Self>;
 }
