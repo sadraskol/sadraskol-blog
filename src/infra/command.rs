@@ -37,31 +37,34 @@ impl Handler<Command> for PgActor {
     type Result = Result<PostEvent, String>;
 
     fn handle(&mut self, command: Command, _: &mut Self::Context) -> Self::Result {
-        let mut connection = self.0.get().map_err(|_| { "pool empty".to_string() })?;
-        let transaction = connection.transaction().map_err(|_| { "no transaction?".to_string() })?;
+        let mut connection = self.0.get().map_err(|_| "pool empty".to_string())?;
+        let transaction = connection
+            .transaction()
+            .map_err(|_| "no transaction?".to_string())?;
         let mut repository = TransactionalPostRepository { transaction };
 
         let post = get_post(&mut repository, command.id());
         let e = match command {
-            Command::SubmitDraft(_, lang, title, content) =>
-                post.submit_draft(lang, title, content),
-            Command::MakePublic(_) =>
-                post.make_public(),
-            Command::DeleteDraft(_) =>
-                post.delete_draft(),
-            Command::PublishDraft(_, datetime) =>
-                post.publish_draft(datetime),
-            Command::EditPost(_, lang, title, content) =>
-                post.edit_post(lang, title, content),
+            Command::SubmitDraft(_, lang, title, content) => {
+                post.submit_draft(lang, title, content)
+            }
+            Command::MakePublic(_) => post.make_public(),
+            Command::DeleteDraft(_) => post.delete_draft(),
+            Command::PublishDraft(_, datetime) => post.publish_draft(datetime),
+            Command::EditPost(_, lang, title, content) => post.edit_post(lang, title, content),
         };
         repository.save(e.clone());
 
-        repository.transaction.commit().map_err(|_| { "commit failed".to_string() })?;
+        repository
+            .transaction
+            .commit()
+            .map_err(|_| "commit failed".to_string())?;
         Ok(e)
     }
 }
 
 fn get_post(repository: &mut TransactionalPostRepository, id: PostId) -> Post {
-    let draft = repository.read(id).unwrap_or(Post::NonExisting { post_id: id });
-    draft
+    repository
+        .read(id)
+        .unwrap_or(Post::NonExisting { post_id: id })
 }

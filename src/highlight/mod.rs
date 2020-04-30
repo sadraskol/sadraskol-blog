@@ -16,132 +16,179 @@ pub enum SadLang {
 type Span = (usize, usize, String);
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
-    return match l {
+    match l {
         SadLang::Java => {
-            let cs = def_lang("java", vec![
-                keyword("class"),
-                keyword("public"),
-                keyword("static"),
-                keyword("private"),
-                keyword("void"),
-                keyword("null"),
-                keyword("extends"),
-                keyword("implements"),
-                keyword("try"),
-                keyword("while"),
-                keyword("catch"),
-                keyword("finally"),
-                keyword("if"),
-                keyword("else"),
-                keyword("return"),
-                keyword("new"),
-                inline_comment("//"),
-                string('"'),
-            ]);
+            let cs = def_lang(
+                "java",
+                vec![
+                    keyword("class"),
+                    keyword("public"),
+                    keyword("static"),
+                    keyword("private"),
+                    keyword("void"),
+                    keyword("null"),
+                    keyword("extends"),
+                    keyword("implements"),
+                    keyword("try"),
+                    keyword("while"),
+                    keyword("catch"),
+                    keyword("finally"),
+                    keyword("if"),
+                    keyword("else"),
+                    keyword("return"),
+                    keyword("new"),
+                    inline_comment("//"),
+                    string('"'),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Alloy => {
-            let cs = def_lang("alloy", vec![
-                keyword("abstract"), keyword("all"), keyword("and"), keyword("as"), keyword("assert"),
-                keyword("but"), keyword("check"), keyword("disj"), keyword("else"), keyword("exactly"),
-                keyword("extends"), keyword("fact"), keyword("for"), keyword("fun"), keyword("iden"),
-                keyword("iff"), keyword("implies"), keyword("in"), keyword("Int"), keyword("let"),
-                keyword("lone"), keyword("module"), keyword("no"), keyword("none"), keyword("not"),
-                keyword("one"), keyword("open"), keyword("or"), keyword("pred"), keyword("run"),
-                keyword("set"), keyword("sig"), keyword("some"), keyword("sum"), keyword("univ"),
-                inline_comment("//"), inline_comment("--"),
-                string('"'),
-            ]);
+            let cs = def_lang(
+                "alloy",
+                vec![
+                    keyword("abstract"),
+                    keyword("all"),
+                    keyword("and"),
+                    keyword("as"),
+                    keyword("assert"),
+                    keyword("but"),
+                    keyword("check"),
+                    keyword("disj"),
+                    keyword("else"),
+                    keyword("exactly"),
+                    keyword("extends"),
+                    keyword("fact"),
+                    keyword("for"),
+                    keyword("fun"),
+                    keyword("iden"),
+                    keyword("iff"),
+                    keyword("implies"),
+                    keyword("in"),
+                    keyword("Int"),
+                    keyword("let"),
+                    keyword("lone"),
+                    keyword("module"),
+                    keyword("no"),
+                    keyword("none"),
+                    keyword("not"),
+                    keyword("one"),
+                    keyword("open"),
+                    keyword("or"),
+                    keyword("pred"),
+                    keyword("run"),
+                    keyword("set"),
+                    keyword("sig"),
+                    keyword("some"),
+                    keyword("sum"),
+                    keyword("univ"),
+                    inline_comment("//"),
+                    inline_comment("--"),
+                    string('"'),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Erlang => {
-            let cs = def_lang("erlang", vec![
-                keyword("when"),
-                keyword("case"),
-                keyword("of"),
-                keyword("end"),
-                keyword("pred"),
-                inline_comment("//"),
-                string('"'),
-            ]);
+            let cs = def_lang(
+                "erlang",
+                vec![
+                    keyword("when"),
+                    keyword("case"),
+                    keyword("of"),
+                    keyword("end"),
+                    keyword("pred"),
+                    inline_comment("//"),
+                    string('"'),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Elixir => {
-            let cs = def_lang("elixir", vec![
-                keyword("def"),
-                keyword("defmodule"),
-                keyword("defmacro"),
-                keyword("defstruct"),
-                keyword("quote"),
-                keyword("cond"),
-                keyword("true"),
-                keyword("false"),
-                keyword("nil"),
-                keyword("do"),
-                keyword("end"),
-                keyword("import"),
-                inline_comment("#"),
-                string('"'),
-            ]);
+            let cs = def_lang(
+                "elixir",
+                vec![
+                    keyword("def"),
+                    keyword("defmodule"),
+                    keyword("defmacro"),
+                    keyword("defstruct"),
+                    keyword("quote"),
+                    keyword("cond"),
+                    keyword("true"),
+                    keyword("false"),
+                    keyword("nil"),
+                    keyword("do"),
+                    keyword("end"),
+                    keyword("import"),
+                    inline_comment("#"),
+                    string('"'),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Haskell => {
-            let cs = def_lang("haskell", vec![
-                keyword("type"),
-                keyword("data"),
-                keyword("one"),
-                keyword("lone"),
-                keyword("pred"),
-                inline_comment("//"),
-                string('"'),
-            ]);
+            let cs = def_lang(
+                "haskell",
+                vec![
+                    keyword("type"),
+                    keyword("data"),
+                    keyword("one"),
+                    keyword("lone"),
+                    keyword("pred"),
+                    inline_comment("//"),
+                    string('"'),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
         SadLang::Javascript => {
-            let cs = def_lang("javascript", vec![
-                keyword("const"),
-                keyword("window"),
-                keyword("for"),
-                keyword("let"),
-                keyword("of"),
-                keyword("null"),
-                keyword("if"),
-                keyword("else"),
-                inline_comment("//"),
-                string('"'),
-                string('\''),
-            ]);
+            let cs = def_lang(
+                "javascript",
+                vec![
+                    keyword("const"),
+                    keyword("window"),
+                    keyword("for"),
+                    keyword("let"),
+                    keyword("of"),
+                    keyword("null"),
+                    keyword("if"),
+                    keyword("else"),
+                    inline_comment("//"),
+                    string('"'),
+                    string('\''),
+                ],
+            );
             highlight_structure(&mut w, &s, cs)
         }
-        SadLang::Text => w.write_str(s)
-    };
+        SadLang::Text => w.write_str(s),
+    }
 }
 
 fn def_lang(lang: &str, tokens: Vec<Tokenizer>) -> Structure {
-    return Structure {
+    Structure {
         start: 0,
         class: lang.to_string(),
         inside_tokens: tokens,
         final_tokens: vec![],
         spans: vec![],
         parent: None,
-    };
+    }
 }
 
 fn keyword(keyword: &str) -> Tokenizer {
-    return Tokenizer::Waiting {
+    Tokenizer::Waiting {
         params: TokenParams {
             escape_pred: TokenDelimiter::Identifier,
             token: keyword.to_string(),
             class: "keyword".to_string(),
             structure: None,
             include: false,
-        }
-    };
+        },
+    }
 }
 
 fn inline_comment(start_with: &str) -> Tokenizer {
-    return Tokenizer::Waiting {
+    Tokenizer::Waiting {
         params: TokenParams {
             escape_pred: TokenDelimiter::Identifier,
             token: start_with.to_string(),
@@ -156,19 +203,19 @@ fn inline_comment(start_with: &str) -> Tokenizer {
                         class: "end-comment".to_string(),
                         structure: None,
                         include: false,
-                    }
+                    },
                 }],
                 spans: vec![],
                 parent: None,
                 class: "comment".to_string(),
             }),
             include: false,
-        }
-    };
+        },
+    }
 }
 
 fn string(separator: char) -> Tokenizer {
-    return Tokenizer::Waiting {
+    Tokenizer::Waiting {
         params: TokenParams {
             escape_pred: TokenDelimiter::AnyChar,
             token: separator.to_string(),
@@ -183,15 +230,15 @@ fn string(separator: char) -> Tokenizer {
                         class: "end-comment".to_string(),
                         structure: None,
                         include: true,
-                    }
+                    },
                 }],
                 spans: vec![],
                 parent: None,
                 class: "string".to_string(),
             }),
             include: false,
-        }
-    };
+        },
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -210,9 +257,15 @@ impl Structure {
         let mut p = *some_parent.unwrap();
 
         match self.final_tokens[0].clone() {
-            Tokenizer::Waiting { .. } => { p.add((self.start, eof_size, self.class.clone())); }
-            Tokenizer::Matching { .. } => { p.add((self.start, eof_size, self.class.clone())); }
-            Tokenizer::Sleeping { .. } => { p.add((self.start, eof_size, self.class.clone())); }
+            Tokenizer::Waiting { .. } => {
+                p.add((self.start, eof_size, self.class.clone()));
+            }
+            Tokenizer::Matching { .. } => {
+                p.add((self.start, eof_size, self.class.clone()));
+            }
+            Tokenizer::Sleeping { .. } => {
+                p.add((self.start, eof_size, self.class.clone()));
+            }
             Tokenizer::Candidate { params, start, end } => {
                 if params.include {
                     p.add((self.start, end, self.class.clone()));
@@ -259,7 +312,7 @@ impl TokenDelimiter {
                 if c.is_ascii() {
                     match c as u8 {
                         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_' => false,
-                        _ => true
+                        _ => true,
                     }
                 } else {
                     true
@@ -281,7 +334,7 @@ struct TokenParams {
 #[derive(Clone, Debug, PartialEq)]
 enum Tokenizer {
     Waiting {
-        params: TokenParams
+        params: TokenParams,
     },
     Matching {
         start: usize,
@@ -300,7 +353,7 @@ enum Tokenizer {
         params: TokenParams,
     },
     Sleeping {
-        params: TokenParams
+        params: TokenParams,
     },
 }
 
@@ -333,11 +386,16 @@ impl Tokenizer {
                     }
                 } else {
                     Tokenizer::Waiting {
-                        params: params.clone()
+                        params: params.clone(),
                     }
                 }
             }
-            Tokenizer::Matching { params, start, valid_acc, missing_acc } => {
+            Tokenizer::Matching {
+                params,
+                start,
+                valid_acc,
+                missing_acc,
+            } => {
                 if missing_acc[0] == c {
                     let mut valids = valid_acc.clone();
                     let mut missings = missing_acc.clone();
@@ -364,15 +422,13 @@ impl Tokenizer {
                             params: params.clone(),
                         }
                     }
+                } else if !params.escape_pred.outside_of_token(c) {
+                    Tokenizer::Sleeping {
+                        params: params.clone(),
+                    }
                 } else {
-                    if !params.escape_pred.outside_of_token(c) {
-                        Tokenizer::Sleeping {
-                            params: params.clone(),
-                        }
-                    } else {
-                        Tokenizer::Waiting {
-                            params: params.clone(),
-                        }
+                    Tokenizer::Waiting {
+                        params: params.clone(),
                     }
                 }
             }
@@ -385,22 +441,23 @@ impl Tokenizer {
                     }
                 } else {
                     Tokenizer::Sleeping {
-                        params: params.clone()
+                        params: params.clone(),
                     }
                 }
             }
             Tokenizer::Sleeping { params } => {
                 if params.escape_pred.outside_of_token(c) {
                     Tokenizer::Waiting {
-                        params: params.clone()
+                        params: params.clone(),
                     }
                 } else {
                     self.clone()
                 }
             }
-            Tokenizer::Completed { .. } => { self.clone() }
+            Tokenizer::Completed { .. } => self.clone(),
         }
     }
+
     fn is_complete(&self) -> bool {
         match self {
             Tokenizer::Waiting { .. } => false,
@@ -410,45 +467,53 @@ impl Tokenizer {
             Tokenizer::Completed { .. } => true,
         }
     }
+
     fn as_span(&self) -> (Self, Span) {
         match self {
             Tokenizer::Waiting { .. } => panic!("Waiting token cannot be converted to span"),
             Tokenizer::Sleeping { .. } => panic!("Sleeping token cannot be converted to span"),
             Tokenizer::Matching { .. } => panic!("Matching token cannot be converted to span"),
-            Tokenizer::Candidate { params, start, end } => {
-                (
-                    Tokenizer::Waiting { params: params.clone() },
-                    (*start, *end, params.class.clone())
-                )
-            }
-            Tokenizer::Completed { params, start, end } => {
-                (
-                    Tokenizer::Waiting { params: params.clone() },
-                    (*start, *end, params.class.clone())
-                )
-            }
+            Tokenizer::Candidate { params, start, end } => (
+                Tokenizer::Waiting {
+                    params: params.clone(),
+                },
+                (*start, *end, params.class.clone()),
+            ),
+            Tokenizer::Completed { params, start, end } => (
+                Tokenizer::Waiting {
+                    params: params.clone(),
+                },
+                (*start, *end, params.class.clone()),
+            ),
         }
     }
+
     fn structure_starts(&self) -> bool {
         match self {
-            Tokenizer::Waiting { params } => { params.structure.is_some() }
-            Tokenizer::Sleeping { params } => { params.structure.is_some() }
-            Tokenizer::Matching { params, .. } => { params.structure.is_some() }
-            Tokenizer::Candidate { params, .. } => { params.structure.is_some() }
-            Tokenizer::Completed { params, .. } => { params.structure.is_some() }
+            Tokenizer::Waiting { params } => params.structure.is_some(),
+            Tokenizer::Sleeping { params } => params.structure.is_some(),
+            Tokenizer::Matching { params, .. } => params.structure.is_some(),
+            Tokenizer::Candidate { params, .. } => params.structure.is_some(),
+            Tokenizer::Completed { params, .. } => params.structure.is_some(),
         }
     }
+
     fn as_struct(&self) -> (Self, Structure) {
         let (params, start) = match self {
             Tokenizer::Waiting { .. } => panic!("Waiting token cannot be converted to structure"),
             Tokenizer::Sleeping { .. } => panic!("Waiting token cannot be converted to structure"),
             Tokenizer::Matching { .. } => panic!("Waiting token cannot be converted to structure"),
-            Tokenizer::Candidate { params, start, .. } => { (params, start) }
-            Tokenizer::Completed { params, start, .. } => { (params, start) }
+            Tokenizer::Candidate { params, start, .. } => (params, start),
+            Tokenizer::Completed { params, start, .. } => (params, start),
         };
         let mut structure = params.structure.clone().unwrap();
         structure.start(*start);
-        (Tokenizer::Waiting { params: params.clone() }, structure)
+        (
+            Tokenizer::Waiting {
+                params: params.clone(),
+            },
+            structure,
+        )
     }
 }
 
@@ -457,20 +522,22 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
     for c in s.chars() {
         let mut opt_span = None;
         let mut opt_structure = None;
-        cs.inside_tokens = cs.inside_tokens.iter()
-            .map(|t| {
-                t.accumulate(c, size)
-            })
+        cs.inside_tokens = cs
+            .inside_tokens
+            .iter()
+            .map(|t| t.accumulate(c, size))
             .collect();
-        cs.final_tokens = cs.final_tokens.iter()
-            .map(|t| {
-                t.accumulate(c, size)
-            })
+        cs.final_tokens = cs
+            .final_tokens
+            .iter()
+            .map(|t| t.accumulate(c, size))
             .collect();
 
         size += c.len_utf8();
 
-        cs.inside_tokens = cs.inside_tokens.iter()
+        cs.inside_tokens = cs
+            .inside_tokens
+            .iter()
             .map(|t| {
                 if t.is_complete() {
                     if t.structure_starts() {
@@ -488,12 +555,11 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
             })
             .collect();
 
-        if opt_structure.is_some() {
-            let mut new_cs = opt_structure.unwrap();
+        if let Some(mut new_cs) = opt_structure {
             new_cs.parent = Some(Box::new(cs));
             cs = new_cs;
-        } else if opt_span.is_some() {
-            cs.add(opt_span.unwrap());
+        } else if let Some(span) = opt_span {
+            cs.add(span);
         }
 
         if !cs.final_tokens.is_empty() && cs.final_tokens[0].is_complete() {
@@ -530,7 +596,10 @@ mod test {
     fn keyword_inserted() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "class text code\n", Java).unwrap();
-        assert_eq!("<span class=\"h-keyword\">class</span> text code\n", s.as_str());
+        assert_eq!(
+            "<span class=\"h-keyword\">class</span> text code\n",
+            s.as_str()
+        );
     }
 
     #[test]
@@ -544,20 +613,31 @@ mod test {
     fn inline_comment_is_okay() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "some // java code\n", Java).unwrap();
-        assert_eq!("some <span class=\"h-comment\">// java code</span>\n", s.as_str());
+        assert_eq!(
+            "some <span class=\"h-comment\">// java code</span>\n",
+            s.as_str()
+        );
     }
 
     #[test]
     fn inline_comment_works_with_eol_delimiter() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "some // java code", Java).unwrap();
-        assert_eq!("some <span class=\"h-comment\">// java code</span>", s.as_str());
+        assert_eq!(
+            "some <span class=\"h-comment\">// java code</span>",
+            s.as_str()
+        );
     }
 
     #[test]
     fn it_works_with_accents_as_well() {
         let mut s = String::with_capacity(100);
-        highlight(&mut s, "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n", Alloy).unwrap();
+        highlight(
+            &mut s,
+            "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n",
+            Alloy,
+        )
+        .unwrap();
         assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 
@@ -579,13 +659,21 @@ mod test {
     fn highligh_strings() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "\"classical\" wow", Java).unwrap();
-        assert_eq!("<span class=\"h-string\">\"classical\"</span> wow", s.as_str());
+        assert_eq!(
+            "<span class=\"h-string\">\"classical\"</span> wow",
+            s.as_str()
+        );
     }
 
     #[test]
     fn highligh_strings_within_the_rest_elixir() {
         let mut s = String::with_capacity(100);
-        highlight(&mut s, "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend", Elixir).unwrap();
+        highlight(
+            &mut s,
+            "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend",
+            Elixir,
+        )
+        .unwrap();
         assert_eq!("      <span class=\"h-keyword\">def</span> unquote(:<span class=\"h-string\">\"add_#{name}\"</span>)(addend), <span class=\"h-keyword\">do</span>: unquote(base_addend) + addend", s.as_str());
     }
 }

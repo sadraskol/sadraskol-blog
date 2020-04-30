@@ -1,7 +1,7 @@
 use actix_identity::{CookieIdentityPolicy, IdentityService, RequestIdentity};
-use actix_web::{Error, http, HttpResponse};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
-use futures::future::{Either, ok, Ready};
+use actix_web::{http, Error, HttpResponse};
+use futures::future::{ok, Either, Ready};
 use futures::task::{Context, Poll};
 
 use crate::config::Config;
@@ -22,6 +22,7 @@ pub fn identity_service(config: Config) -> IdentityService<CookieIdentityPolicy>
     }
 }
 
+#[derive(Default)]
 pub struct CheckAdmin;
 
 impl CheckAdmin {
@@ -31,9 +32,9 @@ impl CheckAdmin {
 }
 
 impl<S, B> Transform<S> for CheckAdmin
-    where
-        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
-        S::Future: 'static,
+where
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
@@ -51,10 +52,11 @@ pub struct CheckAdminMiddleware<S> {
     service: S,
 }
 
+#[allow(clippy::type_complexity)]
 impl<S, B> Service for CheckAdminMiddleware<S>
-    where
-        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
-        S::Future: 'static,
+where
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
@@ -68,9 +70,7 @@ impl<S, B> Service for CheckAdminMiddleware<S>
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         // We only need to hook into the `start` for this middleware.
 
-        let is_logged_in = req.get_identity()
-            .map(|d| d == "admin")
-            .unwrap_or(false);
+        let is_logged_in = req.get_identity().map(|d| d == "admin").unwrap_or(false);
 
         if is_logged_in {
             Either::Left(self.service.call(req))

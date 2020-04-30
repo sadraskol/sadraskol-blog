@@ -8,11 +8,15 @@ use crate::custom_markdown::sad_push_html;
 pub struct PostId(uuid::Uuid);
 
 impl PostId {
-    pub fn new(uuid: uuid::Uuid) -> PostId { PostId(uuid) }
+    pub fn new(uuid: uuid::Uuid) -> PostId {
+        PostId(uuid)
+    }
     pub fn to_str(&self) -> String {
         self.0.to_hyphenated().to_string()
     }
-    pub fn to_uuid(&self) -> uuid::Uuid { self.0.clone() }
+    pub fn to_uuid(&self) -> uuid::Uuid {
+        self.0
+    }
 }
 
 impl std::fmt::Display for PostId {
@@ -28,7 +32,10 @@ impl std::fmt::Debug for PostId {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub enum Language { Fr, En }
+pub enum Language {
+    Fr,
+    En,
+}
 
 impl FromStr for Language {
     type Err = ();
@@ -44,21 +51,23 @@ impl FromStr for Language {
 
 impl ToString for Language {
     fn to_string(&self) -> String {
-        return match self {
+        match self {
             Language::Fr => "fr".to_string(),
             Language::En => "en".to_string(),
-        };
+        }
     }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Markdown {
-    raw: String
+    raw: String,
 }
 
 impl Markdown {
     pub fn new<T: ToString>(value: T) -> Markdown {
-        Markdown { raw: value.to_string() }
+        Markdown {
+            raw: value.to_string(),
+        }
     }
 
     pub fn format(&self) -> String {
@@ -69,7 +78,7 @@ impl Markdown {
 
         let mut html_output: String = String::with_capacity(self.raw.len() * 2);
         sad_push_html(&mut html_output, &mut parser);
-        html_output.clone()
+        html_output
     }
 
     pub fn to_edit(&self) -> String {

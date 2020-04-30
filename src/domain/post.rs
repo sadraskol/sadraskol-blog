@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished};
+use crate::domain::post::PostEvent::{
+    DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
+};
 use crate::domain::types::{Language, Markdown, PostId};
 use crate::slugify::slugify;
 
@@ -116,7 +118,7 @@ pub enum PostErrors {
 
 impl std::string::ToString for PostErrors {
     fn to_string(&self) -> String {
-        return match self {
+        match self {
             PostErrors::CannotDelete => "CannotDelete".to_string(),
             PostErrors::CannotPublish => "CannotPublish".to_string(),
             PostErrors::CannotEditPost => "CannotEditPost".to_string(),
@@ -125,46 +127,52 @@ impl std::string::ToString for PostErrors {
             PostErrors::CannotEditDraftAsPost => "CannotEditDraftAsPost".to_string(),
             PostErrors::UnknownSlug => "UnknownSlug".to_string(),
             PostErrors::CurrentSlugIsNow(current) => format!("CurrentSlugIsNow({})", current),
-        };
+        }
     }
 }
 
 impl Post {
     pub fn post_id(&self) -> PostId {
-        return match self {
-            Post::NonExisting { post_id } => post_id.clone(),
-            Post::Draft { post_id, .. } => post_id.clone(),
-            Post::Post { post_id, .. } => post_id.clone(),
-        };
+        match self {
+            Post::NonExisting { post_id } => *post_id,
+            Post::Draft { post_id, .. } => *post_id,
+            Post::Post { post_id, .. } => *post_id,
+        }
     }
 
     pub fn version(&self) -> u32 {
-        return match self {
+        match self {
             Post::NonExisting { .. } => 0,
-            Post::Draft { version, .. } => version.clone(),
-            Post::Post { version, .. } => version.clone(),
-        };
+            Post::Draft { version, .. } => *version,
+            Post::Post { version, .. } => *version,
+        }
     }
 
     pub fn title(&self) -> Option<String> {
-        return match self {
+        match self {
             Post::NonExisting { .. } => None,
             Post::Draft { title, .. } => Some(title.clone()),
             Post::Post { title, .. } => Some(title.clone()),
-        };
+        }
     }
 
     pub fn check_current_slug(&self, slug: String) -> Result<Self, PostErrors> {
-        return match self {
+        match self {
             Post::NonExisting { .. } => Ok(self.clone()),
-            Post::Draft { post_id, shareable, .. } => {
-                if *shareable && post_id.to_str() == slug.clone() {
+            Post::Draft {
+                post_id, shareable, ..
+            } => {
+                if *shareable && post_id.to_str() == slug {
                     Ok(self.clone())
                 } else {
                     Err(PostErrors::UnknownSlug)
                 }
             }
-            Post::Post { current_slug, previous_slugs, .. } => {
+            Post::Post {
+                current_slug,
+                previous_slugs,
+                ..
+            } => {
                 if *current_slug == slug {
                     Ok(self.clone())
                 } else if previous_slugs.contains(&slug) {
@@ -173,7 +181,7 @@ impl Post {
                     Err(PostErrors::UnknownSlug)
                 }
             }
-        };
+        }
     }
 
     pub fn submit_draft<S: Into<String>, V: Into<String>>(
@@ -182,7 +190,7 @@ impl Post {
         title: S,
         markdown_content: V,
     ) -> PostEvent {
-        return match self {
+        match self {
             Post::Post { .. } => PostError(PostErrors::CannotEditPost),
             _ => DraftSubmitted(InnerDraftSubmitted {
                 post_id: self.post_id(),
@@ -191,38 +199,47 @@ impl Post {
                 markdown_content: markdown_content.into(),
                 language,
             }),
-        };
+        }
     }
 
     pub fn make_public(&self) -> PostEvent {
-        return match self {
-            Post::Draft { shareable: false, .. } => DraftMadePublic(InnerDraftMadePublic { post_id: self.post_id(), version: self.version() }),
-            Post::Draft { shareable: true, .. } => PostError(PostErrors::AlreadyPublic),
+        match self {
+            Post::Draft {
+                shareable: false, ..
+            } => DraftMadePublic(InnerDraftMadePublic {
+                post_id: self.post_id(),
+                version: self.version(),
+            }),
+            Post::Draft {
+                shareable: true, ..
+            } => PostError(PostErrors::AlreadyPublic),
             Post::Post { .. } => PostError(PostErrors::CannotMakePublic),
             Post::NonExisting { .. } => PostError(PostErrors::CannotMakePublic),
-        };
+        }
     }
 
     pub fn delete_draft(&self) -> PostEvent {
-        return match self {
-            Post::Draft { .. } => DraftDeleted(InnerDraftDeleted { post_id: self.post_id(), version: self.version() }),
+        match self {
+            Post::Draft { .. } => DraftDeleted(InnerDraftDeleted {
+                post_id: self.post_id(),
+                version: self.version(),
+            }),
             Post::Post { .. } => PostError(PostErrors::CannotDelete),
             Post::NonExisting { .. } => PostError(PostErrors::CannotDelete),
-        };
+        }
     }
 
     pub fn publish_draft(&self, publication_date: DateTime<Utc>) -> PostEvent {
-        return match self {
-            Post::Draft { title, .. } =>
-                PostPublished(InnerPostPublished {
-                    post_id: self.post_id(),
-                    version: self.version(),
-                    slug: slugify(title.clone()),
-                    publication_date,
-                }),
+        match self {
+            Post::Draft { title, .. } => PostPublished(InnerPostPublished {
+                post_id: self.post_id(),
+                version: self.version(),
+                slug: slugify(title.clone()),
+                publication_date,
+            }),
             Post::Post { .. } => PostError(PostErrors::CannotPublish),
             Post::NonExisting { .. } => PostError(PostErrors::CannotPublish),
-        };
+        }
     }
 
     pub fn edit_post<Title: Into<String>, Content: Into<String>>(
@@ -231,9 +248,13 @@ impl Post {
         new_title: Title,
         markdown_content: Content,
     ) -> PostEvent {
-        return match self {
+        match self {
             Post::Draft { .. } => PostError(PostErrors::CannotEditDraftAsPost),
-            Post::Post { title, current_slug, .. } => {
+            Post::Post {
+                title,
+                current_slug,
+                ..
+            } => {
                 let new_title_as_string = new_title.into();
                 let maybe_title_changed = if title.clone() == new_title_as_string {
                     None
@@ -243,25 +264,32 @@ impl Post {
                 let maybe_slug_changed = if slugify(new_title_as_string.clone()) == *current_slug {
                     None
                 } else {
-                    Some(slugify(new_title_as_string.clone()))
+                    Some(slugify(new_title_as_string))
                 };
-                return PostEdited(InnerPostEdited {
+                PostEdited(InnerPostEdited {
                     post_id: self.post_id(),
                     version: self.version(),
                     language,
                     title: maybe_title_changed,
                     slug: maybe_slug_changed,
                     markdown_content: markdown_content.into(),
-                });
+                })
             }
             Post::NonExisting { .. } => PostError(PostErrors::CannotEditDraftAsPost),
-        };
+        }
     }
 
     pub fn export_post(&self) -> Option<ExportedPost> {
         match self {
             Post::NonExisting { .. } => None,
-            Post::Draft { post_id, version, title, markdown_content, language, shareable } => Some(ExportedPost {
+            Post::Draft {
+                post_id,
+                version,
+                title,
+                markdown_content,
+                language,
+                shareable,
+            } => Some(ExportedPost {
                 post_id: post_id.to_str(),
                 version: *version,
                 title: title.clone(),
@@ -272,7 +300,16 @@ impl Post {
                 current_slug: None,
                 previous_slugs: vec![],
             }),
-            Post::Post { post_id, version, title, markdown_content, language, publication_date, current_slug, previous_slugs } => Some(ExportedPost {
+            Post::Post {
+                post_id,
+                version,
+                title,
+                markdown_content,
+                language,
+                publication_date,
+                current_slug,
+                previous_slugs,
+            } => Some(ExportedPost {
                 post_id: post_id.to_str(),
                 version: *version,
                 title: title.clone(),
@@ -289,20 +326,27 @@ impl Post {
 
 #[cfg(test)]
 mod test {
-    use rand::{Rng, thread_rng};
     use rand::distributions::Alphanumeric;
     use rand::distributions::Distribution;
     use rand::distributions::Uniform;
+    use rand::{thread_rng, Rng};
 
-    use crate::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished};
     use crate::domain::post::Post;
     use crate::domain::post::PostErrors;
-    use crate::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished};
+    use crate::domain::post::PostEvent::{
+        DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
+    };
+    use crate::domain::post::{
+        InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
+        InnerPostPublished,
+    };
     use crate::domain::types::{Language, Markdown, PostId};
 
     #[test]
     fn submit_draft_successfully() {
-        let no_post = Post::NonExisting { post_id: PostId::new(uuid::Uuid::new_v4()) };
+        let no_post = Post::NonExisting {
+            post_id: PostId::new(uuid::Uuid::new_v4()),
+        };
         assert_eq!(
             no_post.submit_draft(Language::Fr, "some title", "some content"),
             DraftSubmitted(InnerDraftSubmitted {
@@ -344,17 +388,17 @@ mod test {
         let draft = random_draft();
         assert_eq!(
             draft.delete_draft(),
-            DraftDeleted(InnerDraftDeleted { post_id: draft.post_id(), version: draft.version() })
+            DraftDeleted(InnerDraftDeleted {
+                post_id: draft.post_id(),
+                version: draft.version()
+            })
         );
     }
 
     #[test]
     fn cannot_delete_a_post() {
         let post = PostBuilder::new().build();
-        assert_eq!(
-            post.delete_draft(),
-            PostError(PostErrors::CannotDelete)
-        );
+        assert_eq!(post.delete_draft(), PostError(PostErrors::CannotDelete));
     }
 
     #[test]
@@ -387,26 +431,23 @@ mod test {
         let draft = random_draft();
         assert_eq!(
             draft.make_public(),
-            DraftMadePublic(InnerDraftMadePublic { post_id: draft.post_id(), version: draft.version() })
+            DraftMadePublic(InnerDraftMadePublic {
+                post_id: draft.post_id(),
+                version: draft.version()
+            })
         );
     }
 
     #[test]
     fn cannot_make_public_twice() {
         let draft = random_shareable_draft();
-        assert_eq!(
-            draft.make_public(),
-            PostError(PostErrors::AlreadyPublic)
-        );
+        assert_eq!(draft.make_public(), PostError(PostErrors::AlreadyPublic));
     }
 
     #[test]
     fn cannot_make_public_a_post() {
         let post = PostBuilder::new().build();
-        assert_eq!(
-            post.make_public(),
-            PostError(PostErrors::CannotMakePublic)
-        );
+        assert_eq!(post.make_public(), PostError(PostErrors::CannotMakePublic));
     }
 
     #[test]
@@ -443,9 +484,7 @@ mod test {
 
     #[test]
     fn edit_a_post_changing_its_slug_but_not_the_title() {
-        let post = PostBuilder::new()
-            .title("What a title!")
-            .build();
+        let post = PostBuilder::new().title("What a title!").build();
         assert_eq!(
             post.edit_post(Language::En, "What a title!", "other content"),
             PostEdited(InnerPostEdited {
@@ -470,27 +509,44 @@ mod test {
 
     #[test]
     fn cannot_perform_any_operation_on_non_existing_expect_submitting_a_draft() {
-        let no_post = Post::NonExisting { post_id: PostId::new(uuid::Uuid::new_v4()) };
+        let no_post = Post::NonExisting {
+            post_id: PostId::new(uuid::Uuid::new_v4()),
+        };
         assert!(no_post.make_public().is_err());
         assert!(no_post.delete_draft().is_err());
         assert!(no_post.publish_draft(chrono::Utc::now()).is_err());
-        assert!(no_post.edit_post(Language::En, rand_str(), rand_str()).is_err());
+        assert!(no_post
+            .edit_post(Language::En, rand_str(), rand_str())
+            .is_err());
     }
 
     #[test]
     fn check_current_slug() {
-        assert_eq!(random_draft().check_current_slug(rand_str()), Err(PostErrors::UnknownSlug));
+        assert_eq!(
+            random_draft().check_current_slug(rand_str()),
+            Err(PostErrors::UnknownSlug)
+        );
         let draft = random_shareable_draft();
-        assert_eq!(draft.clone().check_current_slug(rand_str()), Err(PostErrors::UnknownSlug));
+        assert_eq!(
+            draft.clone().check_current_slug(rand_str()),
+            Err(PostErrors::UnknownSlug)
+        );
         assert_eq!(
             draft.clone().check_current_slug(draft.post_id().to_str()),
-            Ok(draft.clone()));
+            Ok(draft.clone())
+        );
         let post = PostBuilder::new()
             .with_slug("some-slug")
             .with_old_slugs(&["old-slug", "old-new-slug"])
             .build();
-        assert_eq!(post.clone().check_current_slug(rand_str()), Err(PostErrors::UnknownSlug));
-        assert_eq!(post.clone().check_current_slug("some-slug".to_string()), Ok(post.clone()));
+        assert_eq!(
+            post.clone().check_current_slug(rand_str()),
+            Err(PostErrors::UnknownSlug)
+        );
+        assert_eq!(
+            post.clone().check_current_slug("some-slug".to_string()),
+            Ok(post.clone())
+        );
         assert_eq!(
             post.clone().check_current_slug("old-slug".to_string()),
             Err(PostErrors::CurrentSlugIsNow("some-slug".to_string()))
@@ -581,9 +637,7 @@ mod test {
         }
 
         fn with_old_slugs(mut self, slugs: &[&str]) -> Self {
-            self.previous_slugs = slugs.into_iter()
-                .map(|s| s.to_string())
-                .collect();
+            self.previous_slugs = slugs.into_iter().map(|s| s.to_string()).collect();
             self
         }
 

@@ -3,10 +3,13 @@ use actix::{Handler, Message};
 use crate::infra::post_repository::PgActor;
 use postgres::Error;
 
+#[derive(Default)]
 pub struct Health;
 
 impl Health {
-    pub fn new() -> Health { Health {} }
+    pub fn new() -> Health {
+        Health {}
+    }
 }
 
 impl Message for Health {

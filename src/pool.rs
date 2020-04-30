@@ -5,7 +5,7 @@ use crate::config::Postgres;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionManager {
-    postgres: Postgres
+    postgres: Postgres,
 }
 
 impl ConnectionManager {
@@ -23,8 +23,7 @@ impl ManageConnection for ConnectionManager {
     }
 
     fn is_valid(&self, conn: &mut Client) -> Result<(), Error> {
-        conn.execute("values(1)", &[])
-            .map(|_| ())
+        conn.execute("values(1)", &[]).map(|_| ())
     }
 
     fn has_broken(&self, conn: &mut Client) -> bool {

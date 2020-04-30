@@ -8,8 +8,13 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post};
-use sadraskol::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished};
+use sadraskol::domain::post::PostEvent::{
+    DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished,
+};
+use sadraskol::domain::post::{
+    InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
+    InnerPostPublished, Post,
+};
 use sadraskol::domain::repository::PostRepository;
 use sadraskol::domain::types::{Language, Markdown, PostId};
 use sadraskol::infra::post_repository::TransactionalPostRepository;
@@ -28,8 +33,7 @@ fn test_publish_draft(repo: &mut TransactionalPostRepository) {
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    let date = chrono::Utc::now()
-        .with_nanosecond(0).unwrap();
+    let date = chrono::Utc::now().with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
         post_id,
         version: 1,
@@ -48,14 +52,17 @@ fn test_publish_draft(repo: &mut TransactionalPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![expected_post.clone()]);
     assert_eq!(repo.all_drafts(), vec![]);
-    assert_eq!(repo.read(post_id), Some(expected_post.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_post));
 }
 
 fn test_finding_post_by_slug(repo: &mut TransactionalPostRepository) {
     let post_id = PostId::new(uuid::Uuid::new_v4());
     assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), false);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), false);
-    assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
+    assert_eq!(
+        repo.find_by_slug("yet-another-title".to_string()).is_some(),
+        false
+    );
     repo.save(DraftSubmitted(InnerDraftSubmitted {
         post_id,
         version: 0,
@@ -63,12 +70,17 @@ fn test_finding_post_by_slug(repo: &mut TransactionalPostRepository) {
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftMadePublic(InnerDraftMadePublic { post_id, version: 0 }));
+    repo.save(DraftMadePublic(InnerDraftMadePublic {
+        post_id,
+        version: 0,
+    }));
     assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), false);
-    assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
-    let date = chrono::Utc::now()
-        .with_nanosecond(0).unwrap();
+    assert_eq!(
+        repo.find_by_slug("yet-another-title".to_string()).is_some(),
+        false
+    );
+    let date = chrono::Utc::now().with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
         post_id,
         version: 1,
@@ -77,7 +89,10 @@ fn test_finding_post_by_slug(repo: &mut TransactionalPostRepository) {
     }));
     assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), true);
-    assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), false);
+    assert_eq!(
+        repo.find_by_slug("yet-another-title".to_string()).is_some(),
+        false
+    );
     repo.save(PostEdited(InnerPostEdited {
         post_id,
         version: 2,
@@ -88,7 +103,10 @@ fn test_finding_post_by_slug(repo: &mut TransactionalPostRepository) {
     }));
     assert_eq!(repo.find_by_slug(post_id.to_str()).is_some(), true);
     assert_eq!(repo.find_by_slug("some-title".to_string()).is_some(), true);
-    assert_eq!(repo.find_by_slug("yet-another-title".to_string()).is_some(), true);
+    assert_eq!(
+        repo.find_by_slug("yet-another-title".to_string()).is_some(),
+        true
+    );
 }
 
 fn test_edit_post(repo: &mut TransactionalPostRepository) {
@@ -100,8 +118,7 @@ fn test_edit_post(repo: &mut TransactionalPostRepository) {
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    let date = chrono::Utc::now()
-        .with_nanosecond(0).unwrap();
+    let date = chrono::Utc::now().with_nanosecond(0).unwrap();
     repo.save(PostPublished(InnerPostPublished {
         post_id,
         version: 1,
@@ -136,7 +153,7 @@ fn test_edit_post(repo: &mut TransactionalPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![expected_post.clone()]);
     assert_eq!(repo.all_drafts(), vec![]);
-    assert_eq!(repo.read(post_id), Some(expected_post.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_post));
 }
 
 fn test_submit_non_existing_draft(repo: &mut TransactionalPostRepository) {
@@ -158,7 +175,7 @@ fn test_submit_non_existing_draft(repo: &mut TransactionalPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft));
 }
 
 fn test_edit_draft(repo: &mut TransactionalPostRepository) {
@@ -187,7 +204,7 @@ fn test_edit_draft(repo: &mut TransactionalPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft));
 }
 
 fn test_make_draft_public(repo: &mut TransactionalPostRepository) {
@@ -199,7 +216,10 @@ fn test_make_draft_public(repo: &mut TransactionalPostRepository) {
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftMadePublic(InnerDraftMadePublic { post_id, version: 0 }));
+    repo.save(DraftMadePublic(InnerDraftMadePublic {
+        post_id,
+        version: 0,
+    }));
     let expected_draft = Post::Draft {
         post_id,
         version: 1,
@@ -210,7 +230,7 @@ fn test_make_draft_public(repo: &mut TransactionalPostRepository) {
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
-    assert_eq!(repo.read(post_id), Some(expected_draft.clone()));
+    assert_eq!(repo.read(post_id), Some(expected_draft));
 }
 
 fn test_delete_draft(repo: &mut TransactionalPostRepository) {
@@ -222,7 +242,10 @@ fn test_delete_draft(repo: &mut TransactionalPostRepository) {
         markdown_content: "some content".to_string(),
         language: Language::Fr,
     }));
-    repo.save(DraftDeleted(InnerDraftDeleted { post_id, version: 1 }));
+    repo.save(DraftDeleted(InnerDraftDeleted {
+        post_id,
+        version: 1,
+    }));
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![]);
     assert_eq!(repo.read(post_id), None);
@@ -230,13 +253,34 @@ fn test_delete_draft(repo: &mut TransactionalPostRepository) {
 
 fn main() {
     run_with_database(vec![
-        RepositoryTestContainer { name: "submit_non_existing_draft", f: Box::new(test_submit_non_existing_draft) },
-        RepositoryTestContainer { name: "edit_draft", f: Box::new(test_edit_draft) },
-        RepositoryTestContainer { name: "make_draft_public", f: Box::new(test_make_draft_public) },
-        RepositoryTestContainer { name: "delete_draft", f: Box::new(test_delete_draft) },
-        RepositoryTestContainer { name: "publish_draft", f: Box::new(test_publish_draft) },
-        RepositoryTestContainer { name: "edit_post", f: Box::new(test_edit_post) },
-        RepositoryTestContainer { name: "find_post_or_draft_by_slug", f: Box::new(test_finding_post_by_slug) }
+        RepositoryTestContainer {
+            name: "submit_non_existing_draft",
+            f: Box::new(test_submit_non_existing_draft),
+        },
+        RepositoryTestContainer {
+            name: "edit_draft",
+            f: Box::new(test_edit_draft),
+        },
+        RepositoryTestContainer {
+            name: "make_draft_public",
+            f: Box::new(test_make_draft_public),
+        },
+        RepositoryTestContainer {
+            name: "delete_draft",
+            f: Box::new(test_delete_draft),
+        },
+        RepositoryTestContainer {
+            name: "publish_draft",
+            f: Box::new(test_publish_draft),
+        },
+        RepositoryTestContainer {
+            name: "edit_post",
+            f: Box::new(test_edit_post),
+        },
+        RepositoryTestContainer {
+            name: "find_post_or_draft_by_slug",
+            f: Box::new(test_finding_post_by_slug),
+        },
     ]);
 }
 
@@ -247,18 +291,31 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
     let output = Command::new("docker")
         .arg("run")
         .arg("-d")
-        .arg("-p").arg(port.to_string() + ":5432")
-        .arg("--tmpfs").arg("/var/lib/postgresql/data:rw")
-        .arg("postgres:10.4").arg("-c").arg("fsync=off")
+        .arg("-p")
+        .arg(port.to_string() + ":5432")
+        .arg("--tmpfs")
+        .arg("/var/lib/postgresql/data:rw")
+        .arg("postgres:10.4")
+        .arg("-c")
+        .arg("fsync=off")
         .output()
         .expect("process failed to execute");
-    while Client::connect(format!("postgres://postgres@localhost:{}", port).as_str(), NoTls).is_err() {
+    while Client::connect(
+        format!("postgres://postgres@localhost:{}", port).as_str(),
+        NoTls,
+    )
+    .is_err()
+    {
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
 
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push("sadraskol.sql");
-    let mut connection = Client::connect(format!("postgres://postgres@localhost:{}", port).as_str(), NoTls).unwrap();
+    let mut connection = Client::connect(
+        format!("postgres://postgres@localhost:{}", port).as_str(),
+        NoTls,
+    )
+    .unwrap();
     let contents = fs::read_to_string(d).unwrap();
     for container in containers {
         let mut transaction = connection.transaction().unwrap();

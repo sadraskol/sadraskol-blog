@@ -21,9 +21,12 @@ pub struct Postgres {
 }
 
 pub fn cfg() -> Config {
-    let cfg_path = if cfg!(feature = "production") { "config/prod.toml" } else { "config/dev.toml" };
+    let cfg_path = if cfg!(feature = "production") {
+        "config/prod.toml"
+    } else {
+        "config/dev.toml"
+    };
     let file_content = std::fs::read_to_string(std::path::PathBuf::from(cfg_path))
-        .expect(format!("could not access {}", cfg_path).as_str());
-    return toml::from_str(file_content.as_str())
-        .expect("Could not deserialize from file content");
+        .unwrap_or_else(|_| panic!("could not access {}", cfg_path));
+    toml::from_str(file_content.as_str()).expect("Could not deserialize from file content")
 }

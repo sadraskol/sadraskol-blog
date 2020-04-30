@@ -5,8 +5,8 @@ use std::str::from_utf8;
 
 use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
-use crate::highlight::{highlight, SadLang};
 use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Text};
+use crate::highlight::{highlight, SadLang};
 
 enum TableState {
     Head,
@@ -28,8 +28,8 @@ pub trait StrWrite {
 }
 
 impl<W> StrWrite for WriteWrapper<W>
-    where
-        W: Write,
+where
+    W: Write,
 {
     #[inline]
     fn write_str(&mut self, s: &str) -> io::Result<()> {
@@ -57,8 +57,8 @@ impl<'w> StrWrite for String {
 }
 
 impl<W> StrWrite for &'_ mut W
-    where
-        W: StrWrite,
+where
+    W: StrWrite,
 {
     #[inline]
     fn write_str(&mut self, s: &str) -> io::Result<()> {
@@ -88,8 +88,8 @@ static AMP_ESCAPE: &str = "&amp;";
 static SLASH_ESCAPE: &str = "&#x27;";
 
 pub fn escape_href<W>(mut w: W, s: &str) -> io::Result<()>
-    where
-        W: StrWrite,
+where
+    W: StrWrite,
 {
     let bytes = s.as_bytes();
     let mut mark = 0;
@@ -135,7 +135,7 @@ const fn create_html_escape_table() -> [u8; 256] {
 
 static HTML_ESCAPE_TABLE: [u8; 256] = create_html_escape_table();
 
-static HTML_ESCAPES: [&'static str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
+static HTML_ESCAPES: [&str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
 
 /// Writes the given string to the Write sink, replacing special HTML bytes
 /// (<, >, &, ") by escape sequences.
@@ -190,9 +190,9 @@ struct HtmlWriter<'a, I, W> {
 }
 
 impl<'a, I, W> HtmlWriter<'a, I, W>
-    where
-        I: Iterator<Item=Event<'a>>,
-        W: StrWrite,
+where
+    I: Iterator<Item = Event<'a>>,
+    W: StrWrite,
 {
     fn new(iter: I, writer: W) -> Self {
         Self {
@@ -342,7 +342,7 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                 }
                 match info {
                     CodeBlockKind::Fenced(info) => {
-                        let lang = info.split(' ').next().unwrap().clone();
+                        let lang = info.split(' ').next().unwrap();
                         if lang.is_empty() {
                             self.within_code = Some(Text);
                             self.write("<pre><code>")
@@ -364,7 +364,7 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
                     CodeBlockKind::Indented => {
                         self.within_code = Some(Text);
                         self.write("<pre><code>")
-                    },
+                    }
                 }
             }
             Tag::List(Some(1)) => {
@@ -545,8 +545,8 @@ impl<'a, I, W> HtmlWriter<'a, I, W>
 }
 
 pub fn sad_push_html<'a, I>(s: &mut String, iter: &mut I)
-    where
-        I: Iterator<Item=Event<'a>>
+where
+    I: Iterator<Item = Event<'a>>,
 {
     HtmlWriter::new(iter, s).run().unwrap();
 }

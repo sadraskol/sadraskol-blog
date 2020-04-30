@@ -1,7 +1,7 @@
 use actix::Addr;
 use actix_identity::Identity;
-use actix_web::{Error, HttpResponse, Responder, web};
 use actix_web::http::header::LOCATION;
+use actix_web::{web, Error, HttpResponse, Responder};
 use askama::Template;
 use serde::{Deserialize, Serialize};
 
@@ -9,8 +9,8 @@ use crate::config;
 use crate::infra::health::Health;
 use crate::infra::post_repository::PgActor;
 
-pub mod post;
 pub mod admin;
+pub mod post;
 
 #[derive(Template)]
 #[template(path = "base.html")]
@@ -27,15 +27,18 @@ impl<'a> BaseTemplate<'a> {
 #[derive(Template)]
 #[template(path = "login.html")]
 struct LoginTemplate<'a> {
-    _parent: BaseTemplate<'a>
+    _parent: BaseTemplate<'a>,
 }
 
 pub async fn login() -> Result<HttpResponse, Error> {
     let template = LoginTemplate {
-        _parent: BaseTemplate::default()
+        _parent: BaseTemplate::default(),
     };
     Ok(HttpResponse::Ok()
-        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .header(
+            actix_web::http::header::CONTENT_TYPE,
+            "text/html; charset=utf-8",
+        )
         .body(template.render().unwrap()))
 }
 
@@ -45,7 +48,10 @@ pub struct LoginForm {
     password: String,
 }
 
-pub async fn submit_login(params: web::Form<LoginForm>, id: Identity) -> Result<HttpResponse, Error> {
+pub async fn submit_login(
+    params: web::Form<LoginForm>,
+    id: Identity,
+) -> Result<HttpResponse, Error> {
     let config = config::cfg();
     if config.admin.login == params.login && config.admin.password == params.password {
         id.remember("admin".to_string());
@@ -65,20 +71,17 @@ pub async fn dist(filename: web::Path<String>) -> Result<HttpResponse, Error> {
 
 fn serve_file(d: std::path::PathBuf) -> HttpResponse {
     std::fs::read_to_string(d)
-        .map(|content| {
-            HttpResponse::Ok().body(content)
-        })
-        .unwrap_or(HttpResponse::NotFound().body(""))
+        .map(|content| HttpResponse::Ok().body(content))
+        .unwrap_or_else(|_| HttpResponse::NotFound().body(""))
 }
 
-pub async fn health(
-    addr: web::Data<Addr<PgActor>>
-) -> impl Responder {
+pub async fn health(addr: web::Data<Addr<PgActor>>) -> impl Responder {
     addr.send(Health::new())
         .await
-        .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()))
         .and_then(|result| {
-            result.map(|_| HttpResponse::Ok().body(""))
+            result
+                .map(|_| HttpResponse::Ok().body(""))
                 .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()))
         })
 }

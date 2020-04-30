@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use actix::Addr;
-use actix_web::{Error, HttpResponse, web};
+use actix_web::{web, Error, HttpResponse};
 use askama::Template;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -9,8 +9,8 @@ use uuid::Uuid;
 use crate::domain::post::{Post, PostEvent};
 use crate::domain::types::PostId;
 use crate::infra::command::Command;
-use crate::infra::query::{Find, FindBy};
 use crate::infra::post_repository::PgActor;
+use crate::infra::query::{Find, FindBy};
 use crate::web::BaseTemplate;
 
 pub mod backup;
@@ -45,14 +45,21 @@ impl DraftSummaryView {
                 public_yet: false,
                 make_public_link: format!("/admin/drafts/{}/make-public", "new"),
             },
-            Post::Draft { title, post_id, markdown_content, language, shareable, .. } => DraftSummaryView {
+            Post::Draft {
+                title,
+                post_id,
+                markdown_content,
+                language,
+                shareable,
+                ..
+            } => DraftSummaryView {
                 title: title.clone(),
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 preview_link: format!("/admin/drafts/{}/preview", post_id.to_str()),
                 edit_link: format!("/admin/drafts/{}", post_id.to_str()),
                 publish_link: format!("/admin/drafts/{}/publish", post_id.to_str()),
-                public_yet: shareable.clone(),
+                public_yet: *shareable,
                 make_public_link: format!("/admin/drafts/{}/make-public", post_id.to_str()),
             },
             Post::Post { .. } => panic!("not a draft"),
@@ -67,20 +74,24 @@ struct DraftsTemplate<'a> {
     drafts: Vec<DraftSummaryView>,
 }
 
-pub async fn drafts(
-    addr: web::Data<Addr<PgActor>>,
-) -> Result<HttpResponse, Error> {
-    addr.send(Find::drafts()).await.unwrap()
+pub async fn drafts(addr: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Error> {
+    addr.send(Find::drafts())
+        .await
+        .unwrap()
         .map(|res| {
-            let drafts = res.iter()
-                .map(DraftSummaryView::from)
-                .collect();
-            let template = DraftsTemplate { _parent: BaseTemplate::default(), drafts };
+            let drafts = res.iter().map(DraftSummaryView::from).collect();
+            let template = DraftsTemplate {
+                _parent: BaseTemplate::default(),
+                drafts,
+            };
             HttpResponse::Ok()
-                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .header(
+                    actix_web::http::header::CONTENT_TYPE,
+                    "text/html; charset=utf-8",
+                )
                 .body(template.render().unwrap())
         })
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 #[derive(Template)]
@@ -97,22 +108,28 @@ pub async fn draft(
     let id = parse_or_new_id(draft_id);
 
     addr.send(FindBy::id(id))
-        .await.unwrap()
+        .await
+        .unwrap()
         .map(|res| {
-            let post = res.unwrap_or(Post::NonExisting { post_id: id.clone() });
+            let post = res.unwrap_or(Post::NonExisting { post_id: id });
             let draft_view = DraftSummaryView::from(&post);
 
-            let template = EditDraftTemplate { _parent: BaseTemplate::default(), draft: draft_view };
+            let template = EditDraftTemplate {
+                _parent: BaseTemplate::default(),
+                draft: draft_view,
+            };
             HttpResponse::Ok()
-                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .header(
+                    actix_web::http::header::CONTENT_TYPE,
+                    "text/html; charset=utf-8",
+                )
                 .body(template.render().unwrap())
         })
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 fn parse_or_new_id(id_str: web::Path<String>) -> PostId {
-    PostId::new(Uuid::parse_str(id_str.as_str())
-        .unwrap_or(Uuid::new_v4()))
+    PostId::new(Uuid::parse_str(id_str.as_str()).unwrap_or_else(|_| Uuid::new_v4()))
 }
 
 #[derive(Deserialize)]
@@ -134,9 +151,11 @@ pub async fn edit_draft(
         FromStr::from_str(params.language.as_str()).unwrap(),
         params.title.clone(),
         params.markdown_content.clone(),
-    )).await.unwrap()
-        .map(|e| event_response(id, e))
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+    ))
+    .await
+    .unwrap()
+    .map(|e| event_response(id, e))
+    .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 #[derive(Template)]
@@ -156,27 +175,36 @@ pub async fn preview_draft(
     let id = parse_or_new_id(draft_id);
 
     addr.send(FindBy::id(id))
-        .await.unwrap()
+        .await
+        .unwrap()
         .map(|res| {
             let post = res.unwrap_or(Post::NonExisting { post_id: id });
             match post {
-                Post::Draft { post_id, markdown_content, title, .. } => {
+                Post::Draft {
+                    post_id,
+                    markdown_content,
+                    title,
+                    ..
+                } => {
                     let page = DraftPreviewTemplate {
                         _parent: BaseTemplate::default(),
-                        title: title.clone(),
+                        title,
                         publication_date: chrono::Utc::now().format("%d %B %Y").to_string(),
                         back_link: format!("/admin/drafts/{}", post_id.to_str()),
                         raw_content: markdown_content.format(),
                     };
 
                     HttpResponse::Ok()
-                        .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                        .header(
+                            actix_web::http::header::CONTENT_TYPE,
+                            "text/html; charset=utf-8",
+                        )
                         .body(page.render().unwrap())
                 }
                 _ => HttpResponse::NotFound().json(""),
             }
         })
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 pub async fn publish_draft(
@@ -186,9 +214,10 @@ pub async fn publish_draft(
     let id = parse_or_new_id(draft_id);
 
     addr.send(Command::PublishDraft(id, chrono::Utc::now()))
-        .await.unwrap()
+        .await
+        .unwrap()
         .map(|e| event_response(id, e))
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 pub async fn make_draft_public(
@@ -198,9 +227,10 @@ pub async fn make_draft_public(
     let id = parse_or_new_id(draft_id);
 
     addr.send(Command::MakePublic(id))
-        .await.unwrap()
+        .await
+        .unwrap()
         .map(|e| event_response(id, e))
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 pub struct PostSummaryView {
@@ -215,7 +245,15 @@ pub struct PostSummaryView {
 impl PostSummaryView {
     fn from(post: &Post) -> PostSummaryView {
         match post {
-            Post::Post { title, post_id, markdown_content, language, publication_date, current_slug, .. } => PostSummaryView {
+            Post::Post {
+                title,
+                post_id,
+                markdown_content,
+                language,
+                publication_date,
+                current_slug,
+                ..
+            } => PostSummaryView {
                 title: title.clone(),
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
@@ -235,20 +273,24 @@ struct PostsTemplate<'a> {
     posts: Vec<PostSummaryView>,
 }
 
-pub async fn posts(
-    addr: web::Data<Addr<PgActor>>,
-) -> Result<HttpResponse, Error> {
-    addr.send(Find::posts()).await.unwrap()
+pub async fn posts(addr: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Error> {
+    addr.send(Find::posts())
+        .await
+        .unwrap()
         .map(|res| {
-            let posts = res.iter()
-                .map(PostSummaryView::from)
-                .collect();
-            let template = PostsTemplate { _parent: BaseTemplate::default(), posts };
+            let posts = res.iter().map(PostSummaryView::from).collect();
+            let template = PostsTemplate {
+                _parent: BaseTemplate::default(),
+                posts,
+            };
             HttpResponse::Ok()
-                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .header(
+                    actix_web::http::header::CONTENT_TYPE,
+                    "text/html; charset=utf-8",
+                )
                 .body(template.render().unwrap())
         })
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 #[derive(Template)]
@@ -265,17 +307,24 @@ pub async fn post(
     let id = parse_or_new_id(post_id);
 
     addr.send(FindBy::id(id))
-        .await.unwrap()
+        .await
+        .unwrap()
         .map(|res| {
             let post = res.unwrap_or(Post::NonExisting { post_id: id });
             let post_view = PostSummaryView::from(&post);
 
-            let template = EditPostTemplate { _parent: BaseTemplate::default(), post: post_view };
+            let template = EditPostTemplate {
+                _parent: BaseTemplate::default(),
+                post: post_view,
+            };
             HttpResponse::Ok()
-                .header(actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+                .header(
+                    actix_web::http::header::CONTENT_TYPE,
+                    "text/html; charset=utf-8",
+                )
                 .body(template.render().unwrap())
         })
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
 #[derive(Deserialize)]
@@ -298,11 +347,13 @@ pub async fn edit_post(
         params.title.clone(),
         params.markdown_content.clone(),
     ))
-        .await.unwrap()
-        .map(|e| event_response(id, e))
-        .map_err(|err| HttpResponse::InternalServerError().json(err.to_string()).into())
+    .await
+    .unwrap()
+    .map(|e| event_response(id, e))
+    .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
+#[allow(clippy::useless_format)]
 fn event_response(id: PostId, e: PostEvent) -> HttpResponse {
     let id_str = id.to_str();
     match e {
@@ -310,19 +361,31 @@ fn event_response(id: PostId, e: PostEvent) -> HttpResponse {
             .header(actix_web::http::header::LOCATION, format!("/admin/drafts"))
             .body(""),
         PostEvent::DraftSubmitted(_) => HttpResponse::Found()
-            .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", id_str))
+            .header(
+                actix_web::http::header::LOCATION,
+                format!("/admin/drafts/{}", id_str),
+            )
             .body(""),
         PostEvent::DraftMadePublic(_) => HttpResponse::Found()
-            .header(actix_web::http::header::LOCATION, format!("/admin/drafts/{}", id_str))
+            .header(
+                actix_web::http::header::LOCATION,
+                format!("/admin/drafts/{}", id_str),
+            )
             .body(""),
         PostEvent::PostPublished(_) => HttpResponse::Found()
-            .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", id_str))
+            .header(
+                actix_web::http::header::LOCATION,
+                format!("/admin/posts/{}", id_str),
+            )
             .body(""),
         PostEvent::PostEdited(_) => HttpResponse::Found()
-            .header(actix_web::http::header::LOCATION, format!("/admin/posts/{}", id_str))
+            .header(
+                actix_web::http::header::LOCATION,
+                format!("/admin/posts/{}", id_str),
+            )
             .body(""),
         PostEvent::PostError(_) => HttpResponse::Found()
             .header(actix_web::http::header::LOCATION, format!("/admin"))
-            .body("")
+            .body(""),
     }
 }
