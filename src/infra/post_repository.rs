@@ -11,7 +11,7 @@ use crate::domain::post::{
 };
 use crate::domain::repository::PostRepository;
 use crate::domain::types::{Language, Markdown, PostId};
-use crate::pool::Pool;
+use crate::infra::pool::Pool;
 
 pub struct TransactionalPostRepository<'a> {
     pub transaction: Transaction<'a>,

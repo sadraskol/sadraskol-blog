@@ -10,6 +10,7 @@ use crate::infra::health::Health;
 use crate::infra::post_repository::PgActor;
 
 pub mod admin;
+pub mod identity;
 pub mod post;
 
 #[derive(Template)]

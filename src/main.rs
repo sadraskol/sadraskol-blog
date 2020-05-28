@@ -6,10 +6,10 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 
 use sadraskol::config;
-use sadraskol::identity::{identity_service, CheckAdmin};
+use sadraskol::infra::pool;
 use sadraskol::infra::post_repository::PgActor;
-use sadraskol::pool;
 use sadraskol::web;
+use sadraskol::web::identity::{identity_service, CheckAdmin};
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

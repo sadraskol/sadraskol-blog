@@ -33,7 +33,7 @@ pub fn slugify(string: String) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::slugify::slugify;
+    use super::slugify;
 
     #[test]
     fn all_slugify_known_cases() {

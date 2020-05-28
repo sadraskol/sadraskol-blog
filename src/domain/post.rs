@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use crate::domain::post::PostEvent::{
     DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
 };
+use crate::domain::slugify::slugify;
 use crate::domain::types::{Language, Markdown, PostId};
-use crate::slugify::slugify;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Post {
@@ -331,15 +331,16 @@ mod test {
     use rand::distributions::Uniform;
     use rand::{thread_rng, Rng};
 
-    use crate::domain::post::Post;
-    use crate::domain::post::PostErrors;
-    use crate::domain::post::PostEvent::{
+    use super::Post;
+    use super::PostErrors;
+    use super::PostEvent::{
         DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
     };
-    use crate::domain::post::{
+    use super::{
         InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
         InnerPostPublished,
     };
+    use crate::domain::slugify::slugify;
     use crate::domain::types::{Language, Markdown, PostId};
 
     #[test]
@@ -410,7 +411,7 @@ mod test {
             PostPublished(InnerPostPublished {
                 post_id: draft.post_id(),
                 version: draft.version(),
-                slug: crate::slugify::slugify(draft.title().unwrap()),
+                slug: slugify(draft.title().unwrap()),
                 publication_date,
             })
         );
@@ -621,7 +622,7 @@ mod test {
                 markdown_content: rand_str(),
                 language: rand_lang(),
                 publication_date: chrono::Utc::now(),
-                current_slug: crate::slugify::slugify(title.clone()),
+                current_slug: slugify(title.clone()),
                 previous_slugs: vec![],
             };
         }
