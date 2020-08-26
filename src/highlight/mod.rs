@@ -10,6 +10,7 @@ pub enum SadLang {
     Elixir,
     Haskell,
     Javascript,
+    Tla,
     Text,
 }
 
@@ -17,6 +18,23 @@ type Span = (usize, usize, String);
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
     match l {
+        SadLang::Tla => {
+            let cs = def_lang(
+                "tla",
+                vec![
+                    keyword("\\A"),
+                    keyword("\\E"),
+                    keyword("\\in"),
+                    keyword("EXCEPT"),
+                    keyword("UNCHANGED"),
+                    keyword("DOMAIN"),
+                    keyword("LAMBDA"),
+                    inline_comment("\\*"),
+                    string('"'),
+                ],
+            );
+            highlight_structure(&mut w, &s, cs)
+        },
         SadLang::Java => {
             let cs = def_lang(
                 "java",
@@ -33,6 +51,9 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                     keyword("while"),
                     keyword("catch"),
                     keyword("finally"),
+                    keyword("throw"),
+                    keyword("throws"),
+                    keyword("interface"),
                     keyword("if"),
                     keyword("else"),
                     keyword("return"),
