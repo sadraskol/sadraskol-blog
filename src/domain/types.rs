@@ -31,7 +31,7 @@ impl std::fmt::Debug for PostId {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Language {
     Fr,
     En,

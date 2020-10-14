@@ -1,5 +1,8 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::domain::post::PostEvent::{
     DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
@@ -102,6 +105,44 @@ pub struct ExportedPost {
     pub publication_date: Option<String>,
     pub current_slug: Option<String>,
     pub previous_slugs: Vec<String>,
+}
+
+impl ExportedPost {
+    fn import_post(&self) -> Option<Post> {
+        Uuid::parse_str(self.post_id.as_str())
+            .ok()
+            .and_then(|uuid| {
+                FromStr::from_str(self.language.as_str())
+                    .ok()
+                    .map(|l| (uuid, l))
+            })
+            .map(|(uuid, l)| {
+                self.publication_date.clone().map(|d| {
+                    let date_time = DateTime::parse_from_rfc3339(d.as_str())
+                        .ok()
+                        .map(|d| d.with_timezone(&Utc))
+                        .unwrap();
+                    Post::Post {
+                        post_id: PostId::new(uuid),
+                        version: self.version,
+                        title: self.title.clone(),
+                        markdown_content: Markdown::new(self.markdown_content.clone()),
+                        language: l,
+                        publication_date: date_time,
+                        current_slug: self.current_slug.as_ref().unwrap().clone(),
+                        previous_slugs: self.previous_slugs.clone(),
+                    }
+                })
+                    .unwrap_or(Post::Draft {
+                        post_id: PostId::new(uuid),
+                        version: self.version,
+                        title: self.title.clone(),
+                        markdown_content: Markdown::new(self.markdown_content.clone()),
+                        language: l,
+                        shareable: self.shareable,
+                    })
+            })
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -326,22 +367,25 @@ impl Post {
 
 #[cfg(test)]
 mod test {
+    use chrono::{DateTime, NaiveDateTime, Utc};
+    use proptest::prelude::*;
+    use rand::{Rng, thread_rng};
     use rand::distributions::Alphanumeric;
     use rand::distributions::Distribution;
     use rand::distributions::Uniform;
-    use rand::{thread_rng, Rng};
 
+    use crate::domain::slugify::slugify;
+    use crate::domain::types::{Language, Markdown, PostId};
+
+    use super::{
+        InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
+        InnerPostPublished,
+    };
     use super::Post;
     use super::PostErrors;
     use super::PostEvent::{
         DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
     };
-    use super::{
-        InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
-        InnerPostPublished,
-    };
-    use crate::domain::slugify::slugify;
-    use crate::domain::types::{Language, Markdown, PostId};
 
     #[test]
     fn submit_draft_successfully() {
@@ -391,7 +435,7 @@ mod test {
             draft.delete_draft(),
             DraftDeleted(InnerDraftDeleted {
                 post_id: draft.post_id(),
-                version: draft.version()
+                version: draft.version(),
             })
         );
     }
@@ -434,7 +478,7 @@ mod test {
             draft.make_public(),
             DraftMadePublic(InnerDraftMadePublic {
                 post_id: draft.post_id(),
-                version: draft.version()
+                version: draft.version(),
             })
         );
     }
@@ -653,6 +697,77 @@ mod test {
                 current_slug: self.current_slug.clone(),
                 previous_slugs: self.previous_slugs.clone(),
             };
+        }
+    }
+
+    // PROPERTY BASED TESTING FROM HERE
+
+    fn lang_strategy() -> impl Strategy<Value=Language> {
+        prop_oneof![Just(Language::Fr), Just(Language::En)]
+    }
+
+    fn draft_strategy() -> impl Strategy<Value=Post> {
+        (any::<u32>(), ".*", ".*", lang_strategy(), any::<bool>()).prop_map(|(v, t, m, l, sh)| {
+            Post::Draft {
+                post_id: PostId::new(uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap()),
+                version: v,
+                title: t,
+                markdown_content: Markdown::new(m),
+                language: l,
+                shareable: sh,
+            }
+        })
+    }
+
+    fn date_strategy() -> impl Strategy<Value=DateTime<Utc>> {
+        (0i64..1_000_000_000, 0u32..1_000_000_000)
+            .prop_map(|(s, n)| DateTime::from_utc(NaiveDateTime::from_timestamp(s, n), Utc))
+    }
+
+    fn slug_strategy() -> impl Strategy<Value=Vec<String>> {
+        prop_oneof![
+            any::<String>().prop_map(|s| { vec![s] }),
+            (any::<String>(), any::<String>(), any::<String>())
+                .prop_filter("slug uniqueness", |(s1, s2, s3)| {
+                    s1 != s2 && s2 != s3 && s3 != s1
+                })
+                .prop_map(|(s1, s2, s3)| { vec![s1, s2, s3] })
+        ]
+    }
+
+    fn post_strategy() -> impl Strategy<Value=Post> {
+        (
+            any::<u32>(),
+            ".*",
+            ".*",
+            lang_strategy(),
+            date_strategy(),
+            slug_strategy(),
+        )
+            .prop_map(|(v, t, m, l, d, sl)| {
+                let x = sl.split_first().unwrap();
+                Post::Post {
+                    post_id: PostId::new(uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap()),
+                    version: v,
+                    title: t,
+                    markdown_content: Markdown::new(m),
+                    language: l,
+                    publication_date: d,
+                    current_slug: x.0.clone(),
+                    previous_slugs: x.1.to_vec(),
+                }
+            })
+    }
+
+    proptest! {
+        #[test]
+        fn draft_and_exported_drafts_are_equivalent(d in draft_strategy()) {
+            prop_assert_eq!(d.clone(), d.export_post().unwrap().import_post().unwrap());
+        }
+
+        #[test]
+        fn posts_and_exported_posts_are_equivalent(p in post_strategy()) {
+            prop_assert_eq!(p.clone(), p.export_post().unwrap().import_post().unwrap());
         }
     }
 }

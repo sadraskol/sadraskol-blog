@@ -34,7 +34,7 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                 ],
             );
             highlight_structure(&mut w, &s, cs)
-        },
+        }
         SadLang::Java => {
             let cs = def_lang(
                 "java",
