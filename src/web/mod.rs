@@ -58,7 +58,7 @@ pub async fn submit_login(
         id.remember("admin".to_string());
         Ok(HttpResponse::Found().header(LOCATION, "/admin").body(""))
     } else {
-        Ok(HttpResponse::Found().header(LOCATION, "/").body(""))
+        Ok(HttpResponse::Unauthorized().header(LOCATION, "/").body(""))
     }
 }
 

@@ -108,7 +108,7 @@ pub struct ExportedPost {
 }
 
 impl ExportedPost {
-    fn import_post(&self) -> Option<Post> {
+    pub fn import_post(&self) -> Option<Post> {
         Uuid::parse_str(self.post_id.as_str())
             .ok()
             .and_then(|uuid| {
@@ -117,22 +117,24 @@ impl ExportedPost {
                     .map(|l| (uuid, l))
             })
             .map(|(uuid, l)| {
-                self.publication_date.clone().map(|d| {
-                    let date_time = DateTime::parse_from_rfc3339(d.as_str())
-                        .ok()
-                        .map(|d| d.with_timezone(&Utc))
-                        .unwrap();
-                    Post::Post {
-                        post_id: PostId::new(uuid),
-                        version: self.version,
-                        title: self.title.clone(),
-                        markdown_content: Markdown::new(self.markdown_content.clone()),
-                        language: l,
-                        publication_date: date_time,
-                        current_slug: self.current_slug.as_ref().unwrap().clone(),
-                        previous_slugs: self.previous_slugs.clone(),
-                    }
-                })
+                self.publication_date
+                    .clone()
+                    .map(|d| {
+                        let date_time = DateTime::parse_from_rfc3339(d.as_str())
+                            .ok()
+                            .map(|d| d.with_timezone(&Utc))
+                            .unwrap();
+                        Post::Post {
+                            post_id: PostId::new(uuid),
+                            version: self.version,
+                            title: self.title.clone(),
+                            markdown_content: Markdown::new(self.markdown_content.clone()),
+                            language: l,
+                            publication_date: date_time,
+                            current_slug: self.current_slug.as_ref().unwrap().clone(),
+                            previous_slugs: self.previous_slugs.clone(),
+                        }
+                    })
                     .unwrap_or(Post::Draft {
                         post_id: PostId::new(uuid),
                         version: self.version,
@@ -369,22 +371,22 @@ impl Post {
 mod test {
     use chrono::{DateTime, NaiveDateTime, Utc};
     use proptest::prelude::*;
-    use rand::{Rng, thread_rng};
     use rand::distributions::Alphanumeric;
     use rand::distributions::Distribution;
     use rand::distributions::Uniform;
+    use rand::{thread_rng, Rng};
 
     use crate::domain::slugify::slugify;
     use crate::domain::types::{Language, Markdown, PostId};
 
-    use super::{
-        InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
-        InnerPostPublished,
-    };
     use super::Post;
     use super::PostErrors;
     use super::PostEvent::{
         DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
+    };
+    use super::{
+        InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
+        InnerPostPublished,
     };
 
     #[test]
@@ -702,14 +704,16 @@ mod test {
 
     // PROPERTY BASED TESTING FROM HERE
 
-    fn lang_strategy() -> impl Strategy<Value=Language> {
+    fn lang_strategy() -> impl Strategy<Value = Language> {
         prop_oneof![Just(Language::Fr), Just(Language::En)]
     }
 
-    fn draft_strategy() -> impl Strategy<Value=Post> {
+    fn draft_strategy() -> impl Strategy<Value = Post> {
         (any::<u32>(), ".*", ".*", lang_strategy(), any::<bool>()).prop_map(|(v, t, m, l, sh)| {
             Post::Draft {
-                post_id: PostId::new(uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap()),
+                post_id: PostId::new(
+                    uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap(),
+                ),
                 version: v,
                 title: t,
                 markdown_content: Markdown::new(m),
@@ -719,12 +723,12 @@ mod test {
         })
     }
 
-    fn date_strategy() -> impl Strategy<Value=DateTime<Utc>> {
+    fn date_strategy() -> impl Strategy<Value = DateTime<Utc>> {
         (0i64..1_000_000_000, 0u32..1_000_000_000)
             .prop_map(|(s, n)| DateTime::from_utc(NaiveDateTime::from_timestamp(s, n), Utc))
     }
 
-    fn slug_strategy() -> impl Strategy<Value=Vec<String>> {
+    fn slug_strategy() -> impl Strategy<Value = Vec<String>> {
         prop_oneof![
             any::<String>().prop_map(|s| { vec![s] }),
             (any::<String>(), any::<String>(), any::<String>())
@@ -735,7 +739,7 @@ mod test {
         ]
     }
 
-    fn post_strategy() -> impl Strategy<Value=Post> {
+    fn post_strategy() -> impl Strategy<Value = Post> {
         (
             any::<u32>(),
             ".*",
@@ -747,7 +751,9 @@ mod test {
             .prop_map(|(v, t, m, l, d, sl)| {
                 let x = sl.split_first().unwrap();
                 Post::Post {
-                    post_id: PostId::new(uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap()),
+                    post_id: PostId::new(
+                        uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap(),
+                    ),
                     version: v,
                     title: t,
                     markdown_content: Markdown::new(m),

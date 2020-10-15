@@ -234,6 +234,103 @@ impl<'a> PostRepository for TransactionalPostRepository<'a> {
             PostEvent::PostError(_) => {}
         }
     }
+
+    fn upsert(&mut self, post: Post) {
+        match post {
+            Post::NonExisting { post_id } => {
+                self.transaction
+                    .execute(
+                        "delete from blog_posts where aggregate_id = $1",
+                        &[&post_id.to_uuid()],
+                    )
+                    .unwrap();
+            }
+            Post::Draft {
+                post_id,
+                version,
+                title,
+                markdown_content,
+                language,
+                shareable,
+            } => {
+                self.transaction.execute(
+                    "insert into blog_posts (aggregate_id, status, language, title, markdown_content, version) \
+                            values ($1, $2, $3, $4, $5, $6) \
+                            on conflict (aggregate_id) do update \
+                            set status = $2, \
+                            language = $3, \
+                            title = $4, \
+                            markdown_content = $5, \
+                            version = $6",
+                    &[
+                        &post_id.to_uuid(),
+                        &"draft",
+                        &language.to_string(),
+                        &title,
+                        &markdown_content.to_edit(),
+                        &version
+                    ])
+                    .unwrap();
+                if shareable {
+                    self.transaction.execute(
+                        "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3) \
+                                on conflict (aggregate_id, slug) do update \
+                                set current = $3",
+                        &[&post_id.to_uuid(), &post_id.to_str(), &true],
+                    )
+                        .unwrap();
+                }
+            }
+            Post::Post {
+                post_id,
+                version,
+                title,
+                markdown_content,
+                language,
+                publication_date,
+                current_slug,
+                previous_slugs,
+            } => {
+                self.transaction.execute(
+                    "insert into blog_posts (aggregate_id, status, language, title, markdown_content, publication_date, version) \
+                            values ($1, $2, $3, $4, $5, $6, $7) \
+                            on conflict (aggregate_id) do update \
+                            set status = $2, \
+                            language = $3, \
+                            title = $4, \
+                            markdown_content = $5, \
+                            publication_date = $6, \
+                            version = $7",
+                    &[
+                        &post_id.to_uuid(),
+                        &"published",
+                        &language.to_string(),
+                        &title,
+                        &markdown_content.to_edit(),
+                        &publication_date,
+                        &version
+                    ])
+                    .unwrap();
+                self.transaction
+                    .execute(
+                        "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3) \
+                                on conflict (aggregate_id, slug) do update \
+                                set current = $3",
+                        &[&post_id.to_uuid(), &current_slug.as_str(), &true],
+                    )
+                    .unwrap();
+                for slug in previous_slugs {
+                    self.transaction.execute(
+                        "insert into blog_slugs(aggregate_id, slug, current) values($1, $2, $3) \
+                                on conflict (aggregate_id, slug) do update \
+                                set current = $3",
+                        &[&post_id.to_uuid(), &slug.as_str(), &false],
+                    )
+                        .unwrap();
+                }
+            }
+        };
+    }
 }
 
 pub struct ReadOnlyPostRepository<'a> {
@@ -328,6 +425,10 @@ impl<'a> PostRepository for ReadOnlyPostRepository<'a> {
 
     fn save(&mut self, event: PostEvent) {
         panic!("Could not save {:?} outside a transaction", event);
+    }
+
+    fn upsert(&mut self, post: Post) {
+        panic!("Could not save {:?} outside a transaction", post);
     }
 }
 
