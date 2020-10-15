@@ -47,3 +47,11 @@ enough to be a problem.
 *note*: This blog is definitely an overkill solution. I advise you to consider
 [hugo](https://gohugo.io/) or [Gatsby](https://www.gatsbyjs.com/) if you want to run
 a proper blog.
+
+## LICENSE
+
+This code uses a modified version of [pulldown_cmark](https://github.com/raphlinus/pulldown-cmark/)
+under [MIT License](https://opensource.org/licenses/MIT): Copyright 2015 Google Inc. All rights reserved.
+
+Copyright 2020 Thomas Bracher. All rights reserved.  
+This work is available under [MIT License](https://opensource.org/licenses/MIT)
