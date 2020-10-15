@@ -252,6 +252,8 @@ fn test_delete_draft(repo: &mut TransactionalPostRepository) {
 }
 
 fn main() {
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
     run_with_database(vec![
         RepositoryTestContainer {
             name: "submit_non_existing_draft",
@@ -306,6 +308,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
     )
     .is_err()
     {
+        log::info!("Could not connect to database, sleeping 100ms then retry");
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
 
@@ -320,7 +323,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
     for container in containers {
         let mut transaction = connection.transaction().unwrap();
         transaction.batch_execute(contents.as_str()).unwrap();
-        println!("{}", container.name);
+        log::info!("{}", container.name);
         (container.f)(&mut TransactionalPostRepository { transaction });
     }
 

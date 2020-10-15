@@ -22,7 +22,6 @@ async fn main() -> std::io::Result<()> {
         .build(pool::ConnectionManager::new(config.postgres))
         .expect("Failed to create pool");
 
-
     let addr = SyncArbiter::start(1, move || PgActor(pool.clone()));
 
     let exported_as_str = std::fs::read_to_string("./backup.json").unwrap();
@@ -35,8 +34,12 @@ async fn main() -> std::io::Result<()> {
         .collect();
 
     for c in commands {
-        addr.send(c.clone()).await
-            .expect(&format!("sending {:?} to actor failed", c.0.post_id().to_str()))
+        addr.send(c.clone())
+            .await
+            .expect(&format!(
+                "sending {:?} to actor failed",
+                c.0.post_id().to_str()
+            ))
             .unwrap();
     }
 
