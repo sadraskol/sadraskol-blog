@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
 
     let addr = SyncArbiter::start(1, move || PgActor(pool.clone()));
 
-    let exported_as_str = std::fs::read_to_string("./backup.json").unwrap();
+    let exported_as_str = std::fs::read_to_string("./clean-backup.json").unwrap();
     let exported_posts: Vec<ExportedPost> = serde_json::from_str(&exported_as_str).unwrap();
 
     let commands: Vec<UpsertCommand> = exported_posts
@@ -36,10 +36,7 @@ async fn main() -> std::io::Result<()> {
     for c in commands {
         addr.send(c.clone())
             .await
-            .expect(&format!(
-                "sending {:?} to actor failed",
-                c.0.post_id().to_str()
-            ))
+            .unwrap_or_else(|_| panic!("sending {:?} to actor failed", c.0.post_id().to_str()))
             .unwrap();
     }
 
