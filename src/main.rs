@@ -64,6 +64,11 @@ async fn main() -> std::io::Result<()> {
                                 ),
                             )
                             .service(
+                                actix_web::web::resource("/{draft_id}/archive").route(
+                                    actix_web::web::post().to(web::admin::archive),
+                                ),
+                            )
+                            .service(
                                 actix_web::web::resource("/{draft_id}/delete")
                                     .route(actix_web::web::post().to(web::admin::draft)),
                             ),

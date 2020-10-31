@@ -23,6 +23,11 @@
             </form>
         </li>
         {% else -%}{% endif -%}
+        <li class="post-item__actions__item">
+            <form method="post" action="{{ draft.archive_link }}">
+                <button type="submit">Archive</button>
+            </form>
+        </li>
         <li class="post-item__actions__item"><a href="{{ draft.preview_link }}">Preview</a></li>
     </ul>
 </div>

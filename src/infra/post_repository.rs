@@ -5,10 +5,7 @@ use chrono::{DateTime, Utc};
 use postgres::{Client, Row, Transaction};
 use uuid::Uuid;
 
-use crate::domain::post::{
-    InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
-    InnerPostPublished, Post, PostEvent,
-};
+use crate::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post, PostEvent, InnerArchivedDraft};
 use crate::domain::repository::PostRepository;
 use crate::domain::types::{Language, Markdown, PostId};
 use crate::infra::pool::Pool;
@@ -43,6 +40,13 @@ impl<'a> TransactionalPostRepository<'a> {
         self.transaction.execute(
             "update blog_posts set slug = $1, version = $3 where aggregate_id = $1 and blog_posts.version = $2",
             &[&event.post_id.to_uuid(), &event.version, &(event.version + 1)],
+        ).unwrap();
+    }
+
+    fn archive_draft(&mut self, event: InnerArchivedDraft) {
+        self.transaction.execute(
+            "update blog_posts set status = $1, version = $4 where aggregate_id = $2 and blog_posts.version = $3",
+            &[&"archived", &event.post_id.to_uuid(), &event.version, &(event.version + 1)],
         ).unwrap();
     }
 
@@ -231,6 +235,7 @@ impl<'a> PostRepository for TransactionalPostRepository<'a> {
             PostEvent::DraftSubmitted(e) => self.submit_draft(e),
             PostEvent::PostEdited(e) => self.edit_post(e),
             PostEvent::DraftMadePublic(e) => self.make_draft_public(e),
+            PostEvent::ArchivedDraft(e) => self.archive_draft(e),
             PostEvent::PostError(_) => {}
         }
     }
@@ -252,6 +257,7 @@ impl<'a> PostRepository for TransactionalPostRepository<'a> {
                 markdown_content,
                 language,
                 shareable,
+                archived,
             } => {
                 self.transaction.execute(
                     "insert into blog_posts (aggregate_id, status, language, title, markdown_content, version) \
@@ -264,7 +270,7 @@ impl<'a> PostRepository for TransactionalPostRepository<'a> {
                             version = $6",
                     &[
                         &post_id.to_uuid(),
-                        &"draft",
+                        if archived { &"archived" } else { &"draft" },
                         &language.to_string(),
                         &title,
                         &markdown_content.to_edit(),
@@ -447,6 +453,7 @@ enum PostBuilder {
         markdown_content: String,
         language: Language,
         shareable: bool,
+        archived: bool,
     },
     Post {
         post_id: uuid::Uuid,
@@ -474,6 +481,15 @@ impl PostBuilder {
         let current_slug: Option<bool> = row.get(7);
         let version: u32 = row.get(8);
         match &*status {
+            "archived" => PostBuilder::Draft {
+                post_id,
+                version,
+                language,
+                title,
+                markdown_content: maybe_content.unwrap_or_else(|| "".to_string()),
+                shareable: slug.is_some(),
+                archived: true,
+            },
             "draft" => PostBuilder::Draft {
                 post_id,
                 version,
@@ -481,6 +497,7 @@ impl PostBuilder {
                 title,
                 markdown_content: maybe_content.unwrap_or_else(|| "".to_string()),
                 shareable: slug.is_some(),
+                archived: false,
             },
             "published" => PostBuilder::Post {
                 post_id,
@@ -514,6 +531,7 @@ impl PostBuilder {
                 markdown_content,
                 language,
                 shareable,
+                archived,
             } => Post::Draft {
                 post_id: PostId::new(post_id),
                 version,
@@ -521,6 +539,7 @@ impl PostBuilder {
                 markdown_content: Markdown::new(markdown_content),
                 language,
                 shareable,
+                archived,
             },
             PostBuilder::Post {
                 post_id,
@@ -584,6 +603,7 @@ impl PostBuilder {
                 title,
                 markdown_content,
                 language,
+                archived,
                 ..
             } => PostBuilder::Draft {
                 post_id,
@@ -592,6 +612,7 @@ impl PostBuilder {
                 markdown_content,
                 language,
                 shareable: true,
+                archived,
             },
             PostBuilder::Post {
                 post_id,

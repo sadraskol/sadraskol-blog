@@ -8,13 +8,8 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::domain::post::PostEvent::{
-    DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished,
-};
-use sadraskol::domain::post::{
-    InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
-    InnerPostPublished, Post,
-};
+use sadraskol::domain::post::{InnerArchivedDraft, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post};
+use sadraskol::domain::post::PostEvent::{ArchivedDraft, DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished};
 use sadraskol::domain::repository::PostRepository;
 use sadraskol::domain::types::{Language, Markdown, PostId};
 use sadraskol::infra::post_repository::TransactionalPostRepository;
@@ -172,6 +167,7 @@ fn test_submit_non_existing_draft(repo: &mut TransactionalPostRepository) {
         markdown_content: Markdown::new("some content"),
         language: Language::Fr,
         shareable: false,
+        archived: false,
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
@@ -201,6 +197,7 @@ fn test_edit_draft(repo: &mut TransactionalPostRepository) {
         markdown_content: Markdown::new("other content"),
         language: Language::En,
         shareable: false,
+        archived: false,
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
@@ -218,19 +215,47 @@ fn test_make_draft_public(repo: &mut TransactionalPostRepository) {
     }));
     repo.save(DraftMadePublic(InnerDraftMadePublic {
         post_id,
-        version: 0,
+        version: 1,
     }));
     let expected_draft = Post::Draft {
         post_id,
-        version: 1,
+        version: 2,
         title: "some title".to_string(),
         markdown_content: Markdown::new("some content"),
         language: Language::Fr,
         shareable: true,
+        archived: false,
     };
     assert_eq!(repo.all_posts(), vec![]);
     assert_eq!(repo.all_drafts(), vec![expected_draft.clone()]);
     assert_eq!(repo.read(post_id), Some(expected_draft));
+}
+
+fn test_archive_draft(repo: &mut TransactionalPostRepository) {
+    let post_id = PostId::new(uuid::Uuid::new_v4());
+    repo.save(DraftSubmitted(InnerDraftSubmitted {
+        post_id,
+        version: 0,
+        title: "some title".to_string(),
+        markdown_content: "some content".to_string(),
+        language: Language::Fr,
+    }));
+    repo.save(ArchivedDraft(InnerArchivedDraft {
+        post_id,
+        version: 1,
+    }));
+    let expected_draft = Post::Draft {
+        post_id,
+        version: 2,
+        title: "some title".to_string(),
+        markdown_content: Markdown::new("some content"),
+        language: Language::Fr,
+        shareable: false,
+        archived: true,
+    };
+    assert_eq!(repo.read(post_id), Some(expected_draft));
+    assert_eq!(repo.all_posts(), vec![]);
+    assert_eq!(repo.all_drafts(), vec![]);
 }
 
 fn test_delete_draft(repo: &mut TransactionalPostRepository) {
@@ -266,6 +291,10 @@ fn main() {
         RepositoryTestContainer {
             name: "make_draft_public",
             f: Box::new(test_make_draft_public),
+        },
+        RepositoryTestContainer {
+            name: "archive_draft",
+            f: Box::new(test_archive_draft),
         },
         RepositoryTestContainer {
             name: "delete_draft",
@@ -306,7 +335,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
         format!("postgres://postgres@localhost:{}", port).as_str(),
         NoTls,
     )
-    .is_err()
+        .is_err()
     {
         log::info!("Could not connect to database, sleeping 100ms then retry");
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -318,7 +347,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
         format!("postgres://postgres@localhost:{}", port).as_str(),
         NoTls,
     )
-    .unwrap();
+        .unwrap();
     let contents = fs::read_to_string(d).unwrap();
     for container in containers {
         let mut transaction = connection.transaction().unwrap();

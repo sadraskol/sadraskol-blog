@@ -4,9 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::domain::post::PostEvent::{
-    DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished,
-};
+use crate::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished, ArchivedDraft};
 use crate::domain::slugify::slugify;
 use crate::domain::types::{Language, Markdown, PostId};
 
@@ -22,6 +20,7 @@ pub enum Post {
         markdown_content: Markdown,
         language: Language,
         shareable: bool,
+        archived: bool,
     },
     Post {
         post_id: PostId,
@@ -42,6 +41,7 @@ pub enum PostEvent {
     DraftSubmitted(InnerDraftSubmitted),
     PostEdited(InnerPostEdited),
     DraftMadePublic(InnerDraftMadePublic),
+    ArchivedDraft(InnerArchivedDraft),
     PostError(PostErrors),
 }
 
@@ -94,6 +94,12 @@ pub struct InnerDraftMadePublic {
     pub version: u32,
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct InnerArchivedDraft {
+    pub post_id: PostId,
+    pub version: u32,
+}
+
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct ExportedPost {
     pub post_id: String,
@@ -102,6 +108,7 @@ pub struct ExportedPost {
     pub markdown_content: String,
     pub language: String,
     pub shareable: bool,
+    pub archived: bool,
     pub publication_date: Option<String>,
     pub current_slug: Option<String>,
     pub previous_slugs: Vec<String>,
@@ -142,6 +149,7 @@ impl ExportedPost {
                         markdown_content: Markdown::new(self.markdown_content.clone()),
                         language: l,
                         shareable: self.shareable,
+                        archived: self.archived,
                     })
             })
     }
@@ -153,8 +161,10 @@ pub enum PostErrors {
     CannotPublish,
     CannotEditPost,
     CannotMakePublic,
-    AlreadyPublic,
+    CannotArchive,
     CannotEditDraftAsPost,
+    AlreadyPublic,
+    AlreadyArchived,
     UnknownSlug,
     CurrentSlugIsNow(String),
 }
@@ -166,7 +176,9 @@ impl std::string::ToString for PostErrors {
             PostErrors::CannotPublish => "CannotPublish".to_string(),
             PostErrors::CannotEditPost => "CannotEditPost".to_string(),
             PostErrors::CannotMakePublic => "CannotMakePublic".to_string(),
+            PostErrors::CannotArchive => "CannotArchive".to_string(),
             PostErrors::AlreadyPublic => "AlreadyPublic".to_string(),
+            PostErrors::AlreadyArchived => "AlreadyArchived".to_string(),
             PostErrors::CannotEditDraftAsPost => "CannotEditDraftAsPost".to_string(),
             PostErrors::UnknownSlug => "UnknownSlug".to_string(),
             PostErrors::CurrentSlugIsNow(current) => format!("CurrentSlugIsNow({})", current),
@@ -261,6 +273,22 @@ impl Post {
         }
     }
 
+    pub fn archive(&self) -> PostEvent {
+        match self {
+            Post::Draft {
+                archived: false, ..
+            } => ArchivedDraft(InnerArchivedDraft {
+                post_id: self.post_id(),
+                version: self.version(),
+            }),
+            Post::Draft {
+                archived: true, ..
+            } => PostError(PostErrors::AlreadyArchived),
+            Post::Post { .. } => PostError(PostErrors::CannotArchive),
+            Post::NonExisting { .. } => PostError(PostErrors::CannotArchive),
+        }
+    }
+
     pub fn delete_draft(&self) -> PostEvent {
         match self {
             Post::Draft { .. } => DraftDeleted(InnerDraftDeleted {
@@ -332,6 +360,7 @@ impl Post {
                 markdown_content,
                 language,
                 shareable,
+                archived,
             } => Some(ExportedPost {
                 post_id: post_id.to_str(),
                 version: *version,
@@ -339,6 +368,7 @@ impl Post {
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 shareable: *shareable,
+                archived: *archived,
                 publication_date: None,
                 current_slug: None,
                 previous_slugs: vec![],
@@ -359,6 +389,7 @@ impl Post {
                 markdown_content: markdown_content.to_edit(),
                 language: language.to_string(),
                 shareable: false,
+                archived: false,
                 publication_date: Some(publication_date.to_rfc3339()),
                 current_slug: Some(current_slug.to_string()),
                 previous_slugs: previous_slugs.clone(),
@@ -388,6 +419,8 @@ mod test {
         InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
         InnerPostPublished,
     };
+    use crate::domain::post::PostEvent::ArchivedDraft;
+    use crate::domain::post::InnerArchivedDraft;
 
     #[test]
     fn submit_draft_successfully() {
@@ -495,6 +528,30 @@ mod test {
     fn cannot_make_public_a_post() {
         let post = PostBuilder::new().build();
         assert_eq!(post.make_public(), PostError(PostErrors::CannotMakePublic));
+    }
+
+    #[test]
+    fn archive_draft() {
+        let draft = random_draft();
+        assert_eq!(
+            draft.archive(),
+            ArchivedDraft(InnerArchivedDraft {
+                post_id: draft.post_id(),
+                version: draft.version(),
+            })
+        );
+    }
+
+    #[test]
+    fn cannot_archive_draft_twice() {
+        let draft = random_archived_draft();
+        assert_eq!(draft.archive(), PostError(PostErrors::AlreadyArchived));
+    }
+
+    #[test]
+    fn cannot_archive_published_post() {
+        let post = PostBuilder::new().build();
+        assert_eq!(post.archive(), PostError(PostErrors::CannotArchive));
     }
 
     #[test]
@@ -633,6 +690,7 @@ mod test {
             markdown_content: Markdown::new(rand_str()),
             language: rand_lang(),
             shareable: false,
+            archived: false,
         };
     }
 
@@ -644,6 +702,19 @@ mod test {
             markdown_content: Markdown::new(rand_str()),
             language: rand_lang(),
             shareable: true,
+            archived: false,
+        };
+    }
+
+    fn random_archived_draft() -> Post {
+        return Post::Draft {
+            post_id: PostId::new(uuid::Uuid::new_v4()),
+            version: rand_version(),
+            title: rand_str(),
+            markdown_content: Markdown::new(rand_str()),
+            language: rand_lang(),
+            shareable: false,
+            archived: true,
         };
     }
 
@@ -709,7 +780,7 @@ mod test {
     }
 
     fn draft_strategy() -> impl Strategy<Value = Post> {
-        (any::<u32>(), ".*", ".*", lang_strategy(), any::<bool>()).prop_map(|(v, t, m, l, sh)| {
+        (any::<u32>(), ".*", ".*", lang_strategy(), any::<bool>(), any::<bool>()).prop_map(|(v, t, m, l, sh, ar)| {
             Post::Draft {
                 post_id: PostId::new(
                     uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap(),
@@ -719,6 +790,7 @@ mod test {
                 markdown_content: Markdown::new(m),
                 language: l,
                 shareable: sh,
+                archived: ar,
             }
         })
     }

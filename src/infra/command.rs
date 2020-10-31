@@ -12,6 +12,7 @@ type Content = String;
 pub enum Command {
     SubmitDraft(PostId, Language, Title, Content),
     MakePublic(PostId),
+    Archive(PostId),
     DeleteDraft(PostId),
     PublishDraft(PostId, DateTime<Utc>),
     EditPost(PostId, Language, Title, Content),
@@ -22,6 +23,7 @@ impl Command {
         match self {
             Command::SubmitDraft(id, _, _, _) => *id,
             Command::MakePublic(id) => *id,
+            Command::Archive(id) => *id,
             Command::DeleteDraft(id) => *id,
             Command::PublishDraft(id, _) => *id,
             Command::EditPost(id, _, _, _) => *id,
@@ -49,6 +51,7 @@ impl Handler<Command> for PgActor {
                 post.submit_draft(lang, title, content)
             }
             Command::MakePublic(_) => post.make_public(),
+            Command::Archive(_) => post.archive(),
             Command::DeleteDraft(_) => post.delete_draft(),
             Command::PublishDraft(_, datetime) => post.publish_draft(datetime),
             Command::EditPost(_, lang, title, content) => post.edit_post(lang, title, content),

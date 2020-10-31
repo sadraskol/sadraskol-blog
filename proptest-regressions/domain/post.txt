@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 606a7fb6191e2c856a0495906c4562d94f624af0e06d0682a0aa2e31d9220001 # shrinks to d = Draft { post_id: 463c7c16-ae78-480f-966a-a118dff12230, version: 0, title: "", markdown_content: Markdown { raw: "" }, language: Fr, shareable: false, archived: true }

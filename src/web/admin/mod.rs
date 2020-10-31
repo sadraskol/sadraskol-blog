@@ -30,6 +30,7 @@ pub struct DraftSummaryView {
     publish_link: String,
     public_yet: bool,
     make_public_link: String,
+    archive_link: String,
 }
 
 impl DraftSummaryView {
@@ -44,6 +45,7 @@ impl DraftSummaryView {
                 publish_link: format!("/admin/drafts/{}/publish", "new"),
                 public_yet: false,
                 make_public_link: format!("/admin/drafts/{}/make-public", "new"),
+                archive_link: format!("/admin/drafts/{}/archive", "new"),
             },
             Post::Draft {
                 title,
@@ -61,6 +63,7 @@ impl DraftSummaryView {
                 publish_link: format!("/admin/drafts/{}/publish", post_id.to_str()),
                 public_yet: *shareable,
                 make_public_link: format!("/admin/drafts/{}/make-public", post_id.to_str()),
+                archive_link: format!("/admin/drafts/{}/archive", post_id.to_str()),
             },
             Post::Post { .. } => panic!("not a draft"),
         }
@@ -233,6 +236,19 @@ pub async fn make_draft_public(
         .map_err(|err| HttpResponse::InternalServerError().json(err).into())
 }
 
+pub async fn archive(
+    draft_id: web::Path<String>,
+    addr: web::Data<Addr<PgActor>>,
+) -> Result<HttpResponse, Error> {
+    let id = parse_or_new_id(draft_id);
+
+    addr.send(Command::Archive(id))
+        .await
+        .unwrap()
+        .map(|e| event_response(id, e))
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
+}
+
 pub struct PostSummaryView {
     title: String,
     markdown_content: String,
@@ -367,6 +383,12 @@ fn event_response(id: PostId, e: PostEvent) -> HttpResponse {
             )
             .body(""),
         PostEvent::DraftMadePublic(_) => HttpResponse::Found()
+            .header(
+                actix_web::http::header::LOCATION,
+                format!("/admin/drafts/{}", id_str),
+            )
+            .body(""),
+        PostEvent::ArchivedDraft(_) => HttpResponse::Found()
             .header(
                 actix_web::http::header::LOCATION,
                 format!("/admin/drafts/{}", id_str),
