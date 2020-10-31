@@ -64,9 +64,8 @@ async fn main() -> std::io::Result<()> {
                                 ),
                             )
                             .service(
-                                actix_web::web::resource("/{draft_id}/archive").route(
-                                    actix_web::web::post().to(web::admin::archive),
-                                ),
+                                actix_web::web::resource("/{draft_id}/archive")
+                                    .route(actix_web::web::post().to(web::admin::archive)),
                             )
                             .service(
                                 actix_web::web::resource("/{draft_id}/delete")
@@ -84,6 +83,12 @@ async fn main() -> std::io::Result<()> {
                                     .route(actix_web::web::get().to(web::admin::post))
                                     .route(actix_web::web::post().to(web::admin::edit_post)),
                             ),
+                    )
+                    .service(
+                        actix_web::web::scope("/archived").service(
+                            actix_web::web::resource("")
+                                .route(actix_web::web::get().to(web::admin::archived)),
+                        ),
                     )
                     .service(
                         actix_web::web::scope("/backup").service(

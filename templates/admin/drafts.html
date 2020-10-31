@@ -2,6 +2,8 @@
 {% block content %}
 <div>
     <ul class="post-item__actions">
+        {% if !is_drafts -%}<li class="post-item__actions__item"><a href="/admin/drafts">Drafts</a></li>
+        {% else -%}<li class="post-item__actions__item"><a href="/admin/archived">Archive</a></li>{% endif -%}
         <li class="post-item__actions__item"><a href="/admin/drafts/new">New Draft</a></li>
         <li class="post-item__actions__item"><a href="/admin/posts">Posts</a></li>
     </ul>

@@ -5,7 +5,10 @@ use chrono::{DateTime, Utc};
 use postgres::{Client, Row, Transaction};
 use uuid::Uuid;
 
-use crate::domain::post::{InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post, PostEvent, InnerArchivedDraft};
+use crate::domain::post::{
+    InnerArchivedDraft, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted,
+    InnerPostEdited, InnerPostPublished, Post, PostEvent,
+};
 use crate::domain::repository::PostRepository;
 use crate::domain::types::{Language, Markdown, PostId};
 use crate::infra::pool::Pool;
@@ -185,6 +188,22 @@ impl<'a> PostRepository for TransactionalPostRepository<'a> {
                     left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
                     where blog_posts.status = $1",
             &[&"draft"],
+        )
+            .unwrap().iter()
+            .map(Rc::new)
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect()
+    }
+
+    fn all_archived(&mut self) -> Vec<Post> {
+        self.transaction.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1",
+            &[&"archived"],
         )
             .unwrap().iter()
             .map(Rc::new)
@@ -386,6 +405,22 @@ impl<'a> PostRepository for ReadOnlyPostRepository<'a> {
                     left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
                     where blog_posts.status = $1",
             &[&"draft"],
+        )
+            .unwrap().iter()
+            .map(Rc::new)
+            .fold(RowsToPostsBuilder::new(), RowsToPostsBuilder::fold_rows)
+            .collect()
+    }
+
+    fn all_archived(&mut self) -> Vec<Post> {
+        self.client.query(
+            "select blog_posts.aggregate_id, blog_posts.status, blog_posts.language,
+                           blog_posts.title, blog_posts.markdown_content, blog_posts.publication_date,
+                           blog_slugs.slug, blog_slugs.current, blog_posts.version
+                    from blog_posts
+                    left outer join blog_slugs on blog_posts.aggregate_id = blog_slugs.aggregate_id
+                    where blog_posts.status = $1",
+            &[&"archived"],
         )
             .unwrap().iter()
             .map(Rc::new)

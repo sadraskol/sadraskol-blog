@@ -9,6 +9,7 @@ use std::ops::DerefMut;
 enum FindCriteria {
     POSTS,
     DRAFTS,
+    ARCHIVED,
     ALL,
 }
 
@@ -20,6 +21,9 @@ impl Find {
     }
     pub fn drafts() -> Find {
         Find(FindCriteria::DRAFTS)
+    }
+    pub fn archived() -> Find {
+        Find(FindCriteria::ARCHIVED)
     }
     pub fn posts() -> Find {
         Find(FindCriteria::POSTS)
@@ -42,6 +46,7 @@ impl Handler<Find> for PgActor {
         let vec = match f.0 {
             FindCriteria::POSTS => repository.all_posts(),
             FindCriteria::DRAFTS => repository.all_drafts(),
+            FindCriteria::ARCHIVED => repository.all_archived(),
             FindCriteria::ALL => repository.all(),
         };
 

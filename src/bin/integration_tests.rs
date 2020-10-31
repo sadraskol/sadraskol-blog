@@ -8,8 +8,13 @@ use chrono::Timelike;
 use postgres::{Client, NoTls};
 use rand::Rng;
 
-use sadraskol::domain::post::{InnerArchivedDraft, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited, InnerPostPublished, Post};
-use sadraskol::domain::post::PostEvent::{ArchivedDraft, DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished};
+use sadraskol::domain::post::PostEvent::{
+    ArchivedDraft, DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostPublished,
+};
+use sadraskol::domain::post::{
+    InnerArchivedDraft, InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted,
+    InnerPostEdited, InnerPostPublished, Post,
+};
 use sadraskol::domain::repository::PostRepository;
 use sadraskol::domain::types::{Language, Markdown, PostId};
 use sadraskol::infra::post_repository::TransactionalPostRepository;
@@ -335,7 +340,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
         format!("postgres://postgres@localhost:{}", port).as_str(),
         NoTls,
     )
-        .is_err()
+    .is_err()
     {
         log::info!("Could not connect to database, sleeping 100ms then retry");
         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -347,7 +352,7 @@ fn run_with_database(containers: Vec<RepositoryTestContainer>) {
         format!("postgres://postgres@localhost:{}", port).as_str(),
         NoTls,
     )
-        .unwrap();
+    .unwrap();
     let contents = fs::read_to_string(d).unwrap();
     for container in containers {
         let mut transaction = connection.transaction().unwrap();

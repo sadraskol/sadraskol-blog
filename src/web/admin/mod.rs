@@ -75,6 +75,7 @@ impl DraftSummaryView {
 struct DraftsTemplate<'a> {
     _parent: BaseTemplate<'a>,
     drafts: Vec<DraftSummaryView>,
+    is_drafts: bool,
 }
 
 pub async fn drafts(addr: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Error> {
@@ -86,6 +87,28 @@ pub async fn drafts(addr: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Erro
             let template = DraftsTemplate {
                 _parent: BaseTemplate::default(),
                 drafts,
+                is_drafts: true,
+            };
+            HttpResponse::Ok()
+                .header(
+                    actix_web::http::header::CONTENT_TYPE,
+                    "text/html; charset=utf-8",
+                )
+                .body(template.render().unwrap())
+        })
+        .map_err(|err| HttpResponse::InternalServerError().json(err).into())
+}
+
+pub async fn archived(addr: web::Data<Addr<PgActor>>) -> Result<HttpResponse, Error> {
+    addr.send(Find::archived())
+        .await
+        .unwrap()
+        .map(|res| {
+            let drafts = res.iter().map(DraftSummaryView::from).collect();
+            let template = DraftsTemplate {
+                _parent: BaseTemplate::default(),
+                drafts,
+                is_drafts: false,
             };
             HttpResponse::Ok()
                 .header(

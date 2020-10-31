@@ -4,7 +4,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::domain::post::PostEvent::{DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError, PostPublished, ArchivedDraft};
+use crate::domain::post::PostEvent::{
+    ArchivedDraft, DraftDeleted, DraftMadePublic, DraftSubmitted, PostEdited, PostError,
+    PostPublished,
+};
 use crate::domain::slugify::slugify;
 use crate::domain::types::{Language, Markdown, PostId};
 
@@ -281,9 +284,7 @@ impl Post {
                 post_id: self.post_id(),
                 version: self.version(),
             }),
-            Post::Draft {
-                archived: true, ..
-            } => PostError(PostErrors::AlreadyArchived),
+            Post::Draft { archived: true, .. } => PostError(PostErrors::AlreadyArchived),
             Post::Post { .. } => PostError(PostErrors::CannotArchive),
             Post::NonExisting { .. } => PostError(PostErrors::CannotArchive),
         }
@@ -419,8 +420,8 @@ mod test {
         InnerDraftDeleted, InnerDraftMadePublic, InnerDraftSubmitted, InnerPostEdited,
         InnerPostPublished,
     };
-    use crate::domain::post::PostEvent::ArchivedDraft;
     use crate::domain::post::InnerArchivedDraft;
+    use crate::domain::post::PostEvent::ArchivedDraft;
 
     #[test]
     fn submit_draft_successfully() {
@@ -780,8 +781,15 @@ mod test {
     }
 
     fn draft_strategy() -> impl Strategy<Value = Post> {
-        (any::<u32>(), ".*", ".*", lang_strategy(), any::<bool>(), any::<bool>()).prop_map(|(v, t, m, l, sh, ar)| {
-            Post::Draft {
+        (
+            any::<u32>(),
+            ".*",
+            ".*",
+            lang_strategy(),
+            any::<bool>(),
+            any::<bool>(),
+        )
+            .prop_map(|(v, t, m, l, sh, ar)| Post::Draft {
                 post_id: PostId::new(
                     uuid::Uuid::parse_str("463c7c16-ae78-480f-966a-a118dff12230").unwrap(),
                 ),
@@ -791,8 +799,7 @@ mod test {
                 language: l,
                 shareable: sh,
                 archived: ar,
-            }
-        })
+            })
     }
 
     fn date_strategy() -> impl Strategy<Value = DateTime<Utc>> {
