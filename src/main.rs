@@ -3,12 +3,13 @@ use std::time::Duration;
 use actix::SyncArbiter;
 use actix_web::middleware::Compress;
 use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer};
+use actix_web::{App, FromRequest, HttpServer};
 
 use sadraskol::config;
 use sadraskol::infra::pool;
 use sadraskol::infra::post_repository::PgActor;
 use sadraskol::web;
+use sadraskol::web::admin::{EditPostForm, SubmitDraftForm};
 use sadraskol::web::identity::{identity_service, CheckAdmin};
 
 #[actix_rt::main]
@@ -48,7 +49,10 @@ async fn main() -> std::io::Result<()> {
                             .service(
                                 actix_web::web::resource("/{draft_id}")
                                     .route(actix_web::web::get().to(web::admin::draft))
-                                    .route(actix_web::web::post().to(web::admin::edit_draft)),
+                                    .route(actix_web::web::post().to(web::admin::edit_draft))
+                                    .app_data(actix_web::web::Form::<SubmitDraftForm>::configure(
+                                        |cfg| cfg.limit(512 * 1024),
+                                    )),
                             )
                             .service(
                                 actix_web::web::resource("/{draft_id}/preview")
@@ -81,7 +85,10 @@ async fn main() -> std::io::Result<()> {
                             .service(
                                 actix_web::web::resource("/{post_id}")
                                     .route(actix_web::web::get().to(web::admin::post))
-                                    .route(actix_web::web::post().to(web::admin::edit_post)),
+                                    .route(actix_web::web::post().to(web::admin::edit_post))
+                                    .app_data(actix_web::web::Form::<EditPostForm>::configure(
+                                        |cfg| cfg.limit(512 * 1024),
+                                    )),
                             ),
                     )
                     .service(
