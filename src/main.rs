@@ -113,6 +113,9 @@ async fn main() -> std::io::Result<()> {
                 actix_web::web::resource("/").route(actix_web::web::get().to(web::post::index)),
             )
             .service(
+                actix_web::web::resource("/favicon.ico").route(actix_web::web::get().to(web::favicon))
+            )
+            .service(
                 actix_web::web::resource("/feed").route(actix_web::web::get().to(web::post::feed)),
             )
             .service(

@@ -86,3 +86,10 @@ pub async fn health(addr: web::Data<Addr<PgActor>>) -> impl Responder {
                 .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()))
         })
 }
+
+pub async fn favicon() -> impl Responder {
+    let favico: &[u8; 339] = include_bytes!("favicon.png");
+    HttpResponse::Ok()
+        .header("content-type", "image/png")
+        .body(favico.to_vec())
+}
