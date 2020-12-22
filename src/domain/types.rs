@@ -1,6 +1,7 @@
 use pulldown_cmark::{Options, Parser};
 
 use crate::custom_markdown::sad_push_html;
+use chrono::{DateTime, Utc};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Markdown {
@@ -28,4 +29,11 @@ impl Markdown {
     pub fn to_edit(&self) -> String {
         self.raw.clone()
     }
+}
+
+pub struct SadPost {
+    pub title: String,
+    pub language: String,
+    pub publication_date: DateTime<Utc>,
+    pub saddown_content: Markdown,
 }
