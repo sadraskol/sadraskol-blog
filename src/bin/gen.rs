@@ -114,7 +114,7 @@ fn gen_feed(posts: &Vec<SadPost>) {
         posts: v,
     }.render().unwrap();
 
-    let mut file = FileDiff::new("dist/feed/index.html");
+    let mut file = FileDiff::new("dist/feed/index.xml");
     file.write_diff(xml);
 }
 
