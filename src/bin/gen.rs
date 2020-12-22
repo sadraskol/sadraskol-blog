@@ -2,7 +2,8 @@ extern crate askama;
 extern crate sadraskol;
 
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
+use std::path::Path;
 
 use askama::Template;
 use chrono::{DateTime, Utc};
@@ -11,6 +12,43 @@ use serde::{Deserialize, Serialize};
 use sadraskol::domain::slugify::slugify;
 use sadraskol::domain::types::Markdown;
 use sadraskol::web::BaseTemplate;
+
+
+struct FileDiff {
+    f: fs::File,
+    original_len: usize,
+}
+
+impl FileDiff {
+    fn new<T: ToString>(path: T) -> Self {
+        let string = path.to_string();
+        let p = Path::new(string.as_str());
+
+        for parent in p.parent() {
+            fs::create_dir_all(parent).unwrap();
+        }
+
+        let file = fs::OpenOptions::new()
+            .write(true)
+            .read(true)
+            .create(true)
+            .open(p)
+            .unwrap();
+
+        let len = file.metadata().unwrap().len() as usize;
+        FileDiff { f: file, original_len: len }
+    }
+
+    fn write_diff<T: ToString>(&mut self, content: T) {
+        let mut original = String::with_capacity(self.original_len);
+        self.f.read_to_string(&mut original).unwrap();
+        let content_as_string = content.to_string();
+        if original != content_as_string {
+            self.f.set_len(content_as_string.len() as u64).unwrap();
+            self.f.write_all(content_as_string.as_bytes()).unwrap();
+        }
+    }
+}
 
 pub struct PostSummaryView {
     title: String,
@@ -38,21 +76,14 @@ fn gen_home(posts: &Vec<SadPost>) {
         })
         .collect();
 
-    let html = IndexTemplate {
+    let html: String = IndexTemplate {
         _parent: BaseTemplate::default(),
         posts: v,
     }.render().unwrap();
 
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create_new(true)
-        .open("dist/index.html")
-        .unwrap();
-
-    write!(file, "{}", html).unwrap();
+    let mut file = FileDiff::new("dist/index.html");
+    file.write_diff(html);
 }
-
 
 #[derive(Template)]
 #[template(path = "feed.xml")]
@@ -72,20 +103,12 @@ fn gen_feed(posts: &Vec<SadPost>) {
         })
         .collect();
 
-    let html = FeedTemplate {
+    let xml = FeedTemplate {
         posts: v,
     }.render().unwrap();
 
-    fs::create_dir_all("dist/feed").unwrap();
-
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create_new(true)
-        .open("dist/feed/index.xml")
-        .unwrap();
-
-    write!(file, "{}", html).unwrap();
+    let mut file = FileDiff::new("dist/feed/index.html");
+    file.write_diff(xml);
 }
 
 #[derive(Template)]
@@ -109,18 +132,12 @@ fn gen_post(post: &SadPost) {
 
     let html = page.render().unwrap();
 
-    fs::create_dir_all(format!("dist/posts/{}", slugify(post.title.clone()))).unwrap();
-
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create_new(true)
-        .open(format!("dist/posts/{}/index.html", slugify(post.title.clone())))
-        .unwrap();
-    write!(file, "{}", html).unwrap();
+    let mut file = FileDiff::new(format!("dist/posts/{}/index.html", slugify(post.title.clone())));
+    file.write_diff(html);
 }
 
 fn gen_posts(posts: &Vec<SadPost>) {
+    fs::create_dir_all("dist/posts").unwrap();
     for x in posts {
         gen_post(x);
     }
@@ -168,8 +185,6 @@ fn main() {
             }
         })
         .collect();
-
-    fs::create_dir_all("dist/posts").unwrap();
 
     gen_home(&posts);
     gen_feed(&posts);
