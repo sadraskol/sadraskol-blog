@@ -503,4 +503,509 @@
     </div>
 </div>
 </body>
+</html><!doctype html>
+<html lang="en">
+<head>
+    <title>Sadraskol</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+
+<div class="index-item">
+    <div class="index-item_datetime">26 March 2017</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-2"><strong>Press review #2</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">02 May 2019</div>
+    <div><a href="&#x2f;posts&#x2f;speaker-s-notes-discover-event-driven-programming"><strong>Speaker&#x27;s notes : discover event-driven programming</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">04 June 2020</div>
+    <div><a href="&#x2f;posts&#x2f;reading-notes-extreme-modelling-in-practice"><strong>Reading notes: eXtreme Modelling in Practice</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">19 January 2020</div>
+    <div><a href="&#x2f;posts&#x2f;divers-foucault-et-intuition"><strong>Divers : Foucault et intuition</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">10 May 2020</div>
+    <div><a href="&#x2f;posts&#x2f;how-to-make-the-best-out-of-twitter"><strong>How to make the best out of Twitter</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">13 January 2017</div>
+    <div><a href="&#x2f;posts&#x2f;quick-introduction-to-macro-in-elixir"><strong>Quick introduction to macro in Elixir</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">19 May 2015</div>
+    <div><a href="&#x2f;posts&#x2f;pourquoi-software-machiavel"><strong>Pourquoi Software &amp; Machiavel ?</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">30 November 2020</div>
+    <div><a href="&#x2f;posts&#x2f;modeling-the-train-reservation-kata-part-1"><strong>Modeling the train reservation kata - Part 1</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">21 June 2018</div>
+    <div><a href="&#x2f;posts&#x2f;unexpected-values-in-java"><strong>Unexpected values in Java</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">31 May 2019</div>
+    <div><a href="&#x2f;posts&#x2f;two-busy-weeks"><strong>Two busy weeks</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">12 December 2017</div>
+    <div><a href="&#x2f;posts&#x2f;my-experience-with-purescript-so-far"><strong>My experience with Purescript so far</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">29 June 2017</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-4"><strong>Press review #4</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">22 March 2019</div>
+    <div><a href="&#x2f;posts&#x2f;quick-recap-on-the-manager-s-path"><strong>Quick Recap on The Manager&#x27;s Path</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">06 February 2016</div>
+    <div><a href="&#x2f;posts&#x2f;l-ethique-liberale-et-l-esprit-de-l-agile"><strong>L&#x27;éthique libérale et l&#x27;esprit de l&#x27;Agile</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">21 August 2020</div>
+    <div><a href="&#x2f;posts&#x2f;when-business-rules-become-technical-problems"><strong>When business rules become technical problems</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">26 May 2020</div>
+    <div><a href="&#x2f;posts&#x2f;reading-notes-concurrency-the-works-of-leslie-lamport"><strong>Reading notes: Concurrency, the works of Leslie Lamport</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">27 July 2018</div>
+    <div><a href="&#x2f;posts&#x2f;moving-the-blog-to-purerl-the-journey-into-type-safety-land"><strong>Moving the blog to Purerl, the journey into type safety land</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">28 May 2015</div>
+    <div><a href="&#x2f;posts&#x2f;l-argument-ontologique-de-l-agilite"><strong>L&#x27;argument ontologique de l&#x27;agilité</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">22 July 2017</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-5"><strong>Press review #5</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">22 April 2016</div>
+    <div><a href="&#x2f;posts&#x2f;ode-a-l-esperluette"><strong>Ode à l&#x27;esperluette</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">11 May 2020</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-8"><strong>Press review #8</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">26 April 2016</div>
+    <div><a href="&#x2f;posts&#x2f;kafka-n-est-pas-kafkaien"><strong>Kafka n&#x27;est pas kafkaïen</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">05 January 2018</div>
+    <div><a href="&#x2f;posts&#x2f;happy-new-year-of-code"><strong>Happy new year of code</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">24 January 2019</div>
+    <div><a href="&#x2f;posts&#x2f;luttons-contre-les-pouvoirs-reactionnaires-et-autoritaires"><strong>Luttons contre les pouvoirs réactionnaires et autoritaires</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">24 October 2017</div>
+    <div><a href="&#x2f;posts&#x2f;digging-in-the-depth-of-fibonacci"><strong>Digging in the depth of Fibonacci</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">30 March 2020</div>
+    <div><a href="&#x2f;posts&#x2f;le-paradoxe-de-picasso-pourquoi-on-ne-peut-pas-faire-confiance-au-langage-naturel"><strong>Le paradoxe de Picasso : pourquoi on ne peut pas faire confiance au langage naturel</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">06 September 2019</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-6"><strong>Press review #6</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">03 June 2018</div>
+    <div><a href="&#x2f;posts&#x2f;revue-de-presse-special-parcoursup"><strong>Revue de presse : spécial parcoursup</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">23 February 2020</div>
+    <div><a href="&#x2f;posts&#x2f;methodes-formelles"><strong>Méthodes formelles</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">17 May 2016</div>
+    <div><a href="&#x2f;posts&#x2f;developer-s-proust-questionnaire"><strong>Developer&#x27;s Proust Questionnaire</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">16 March 2020</div>
+    <div><a href="&#x2f;posts&#x2f;une-compilation-de-quadrant"><strong>Une compilation de quadrant</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">30 October 2020</div>
+    <div><a href="&#x2f;posts&#x2f;reading-notes-highly-available-transactions-virtues-and-limitations"><strong>Reading notes: Highly Available Transactions: Virtues and Limitations</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">22 September 2020</div>
+    <div><a href="&#x2f;posts&#x2f;reading-notes-scalable-state-machine-replication"><strong>Reading notes: scalable state-machine replication</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">30 November 2020</div>
+    <div><a href="&#x2f;posts&#x2f;modeling-the-train-reservation-kata-part-2"><strong>Modeling the train reservation kata - Part 2</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">07 August 2017</div>
+    <div><a href="&#x2f;posts&#x2f;how-to-create-a-bash-auto-complete"><strong>How to create a bash auto complete</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">17 October 2018</div>
+    <div><a href="&#x2f;posts&#x2f;hors-sujet-imperatif-categorique-de-kant-et-masculinite-toxique"><strong>Hors sujet : impératif catégorique de Kant et masculinité toxique</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">24 August 2017</div>
+    <div><a href="&#x2f;posts&#x2f;common-pattern-for-bash-auto-complete"><strong>Common pattern for bash auto complete</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">15 April 2020</div>
+    <div><a href="&#x2f;posts&#x2f;learning-alloy-the-hard-way"><strong>Learning Alloy the hard way</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">19 March 2017</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-1"><strong>Press review #1</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">02 February 2018</div>
+    <div><a href="&#x2f;posts&#x2f;les-types-algebriques-pour-les-langages-orientes-objet"><strong>Les types algébriques pour les langages orientés objet</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">18 April 2017</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-3"><strong>Press review #3</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">05 December 2019</div>
+    <div><a href="&#x2f;posts&#x2f;press-review-7-sleep-remote-and-verbs"><strong>Press review #7: sleep, remote and verbs</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">21 December 2016</div>
+    <div><a href="&#x2f;posts&#x2f;experimenting-pushstate-to-boost-page-loading"><strong>Experimenting pushstate to boost page loading</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">25 December 2017</div>
+    <div><a href="&#x2f;posts&#x2f;response-to-vjeux-article-on-ocaml"><strong>Response to Vjeux article on Ocaml</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">21 March 2017</div>
+    <div><a href="&#x2f;posts&#x2f;the-alien-erlang-syntax-choices"><strong>The alien erlang syntax choices</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">10 May 2016</div>
+    <div><a href="&#x2f;posts&#x2f;if-less-game-of-life"><strong>If-less game of life</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">04 July 2017</div>
+    <div><a href="&#x2f;posts&#x2f;the-survival-kit-for-functional-language-beginner"><strong>The survival kit for functional language beginner</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">03 April 2018</div>
+    <div><a href="&#x2f;posts&#x2f;simple-take-on-monadic-types-the-list"><strong>Simple take on monadic types : the List</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">26 October 2020</div>
+    <div><a href="&#x2f;posts&#x2f;reading-notes-common-ground-and-coordination-in-joint-activity"><strong>Reading notes: Common Ground and Coordination in Joint Activity</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">09 August 2019</div>
+    <div><a href="&#x2f;posts&#x2f;lara-hogan-s-resilient-management-reading-notes"><strong>Lara Hogan&#x27;s Resilient Management, reading notes</strong></a></div>
+</div>
+
+<div class="index-item">
+    <div class="index-item_datetime">04 May 2017</div>
+    <div><a href="&#x2f;posts&#x2f;why-null-leads-to-bad-implementations"><strong>Why null leads to bad implementations</strong></a></div>
+</div>
+
+
+    </div>
+</div>
+</body>
 </html>
