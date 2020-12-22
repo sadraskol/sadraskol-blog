@@ -1,62 +1,6 @@
-use std::str::FromStr;
-
 use pulldown_cmark::{Options, Parser};
 
 use crate::custom_markdown::sad_push_html;
-
-#[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct PostId(uuid::Uuid);
-
-impl PostId {
-    pub fn new(uuid: uuid::Uuid) -> PostId {
-        PostId(uuid)
-    }
-    pub fn to_str(&self) -> String {
-        self.0.to_hyphenated().to_string()
-    }
-    pub fn to_uuid(&self) -> uuid::Uuid {
-        self.0
-    }
-}
-
-impl std::fmt::Display for PostId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.to_str().as_str())
-    }
-}
-
-impl std::fmt::Debug for PostId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.to_str().as_str())
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
-pub enum Language {
-    Fr,
-    En,
-}
-
-impl FromStr for Language {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Language, ()> {
-        match s {
-            "fr" => Ok(Language::Fr),
-            "en" => Ok(Language::En),
-            _ => Err(()),
-        }
-    }
-}
-
-impl ToString for Language {
-    fn to_string(&self) -> String {
-        match self {
-            Language::Fr => "fr".to_string(),
-            Language::En => "en".to_string(),
-        }
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Markdown {
