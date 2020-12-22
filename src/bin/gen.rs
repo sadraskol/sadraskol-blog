@@ -13,9 +13,9 @@ use sadraskol::domain::slugify::slugify;
 use sadraskol::domain::types::Markdown;
 use sadraskol::web::BaseTemplate;
 
-
 struct FileDiff {
-    f: fs::File,
+    r: fs::File,
+    w: fs::File,
     original_len: usize,
 }
 
@@ -28,24 +28,32 @@ impl FileDiff {
             fs::create_dir_all(parent).unwrap();
         }
 
-        let file = fs::OpenOptions::new()
+        let w = fs::OpenOptions::new()
             .write(true)
-            .read(true)
             .create(true)
             .open(p)
             .unwrap();
 
+        let file = fs::OpenOptions::new()
+            .read(true)
+            .open(p)
+            .unwrap();
+
         let len = file.metadata().unwrap().len() as usize;
-        FileDiff { f: file, original_len: len }
+        FileDiff {
+            r: file,
+            original_len: len,
+            w
+        }
     }
 
     fn write_diff<T: ToString>(&mut self, content: T) {
         let mut original = String::with_capacity(self.original_len);
-        self.f.read_to_string(&mut original).unwrap();
+        self.r.read_to_string(&mut original).unwrap();
         let content_as_string = content.to_string();
         if original != content_as_string {
-            self.f.set_len(content_as_string.len() as u64).unwrap();
-            self.f.write_all(content_as_string.as_bytes()).unwrap();
+            self.w.set_len(content_as_string.len() as u64).unwrap();
+            self.w.write_all(content_as_string.as_bytes()).unwrap();
         }
     }
 }
@@ -75,7 +83,6 @@ fn gen_home(posts: &Vec<SadPost>) {
             }
         })
         .collect();
-
     let html: String = IndexTemplate {
         _parent: BaseTemplate::default(),
         posts: v,
@@ -164,7 +171,7 @@ struct SadPost {
 
 fn main() {
     let posts_files = fs::read_dir("posts").unwrap();
-    let posts: Vec<SadPost> = posts_files
+    let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| { post.map(|p| p.path()) })
         .map(|path| {
             let s = fs::read_to_string(path).unwrap();
@@ -185,6 +192,8 @@ fn main() {
             }
         })
         .collect();
+
+    posts.sort_by(|l, r| l.publication_date.cmp(&r.publication_date).reverse());
 
     gen_home(&posts);
     gen_feed(&posts);
