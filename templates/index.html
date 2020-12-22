@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block content %}
-{% for post in posts %}
-<div class="index-item">
-    <div class="index-item_datetime">{{ post.publication_date }}</div>
-    <div><a href="{{post.view_link}}"><strong>{{ post.title }}</strong></a></div>
-</div>
-{% endfor %}
-{% endblock content %}
