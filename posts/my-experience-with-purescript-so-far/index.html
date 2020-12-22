@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>My experience with Purescript so far</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>My experience with Purescript so far</h2>
+<time>12 December 2017</time>
+<p>Purescript is a pure functional language. It is highly inspired by Haskell and compiles to javascript. I learned it on a side project (not a very serious one) and to write scripts to query our mongodb instances at <a href="https://www.malt.com">malt</a>. I will simply present my point of vue on the current state of the language.</p>
+<h2>Environment tools</h2>
+<p>First off, the install and setup of the environment is straight forward. <a href="https://github.com/purescript-contrib/pulp">Pulp</a> works like a charm! It is intuitive and it never went in my way. The incremental build is super fast on my machine so you can have a quick feedback on your test while you code with a simple <code>pulp --watch test</code>.</p>
+<p>The second thing purescript excels at is documentation browsing. If you look for the documentation of the <code>map</code> function, just look up on <a href="https://pursuit.purescript.org/search?q=map">pursuit</a>. It's a shame that the results are weidly ordered. I would have preferred to have the <code>Data.Functor (map)</code> at the top, since it's the most common. But this is only a detail, I'm sure maintainers are aware of these sort of things and are working towards a better browsing experience.</p>
+<p>Another nice surprise is the <a href="https://atom.io/packages/ide-purescript">Atom Ide</a>. If you use Atom, it offers a nice ide that take care of autocomplete or source browsing. I need to restart the plugin from time to time to synchronise it with the current state of the build. Even with this minor problem, it's impressive that such a young language has such a nice completion features. static types FTW!</p>
+<h2>Language features</h2>
+<p>Speaking of type system, Purescript is so pure that it won't allow you to use partial functions without special treatments. This pushes you to a <a href="http://blog.ploeh.dk/2015/08/10/type-driven-development/">type driven development</a>, which allowed me to learn a lot about the problems I was trying to solve.</p>
+<p>Purescript does not come &quot;batteries included&quot;, you need to import every dependencies, even the <code>+</code> operator! I don't know why, since the static typing system allows to prune useless code easily, and tree shaking is done by default when packaging the javascript. Anyways it's a surprising feature, that isn't clearly indicated. You will have weird error messages when not importing  Prelude. Which brings us to the core pain point of Purescript: its user experience.</p>
+<h2>Purescript user experience</h2>
+<p>Let's say you mistype the function <code>traverse</code> to <code>traversee</code>. In Elixir, the compiler will warn you that there's a more natural option: it will suggest methods in the context that look like your mistyping using the <a href="https://hexdocs.pm/elixir/String.html#jaro_distance/2">jaro distance</a>. It's a shame that the Purescript compiler does not do such things, even more because the type system would allow to suggest some very smart and elegant choices. No such explanation is given by purescript compiler.</p>
+<p>As I mentioned earlier, forgetting to import Prelude at the start will award you some very weird messages like <code>(+) does not exist</code>. I feel like it's a pain for nothing for many reasons:</p>
+<ul>
+<li>I don't see a case where a program won't need to use operations like <code>(+)</code>, <code>(&lt;&gt;)</code>, etc.</li>
+<li>Even if they did not use <code>Prelude</code>, the tree shaking would make sure their package is not impacted</li>
+<li>Finally, even if there would be a good reason not to import <code>Prelude</code>, why not creating specific messages to help newcomers to follow steps to understand it.</li>
+</ul>
+<p>Purescript leaves you alone in the jungle of its methods and functional gibberish. If you don't know what a <code>Monoid</code>, a <code>Foldable</code> or a <code>&lt;$&gt;</code> is, you better learn the language with tutorial first! It feels like the language wasn't build for programmers first, but for Haskell programmers with strong theorical background. Could you easily guess what's the difference between a <code>Semi-groupoid</code> and a <code>Monoid</code>?</p>
+<p>The most representative to me is the <code>purescript-assert</code> library, when the assertion work, everything is fine. But once you get an error, here's the result:</p>
+<figure>
+  <img src="https://s3.eu-central-1.amazonaws.com/sadraskol/purescsript-asser-error.png"/>
+  <figcaption><i>What happened?!</i></figcaption>
+</figure>
+<p>As you can see, there's no comprehensible error message, not even the line of the error in the <code>.purs</code> test file. If you have more than one assertion in your tests, which is quite the norm, you can't know which assertion fails. Fortunately, other libraries allow to perform testing with better output. I deeply regret that basic libraries don't go in a spirit of helping the programmers. As this <a href="https://twitter.com/chrisamaphone/status/936966525810028546">tweet</a> says:</p>
+<blockquote>
+<p>Programming languages should help programmers becoming better</p>
+</blockquote>
+<p>Purescript only provides half the tools for the statement to be true.</p>
+<h2>Purescript could change</h2>
+<p>Purescript is not in its stable stage yet, and most of the work is still to be provided. I have great hopes in Purescript. It offers a super nice way of doing Javascript in a safe and productive way. It's a shame it is not designed for newcomers or in an <a href="https://en.wikipedia.org/wiki/Ethics_of_care">ethic of care</a>.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

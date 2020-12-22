@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Lara Hogan&#x27;s Resilient Management, reading notes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Lara Hogan&#x27;s Resilient Management, reading notes</h2>
+<time>09 August 2019</time>
+<p>I read Lara's book carefully taking a lot of notes compared to other books. It is filled with 101 management, wise and practical advises for everyday life as a manager. Even I, being a developer aspiring to management positions, could get some really good insight to what to expect from a manager. My notes consist of quotes mixed with my own comments. Writing the post allows me to fixate this knowledge somewhere for future reference.</p>
+<h2>My notes</h2>
+<p>A manager works around 4 dimensions in a team:</p>
+<ul>
+<li><strong>Resiliency</strong></li>
+<li><strong>Human growth</strong></li>
+<li>Delivery</li>
+<li>Cross-functional strategy</li>
+</ul>
+<p>The book focuses on the two firsts. As those two skills revolve around the team dynamics, Lara uses Bruce Tuckman's stages of group development. Those stages are necessary before having a performing team. If a stage is neglected, the team will be stuck and won't perform as expected, even if the individuals are brilliant. The 4 stages consists of:</p>
+<ul>
+<li>Forming: people getting to know each other</li>
+<li>Storming: frictions arise, people faces each others needs</li>
+<li>Norming: when people agree on aligning their goals</li>
+<li>Performing: the team is at max delivery capacity</li>
+</ul>
+<p>As Lara points out, even if you are at the last stage, meaningful even will break the group dynamic and you're back at the forming stage. Like Sisyphus, you have to carry the rock up the mountain again. The job of the manager is to be like Albert Camus: imagine Sisyphus happy! His role is to make sure the performing stage is obtained soonest possible.</p>
+<h3>Meet your team</h3>
+<p>The forming stage is a &quot;question of balance, not perfection&quot;. The first important step is to know yourself. What do you want from the team and what do you want to achieve? What do you value? In order to answer to this question, Lara suggests using the BICEPS values. I've done mine, so I can follow myself better:</p>
+<ul>
+<li><b>B</b>elonging: I need a couple of people to trust, I'm thrive when I can rely on a couple of people, no more</li>
+<li><b>I</b>mprovement/Progress: I need to see myself learning a lot. it's likely one of my core value. I want to learn from my colleagues and from meetups.</li>
+<li><b>C</b>hoice: My core value, I want to make the choices and not obey to one's will. I can do anything if I choose to do it, but impose me a task and I'll Bartleby your ass (&quot;I'd rather not&quot;)</li>
+<li><b>E</b>quality/Fairness: I am not very demanding on fairness, but I'm not sure I understand this value well enough</li>
+<li><b>P</b>redictability: I like to understand the people I'm working with, I would be less confident exposing my opinions otherwise</li>
+<li><b>S</b>ignifiance: I welcome rewards when I deliver nice stuff</li>
+</ul>
+<p>Once you know yourself, you can start asking others about themselves. You can ask for their BICEPS or guess them yourself. There's plenty of questions available out there to better understand your teammates. Lara points out something really important: accept the differences, you value something different from other people and it's okay! They can enjoy being put in the spotlight, or dislike it, it's all okay as long as you accept them as they are and not as you want them to be. Yoga has a word for this: Samtosha, accepting the world as it is.</p>
+<p>One good question Lara asks is: what do you optimize for? Most of the time, frictions come from diverging directions. Understanding what people optimize for allow us to accept other's reaction and decisions.</p>
+<h3>Grow your teammates</h3>
+<p>Do you know the difference between mentoring and coaching? Mentoring is saying what you would do at another person's place. Coaching on the other hand is helping the person grow by herself, a bit like a Socratic method, asking the right questions to show that the person has the resources to answer her own problems. As noted by Lara, mentoring is the go-to posture for most starting managers or leaders, but coaching is so much more efficient!</p>
+<p>In order to be more in a coaching position, be less solution focused and do not judge the situation. Ask questions starting with &quot;What&quot; or &quot;Who&quot;, like &quot;What's holding you back?&quot; or &quot;Who would you like to emulate on this problem?&quot;. Act like a mirror in front the person by exploring more deeply her issue, leave her space to be listened to.</p>
+<p>Once in a while you will have return feedback to a person, it can be a tricky situation, especially if the feedback is negative and can attack the person on her core values. Lara's solution lies in the feedback equation: <strong>Observation</strong> + <strong>Impact</strong> + <strong>Request</strong> = <strong>Good feedback</strong>. The observation is a simple and cold factual report on a behavior <em>&quot;you left the meeting early without warning&quot;</em>. The impact is the effect on the team or yourself <em>&quot;we could not ask for help on this thing you worked on</em>. Finally the request is a coaching question that makes the feedback actionable <em>&quot;What format of meeting would you prefer to get you onboard?</em>. I'm not sure my example is good, but I guess I need to learn to do better feedbacks myself.</p>
+<h3>Set clear expectations</h3>
+<p>First thing: inform on people's role &amp; the responsabilities of those roles. Documented roles sets expectations for everyone. When roles are not clear on a project and there's confusion and miscommunication use a RACI. It informs on people's role in a project:</p>
+<ul>
+<li>Responsible: will perform the task</li>
+<li>Accountable: in charge of the good delivery of the task</li>
+<li>Consulted: can provide his opinion during the process of the task</li>
+<li>Informed: is informed of the advancement of the task, does not take part in the decisions taken</li>
+</ul>
+<p>Although I've already heard of this before, I never realised the simplicity and nice effect it can have on a stuttering project.</p>
+<p>Also need to document the team's vision or mission statement. It allow to explain the priorities and better balance decisions. Also document the team's meeting and way to work so newcomers integrate easily. Retrospect on your team practices to adapt them with better insights.</p>
+<p>Etsy rules of communications are as follows: Reflect, Elevate, Assume good intentions, Listen. They ensure that everyone is on the same page, and that people interact effectively.</p>
+<h3>Communicate effectively</h3>
+<p>People overestimate the ability of email recipients to understand an email out of context. They fill the gaps with stereotypes and false guesses. So no, a &quot;useless&quot; meeting could not have been replaced by an email. There's plenty of meetings that are useful, and foster motivations, communication and trust.</p>
+<p>Repeat information as much as you can, people don't accept new piece of information the first time its stated to them. It's okay because we all do that.</p>
+<p>There are plenty of emotions and kind of energy to use to convey information, experiment and know to use them as emotions are a key part of a message being delivered, it plays a key role in the phatic function of language. Different mood can be:</p>
+<ul>
+<li>Anger, frustration, urgency</li>
+<li>Cautiousness, hesitation (it's my best one)</li>
+<li>Lighthearted, effervescent</li>
+<li>Compassionate</li>
+<li>Calm, collected, steady</li>
+<li>Creative</li>
+<li>Ambiguous</li>
+<li>Blunt, cut and dry</li>
+</ul>
+<p>Adapt your mood and listen to your team's priority to get the message through.</p>
+<p>Finally, being a manager can be exhausting. You will feel alone and lost some times. It's important to connect with other managers to share your difficulties, to change perspective and find help. Although I'm no manager, I definitely understand this step, as meeting other developers helped me to feel less lonely in the shitty job I started with.</p>
+<hr />
+<p>My notes are personal, I skipped a lot of what Lara covers in her very complete book. I can only recommend you get your own to dig subjects I covered very superficially.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

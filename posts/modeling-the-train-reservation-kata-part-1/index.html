@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Modeling the train reservation kata - Part 1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Modeling the train reservation kata - Part 1</h2>
+<time>30 November 2020</time>
+<p>The <a href="https://github.com/emilybache/KataTrainReservation">train reservation kata</a> is one of my favorite kata. It is close from a real case, yet simple enough to yield interesting results in a two hour session. The explicit rules are the following:</p>
+<ul>
+<li>70% of maximum train capacity can be reserved in advance</li>
+<li>All seats of one reservation must be in the same coach</li>
+<li><em>Ideally, all coaches have 70% occupation</em></li>
+</ul>
+<p>This last rule spices the system up. There is an ambiguous meaning around the <em>ideal</em> rule. We cover this aspect in another article. This article goal is to layout the basic TLA+ specification to understand the last rule. Most of my readers skip this kind of article, but you will regret not getting into this one.</p>
+<h2>Basic train reservations</h2>
+<p>Instead of getting in the code first, let's try to think of the problem at hand. What does it mean to reserve seats? We'll consider a simplified train of 2 coach of 10 seats for a total capacity of 20 seats. Here's an instance of a random reservation:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/other-configuration.png"/>
+<figcaption>Some reservation configuration</figcaption>
+</figure>
+<p>Each reservation have a unique number. They have the same color on the drawing. Numbers also orders reservation in time: reservation 1 is done first, then reservation 2, etc. As the representation suggests, without any rules, a reservation could span multiple coaches.</p>
+<p>TLA+ is capable of exploring all the possible ways to reserve seats and pass the tests for every state.</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/animation.gif"/>
+<figcaption>TLA+ checking a lot of configuration for you</figcaption>
+</figure>
+<h2>TLA+ syntax</h2>
+<p>TLA+ is based on set theory, and augments it with temporal logic. Our first task is to model how all seats of a train are laid out. We use this layout for reservation later.</p>
+<p>A set is a collection of distinct objects. We describe coaches as a set of their identifier, a single letter like in the kata specification:</p>
+<pre><code class="language-tla">Coaches == { <span class="h-string">"A"</span>, <span class="h-string">"B"</span> }
+</code></pre>
+<p>For seat numbers, you can easily create sets of integers with the range <code>..</code> operator:</p>
+<pre><code class="language-tla">Coaches == { <span class="h-string">"A"</span>, <span class="h-string">"B"</span> }
+SeatNumbers == 1..10
+</code></pre>
+<p>Now if we want the set of all seats in the train. We need to combine coach identifier and seat numbers. We use the <code>\X</code> operator. It creates a list of each possible pairs between two sets. For our example:</p>
+<pre><code class="language-tla">Seats == Coaches <span class="h-keyword">\X</span> SeatNumbers
+</code></pre>
+<p>Is equivalent to:</p>
+<pre><code class="language-tla">Seats == { <<<span class="h-string">"A"</span>, 1>>, <<<span class="h-string">"A"</span>, 2>>, <<<span class="h-string">"A"</span>, 3>>, <<<span class="h-string">"A"</span>, 4>>, <<<span class="h-string">"A"</span>, 5>>,
+    <<<span class="h-string">"A"</span>, 6>>, <<<span class="h-string">"A"</span>, 7>>, <<<span class="h-string">"A"</span>, 8>>, <<<span class="h-string">"A"</span>, 9>>, <<<span class="h-string">"A"</span>, 10>>,
+    <<<span class="h-string">"B"</span>, 1>>, <<<span class="h-string">"B"</span>, 2>>, <<<span class="h-string">"B"</span>, 3>>, <<<span class="h-string">"B"</span>, 4>>, <<<span class="h-string">"B"</span>, 5>>,
+    <<<span class="h-string">"B"</span>, 6>>, <<<span class="h-string">"B"</span>, 7>>, <<<span class="h-string">"B"</span>, 8>>, <<<span class="h-string">"B"</span>, 9>>, <<<span class="h-string">"B"</span>, 10>> }
+</code></pre>
+<p>Note that the <code>&lt;&lt;&gt;&gt;</code> is the sequence symbol. A sequence is an ordered collection of objects. We use them as tuples here. The <code>\X</code> or <code>\times</code> operator avoid typing long and error prone collections. Also <code>Seats</code> is automatically updated when we change <code>Coaches</code> or <code>SeatNumbers</code>.</p>
+<p>Now that we have modeled the seats in the train, we need to model the reservations that users make. We ignore the id of reservation and consider reservation as a set of seat reserved. The following could be legal reservations:</p>
+<pre><code class="language-tla"><span class="h-comment">\* A reservation for A1 and another for A2 and B3</span>
+reservations == { {<<<span class="h-string">"A"</span>, 1>>}, {<<<span class="h-string">"A"</span>, 2>>, <<<span class="h-string">"B"</span>, 3>>} }
+<span class="h-comment">\* Reservations for the first picture in the article</span>
+reservations == { {<<<span class="h-string">"A"</span>, 1>>}, {<<<span class="h-string">"A"</span>, 5>>}, {<<<span class="h-string">"A"</span>, 8>>, <<<span class="h-string">"B"</span>, 7>>},
+    {<<<span class="h-string">"A"</span>, 10>>, <<<span class="h-string">"B"</span>, 8>>}, {<<<span class="h-string">"A"</span>, 7>>}, {<<<span class="h-string">"A"</span>, 2>>, <<<span class="h-string">"A"</span>, 6>>,
+    <<<span class="h-string">"A"</span>, 9>>, <<<span class="h-string">"B"</span>, 5>>, <<<span class="h-string">"B"</span>, 10>>}, {<<<span class="h-string">"A"</span>, 3>>, <<<span class="h-string">"A"</span>, 4>>},
+    {<<<span class="h-string">"B"</span>, 1>>, <<<span class="h-string">"B"</span>, 2>>, <<<span class="h-string">"B"</span>, 3>>, <<<span class="h-string">"B"</span>, 4>>, <<<span class="h-string">"B"</span>, 6>>, <<<span class="h-string">"B"</span>, 9>>} }
+</code></pre>
+<p>TLA+ does not have any type checking mechanism. Since it's quite useful, we implement our own type checking. We use the <code>SUBSET</code> keyword that allow to generate the set of all subset. For instance, <code>SUBSET Coaches = {{}, {&quot;A&quot;}, {&quot;B&quot;}, {&quot;A&quot;, &quot;B&quot;}}</code>. The variable <code>reservations</code> can be any set of subset of seats. So we write:</p>
+<pre><code class="language-tla">TypeCheck == reservations <span class="h-keyword">\in</span> <span class="h-keyword">SUBSET</span> <span class="h-keyword">SUBSET</span> Seats
+</code></pre>
+<p>The operator <code>\in</code> check that the variable belongs to the right hand side set. <code>TypeCheck</code> is an invariant that we check for every states the model goes into. But first we need a specification to run a model.</p>
+<h2>The first specification</h2>
+<p>We just modeled reservations but aren't able to do anything with it. It's time to introduce the acronym TLA: Temporal Logic of Actions. Last paragraph is about Logic, let's see Temporal and Actions right now. Actions are operators that changes the state of the system. In our case, if we need to reserve from an empty train, we need a reserve action.</p>
+<pre><code class="language-tla">Reserve == reservations' = reservations <span class="h-keyword">\union</span> {{<<<span class="h-string">"A"</span>, 1>>}} 
+</code></pre>
+<p>You declare Actions like other constraints. We introduce here two new syntax changes: <code>'</code> the prime operator and <code>\union</code>. The union operator acts on sets. It returns a set containing all elements of both sets. For instance, <code>{1, 2} \union {3, -1} = {-1, 1, 2, 3}</code>.</p>
+<p>The prime operator allows to assign a new state for a variable. So in our case, <code>Reserve</code> is an Action that changes the state of reservations to add a reservation for seat &quot;A1&quot;. This is a bit dull, but we enrich this action later.</p>
+<p>Next we have to declare how the state initialize and possible actions that changes the state of the system.</p>
+<pre><code class="language-tla">Init == reservations = {}
+Next == Reserve
+</code></pre>
+<p>Init is the conventionnal first state of the system. In our case, reservations are empty. Next is also a convention.</p>
+<p>And 🎉 tada! We have our <a href="https://gist.github.com/sadraskol/d5615541d766b66f10888faf17263cda">first specification</a>. You can create a model in the <a href="https://github.com/tlaplus/tlaplus/releases">TLA+ toolbox</a>, run an &quot;Initial predicate and next-state relation&quot; behavior and add <code>TypeCheck</code> as an invariant. The specification runs and TLC (the TLA+ checker) finds 2 distinct states. </p>
+<p>Why do so much work for 2 states. We could do everything by hand and spend less time on tooling! Let's challenge our model to surpass our brain power.</p>
+<h2>From 2 states to millions</h2>
+<p>We have a dull way of reserving seats, let's introduce a dumb way of doing it:</p>
+<pre><code class="language-tla">Reserve == <span class="h-keyword">\E</span> singleSeat <span class="h-keyword">\in</span> Seats: reservations' = reservations <span class="h-keyword">\union</span> {{singleSeat}}
+</code></pre>
+<p><code>\E</code> means &quot;there is&quot;. We call this logical predicate existential quantification. The Reserve action now adds the reservation of a non deterministic seat of the train. TLC executes the <code>Next</code> predicate until it exhausts all possible execution paths. In this case, it executes all possible ways to book a single seat.</p>
+<p>TLC checks for the 20 000 000 (millions!) ways to do it. It can take a while (27 seconds on my setup). If we had to check a property on such a case, we would have a very hard time to find bugs with unit testing. </p>
+<p>Imagine having to come up with the 20 000 000 cases by hand! Notice that we have checked <code>TypeCheck</code> for every of these 20 000 000 states. This is how powerful TLA can be!</p>
+<p>We have the base of a specification. Only problem: We haven't solve any rule of the kata yet. Let's start with the first one: Do not reserve more than 70% of the train.</p>
+<h2>Booking less than 70% train occupation</h2>
+<p>Before changing the implementation of the Reserve action, let's check that we break the first rule (TDD style!). It can be expressed as an invariant:</p>
+<pre><code class="language-tla">70PercentTrainOccupation == (70 * Cardinality(Seats)) <span class="h-keyword">\div</span> 100
+AtMost70PercentTrainOccupation == Cardinality(<span class="h-keyword">UNION</span> reservations) <= 70PercentTrainOccupation 
+</code></pre>
+<p>We use <code>Cardinality</code> to have the number of elemets in a set. The keyword <code>UNION</code> is the invert operation from <code>SUBSET</code>: it reduces a set of set of objects into a set of objects. For instance <code>UNION {{1}, {2, 3}}</code> is equal to <code>{1, 2, 3}</code>. Here <code>UNION reservations</code> yields all the seats reserved in a set.</p>
+<p>When running TLC yields an expected error: <strong>Invariant AtMost70PercentTrainOccupation is violated</strong>. The counter example toolbox displays could be this one:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/over-70-train-single-seat.png"/>
+<figcaption>Counter example when reserving 15 seats</figcaption>
+</figure>
+<p>Of course we haven't implemented any restrictions to the Reserve action, so now it's time to stop reserving when the train is full:</p>
+<pre><code class="language-tla">Reserve == /\ Cardinality(<span class="h-keyword">UNION</span> reservations) < 70PercentTrainOccupation
+           /\ <span class="h-keyword">\E</span> singleSeat <span class="h-keyword">\in</span> Seats: reservations' = reservations <span class="h-keyword">\union</span> {{singleSeat}}
+</code></pre>
+<p>This is where the fun begins! The ajunction operator <code>/\</code> is a very familiar operator even if you don't know it yet. Predicates are boolean expressions, so <code>/\</code> is the equivalent of <code>&amp;&amp;</code> boolean operator in other languages. Why is it written <code>/\ P /\ Q</code>? It's a convention to ease reading of TLA+ code.</p>
+<p>Our <a href="https://gist.github.com/sadraskol/f47a858d340f841ad7096f10419bc30a">new specification</a> is more satisfying although it isn't really perfect. Before being able to reserve in the same coach, it would be nice to reserve multiple seats instead of just one!</p>
+<h2>More state, more problems</h2>
+<p>To reserve multiple seats we need to introduce a parameter to the Reserve action. The syntax is quite familiar to everyone:</p>
+<pre><code class="language-tla">Reserve(seatCount) == /\ Cardinality(<span class="h-keyword">UNION</span> reservations) < 70PercentTrainOccupation
+                      /\ <span class="h-keyword">\E</span> singleSeat <span class="h-keyword">\in</span> Seats: reservations' = reservations <span class="h-keyword">\union</span> {{singleSeat}}
+</code></pre>
+<p>We adapt Next to introduce non deterministic behavior. The model already accounts for the fact that seats can be reserved in any order. We now also need to introduce the fact that we can reserve any number of seats. We need non-determinism again:</p>
+<pre><code class="language-tla">Next == <span class="h-keyword">\E</span> seatCount <span class="h-keyword">\in</span> 1..Cardinality(Seats): Reserve(seatCount)
+</code></pre>
+<p>Now we do not reserve a single seat but the right amount of seats:</p>
+<pre><code class="language-tla">Reserve(seatCount) ==
+    /\ Cardinality(<span class="h-keyword">UNION</span> reservations) < 70PercentTrainOccupation
+    /\ <span class="h-keyword">\E</span> seats <span class="h-keyword">\in</span> <span class="h-keyword">SUBSET</span> Seats:
+        /\ Cardinality(seats) = seatCount
+        /\ reservations' = reservations <span class="h-keyword">\union</span> {seats}
+</code></pre>
+<p>Remember our good friend SUBSET? It allows to generate set of seats for the reservation. The condition on the cardinality of seats allow to reserve the right amount of seats. Are we good? Are you sure? Try to run the specification and you find some counter example like this one:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/over-70-multiple-reservation.png"/>
+<figcaption>Reserving 14 seats at once breaks our invariant</figcaption>
+</figure>
+<p>The error we introduced here is that we can reserve the whole train at once. The condition that worked for a single reservation does not stand anymore. Instead of <code>Cardinality(UNION reservations) &lt; 70PercentTrainOccupation</code>, we need to account for the count of seats being reserved: <code>Cardinality(UNION reservations) + seatCount &lt;= 70PercentTrainOccupation</code>.</p>
+<p>If you try to run the <a href="https://gist.github.com/sadraskol/8da8360f8d132ced1ffbd8540033314d">latest specification</a> you'll encounter the state space explosion problem. Instead of having a couple of millions of states, TLC has 400 millions of states to explore. We discuss this issue later. For now let's be patient and wait for TLC to check all states.</p>
+<h2>Same coach reservation</h2>
+<p>We can go on and solve the second constraint: reservations can only span a single coach. We first need to translate &quot;same-coachness&quot; of a reservation. One can express it this way:</p>
+<pre><code class="language-tla">SameCoach(seats) == <span class="h-keyword">\E</span> someCoach <span class="h-keyword">\in</span> Coaches: <span class="h-keyword">\A</span> <&ltcoach, _rr>> <span class="h-keyword">\in</span> seats: coach = someCoach
+AllReservationAreInTheSameCoach == <span class="h-keyword">\A</span> reservation <span class="h-keyword">\in</span> reservations: SameCoach(reservation)
+</code></pre>
+<p><code>\A</code> is the universal quantification. It is interpreted as &quot;for all&quot;. So the <code>SameCoach</code> function can be read: There's a coach &quot;someCoach&quot; such as every seat in the set &quot;seats&quot; belong to &quot;someCoach&quot;. If any two seat are not in the same coach, the predicate return <code>FALSE</code>. Let's see how it fails with TLC:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/different-coach.png"/>
+<figcaption>Reserving in 2 different coaches breaks `AllReservationAreInTheSameCoach` invariant</figcaption>
+</figure>
+<p>Alright, you know what's going to happen, we're gonna add this contraint to our reservation routine. We now have a reservation that works for 2 rules right? Well not exactly. The resulting specification seems alright, but there is something wrong about it and it needs to be adressed before we get further.</p>
+<h2>Reservation conflict</h2>
+<p>Remember when I explained <code>SUBSET</code>, I took the example <code>SUBSET {1, 2} = {{}, {1}, {2}, {1, 2}}</code>. If we look carefully, number 1 belongs to both <code>{1}</code> and <code>{1, 2}</code>. See how this could be a problem in our case? If we replace numbers by seats, we get <code>SUBSET {&lt;&lt;&quot;A&quot;, 1&gt;&gt;, &lt;&lt;&quot;A, 2&gt;&gt;} = {{}, {&lt;&lt;&quot;A&quot;, 1&gt;&gt;}, {&lt;&lt;&quot;A, 2&gt;&gt;}, {&lt;&lt;&quot;A&quot;, 1&gt;&gt;, &lt;&lt;&quot;A, 2&gt;&gt;}}</code>. A1 is in both reservations! Since this is the only check we have on reservations, it means that the same seat can be reserved multiple times.</p>
+<p>Let's proove this:</p>
+<pre><code class="language-tla">SeatsCanBeReservedOnce == <span class="h-keyword">\A</span> seat <span class="h-keyword">\in</span> Seats:
+    Cardinality({reservation <span class="h-keyword">\in</span> reservations: seat <span class="h-keyword">\in</span> reservation}) <= 1
+</code></pre>
+<p>We introduce a new construct: set filtering. <code>{x \in S: P(x)}</code> is the set of x in S that satisfies <code>P(x)</code>. In our case the set of reservations that includes the same seat. TLC finds yet another counter example.</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/conflict-reservation.png"/>
+<figcaption>2 reservations sharing the same seat</figcaption>
+</figure>
+<p>This problem is quite symptomatic of using your tools blindly without thinking of the consequences. How would you fix this problem? There are many ways of doing it, but I think it boils down to an implicit predicate: we should only be reserving free seats. Free seats are the seats that are not yet in the reservations:</p>
+<pre><code class="language-tla">ReservedSeats == <span class="h-keyword">UNION</span> reservations
+FreeSeats == Seats \ ReservedSeats
+</code></pre>
+<p>Operator <code>\</code> is the set substraction. For instance <code>{1, 2} \ {2, 3} = {1}</code>. Now that we can select only subsets of free seats in the reserve action:</p>
+<pre><code class="language-tla">Reserve(seatCount) ==
+    /\ Cardinality(<span class="h-keyword">UNION</span> reservations) + seatCount <= 70PercentTrainOccupation
+    /\ <span class="h-keyword">\E</span> seats <span class="h-keyword">\in</span> <span class="h-keyword">SUBSET</span> FreeSeats:
+        /\ SameCoach(seats)
+        /\ Cardinality(seats) = seatCount
+        /\ reservations' = reservations <span class="h-keyword">\union</span> {seats}
+</code></pre>
+<p>And this is it, we now have a great <a href="https://gist.github.com/sadraskol/19d02412e263f0aab2e5da029566cc63">specification</a>. Did you try to run it?</p>
+<p>Because we're using the variable in the seat reservation, the TLC is much slower in running the specification. If you need to wait days before getting a positive result, the tool becomes useless. It is crucial to have a reasonnable state space to verify specification quickly.</p>
+<p>Fortunately there's a saying in formal methodologies that can help us here: The small scope hypothesis. This hypothesis is explained by Daniel Jackson in his book <em><a href="http://www.softwareabstractions.org/">Software abstractions, logic, language and analysis</a></em>. It states that the majority of constraint infringement will appear in small configuration scope. You can verify that by the counter example that were found by TLC for our rules. TLC explores less than 200 states before it finds a counter example.</p>
+<p>If small scopes are sufficient, we can check rules with small sized coach. For instance try to verify rules with coaches of 5 seats. Since state space grows exponentially, dividing the scope by two turns an untractable analysis into a reasonnable one.</p>
+<h2>Conclusion</h2>
+<p>I hope this post has been a better introduction for TLA+ than my previous article. We wrote an abstract specification for the problem at hand. This lead to a repetition in our design. We cover ways of implementing a more down to earth reservation specification in later episode of this series.</p>
+<p>Also we still need to find a way to respect the last rule and this needs an article on its own. The word &quot;ideally&quot; is ambiguous and we have to discuss what it means. We explore the question in a following article.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

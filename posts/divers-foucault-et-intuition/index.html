@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Divers : Foucault et intuition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Divers : Foucault et intuition</h2>
+<time>19 January 2020</time>
+<h2>Le savoir et la remise en cause de la morale</h2>
+<p>Au micro de Jacques Chancel, Foucault tenait ces propos sur l'école :</p>
+<blockquote>
+<p>&quot;Imaginez que les gens aient une frénésie de savoir comme ils ont une frénésie de faire l'amour. Vous imaginez le nombre de gens qui se bousculeraient à la porte des écoles ? Ce serait le désastre social total. Il faut bien, si l'on veut restreindre au maximum le nombre de gens qui ont accès au savoir, le présenter sous cette forme parfaitement rébarbative et ne contraindre les gens à savoir que par des gratifications annexes sociales qui sont précisément la concurrence ou les hauts salaires enfin en fin de course, etc.&quot;</p>
+</blockquote>
+<p>J'aimerais tellement avoir la capacité de remettre en jeu les institutions et les opinions que je &quot;fais comme si j'y croyais&quot; comme dit Deleuze. Je cherche sans cesse à remettre en cause les savoirs institués, d'être méfiant des prêcheurs de la bonne parole et de la doxa. Il m'a profondément aidé à reconnaître dans le &quot;Clean Code&quot; une morale venant oppresser les développeurs avec des pratiques arbitraires. À voir dans certains combats contre les &quot;Silver Bullet&quot;, un discours normalisateur et promouvant le statu quo avant tout autre critère de jugement.</p>
+<p>J'ai lu &quot;Clean Code&quot; à une époque où tout mot m'était promission. Je n'avais pas le recul critique pour comprendre ce qui n'allait pas dans la séparation manichéenne du &quot;good code&quot; et du &quot;bad code&quot;, expression littérale de l'introduction. Il me faut maintenant un effort monumental pour remettre en question ces &quot;conseils&quot; devenus si familiers pour moi. La familiarité est le moment du voyage où l'on ne sait plus revenir en arrière...</p>
+<h2>Réflexion sur la familiarité (inspiré de ce <a href="https://www.asktog.com/papers/raskinintuit.html">blog</a>)</h2>
+<p>À l'école, j'avais une calculatrice HP en <a href="https://fr.wikipedia.org/wiki/Notation_polonaise_inverse">notation polonaise inversée</a> que mon beau-père m'avait confié. Alors que j'étais d'abord attiré par la magie de faire des calculs à l'envers, je me suis vite rendu compte de l'incroyable facilité qu'elle offrait pour résoudre des calculs complexes et intriqués. Mes camarades de classe se sont moqués de moi lorsque je tentais d'expliquer le paradigme, qu'il ne fallait pas écrire l'équation de manière littérale, mais essayer de faire les opérations &quot;dans l'ordre&quot;. La notation m'était devenue familière. J'avais emprunté un chemin et tel un petit poucet dont les bouts de pain sont mangé par les oiseaux, je ne pouvais retrouver le chemin de la calculatrice à notation infixée.</p>
+<p>L'intuition est mauvaise conseillère. Elle est conditionnée par un seul facteur : ce que l'on sait déjà des choses. Pour juger une nouvelle interface, on va suivre notre intuition et suivre l'avis qu'elle seule aura conçu. Pour juger équitablement un outil, il faut donc ne pas prendre en compte l'intuitivité de celui-ci.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Reading notes: Concurrency, the works of Leslie Lamport</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Reading notes: Concurrency, the works of Leslie Lamport</h2>
+<time>26 May 2020</time>
+<p><em>Concurrency, the works of Leslie Lamport</em> edited by Dahlia Malkhi, is published by ACM and <a href="https://dl.acm.org/doi/epub/10.1145/3335772">freely available on their site</a>. The collection is targetted to large audience to better know the work of ACM Turing award recipients. As the title implies, this book explains the work of Leslie Lamport on concurrency, and tries to convince you this award was deserved.</p>
+<p>The book dives quickly into the first major contribution of Leslie Lamport: the mutual exclusion solution of the Bakery algorithm. It mimics the queue of clients waiting at a bakery. Each process has a ticket and only the lowest ticket is given access to the critical part of the code. Lamport proved that the algorithm works for atomic registers, but also for regular registers (more on that later). This algorithm is already a challenge for the mind to understand how difficult it is to find and prove correct concurrent algorithms.</p>
+<p>Lamport also provided a definition of what safe, regular and atomic registers meant. When you deal with memory, two operations can be performed: <strong>read</strong> and <strong>write</strong>. As explained in <a href="https://stackoverflow.com/a/8872960">this stackoverflow answer</a>, reads and writes can happen at the same time.</p>
+<pre><code>Process1 -----wwwww--------------wwwwww------- (w1, w2)
+Process2 -------rrrrr----------------rrrr----- (r21, r22)
+Process3 -------------rrrrrr---rrrr----------- (r31, r32)
+</code></pre>
+<p>Let's say that the register is reading 0 before any writes, w2 writes 10 and w3 writes 100. The range of this virtual register is 0-255. The possible values returned would be:</p>
+<table><thead><tr><th>Read</th><th>Atomic</th><th>Regular</th><th>Safe</th></tr></thead><tbody>
+<tr><td>r21</td><td>0,10</td><td>0,10</td><td>0-255</td></tr>
+<tr><td>r31</td><td>10</td><td>10</td><td>10</td></tr>
+<tr><td>r32</td><td>10,100</td><td>10,100</td><td>0-255</td></tr>
+<tr><td>r22</td><td>if r32 = 100, 100 else 10,100</td><td>10,100</td><td>0-255</td></tr>
+</tbody></table>
+<p>Note that every none overlapping read returns the latest write, the behavior changes for overlapping reads. For safe registers, overlapping reads can return any value in the range of the register. Regular register will only allow current value or previous value to be returned, without constraints on the order of read. Successive overlapping reads can return incoherent values between one another but not random values. Atomic read are the strongest registers, concurrent reads must respect <strong>sequential consistency</strong>.</p>
+<h2>Causal time</h2>
+<p>Arguably the biggest contribution to computer science by Leslie Lamport is the notion of causal time. At a time when it was not proved that any algorithm could be performed in distributed systems, and the reliance on clocks to synchronize algorithms, the paper &quot;Time, Clocks, and the Ordering of Events in a Distributed System&quot; marked a turning point.</p>
+<p>The idea is the following: multiple processes send messages to other processes and perform actions. Each process has his own causal clock, a number increasing for each operation. When sending a message to other processes, the process also send his clock. The receipient will then choose: either his clock is greater, and it keeps on going, or it chooses the clock of the sender and increases it. If every step of an algorithm is performed between messages, we are able to trace which step have followed other steps.</p>
+<pre><code>Process1 0--1---------4------------5-------
+                     /              \
+Process2 0------2---3----------------6-----
+               /                      \
+Process3 0----1------------2-----------7---
+</code></pre>
+<p>This little graph represent the clock of each process. They all start at 0. When a step of the algorithm is performed, the local clock increases by 1. Every line in between processes represents a message being sent to another process. In this case the local clock is also re-evaluated. If every clock increase is performed by a message, we can trace the origin of every steps. We are not interested in steps between message sending. The main focus is not the real time, but the <strong>logic time</strong> that links every steps of the algorithm.</p>
+<p>This appearing simple concept allows to prove that any algorithm, every state machine can be distributed (given no faults in network/process) and opens the door for future work on distributed state machines.</p>
+<p>For instance, you can perform a <em>snapshot</em> of the distributed system, that doesn't really snapshot the state of every processes at a given time (&quot;real&quot; time), but a causal view of the system. Although not precise, this kind of snapshot allow to verify properties of the running system: if the snapshot is in a deadlock, the system is in a deadlock, etc.</p>
+<p>Leslie Lamport also defined the Byzantine failure, but I didn't really got this part so i'll skip to the next.</p>
+<h2>Replication problem</h2>
+<p>Leslie Lamport provided with one of the most influencial algorithm: the Paxos algorithm. It runs Apache Cassandra, Google Spanner and Bigtable, it influenced a whole family of consensus algorithm, <a href="https://en.wikipedia.org/wiki/Raft_(computer_science)">Raft</a> being the latest newborn.</p>
+<p>But first let's do some history:</p>
+<ul>
+<li>in 1975, the RFC 677 described the first protocol for database replication. Lamport was highly inspired by this paper. It mentioned that the protocol could have the probability of strange behaviors...</li>
+<li>in 1976, the first primary-backup protocol was described</li>
+<li>in 1977, Xerox PARC used petri nets to replicate data between servers</li>
+<li>in 1978, Lamport published the first state machine replication (SMR) proposal based on causal time</li>
+</ul>
+<p>His paper was groundbraking since if no failure happened, strong consistency and replication could be proved possible!</p>
+<p>After some definition of <em>Agreement</em>, <em>Completion</em>, <em>Asynchrony</em>, <em>Partial Synchrony</em>, <em>Synchrony</em>, <em>Crash Failure</em>, <em>Fail stop</em>, <em>Total Ordering Protocols</em> and <em>Consensus Protocols</em>, the book dives into some properties of the systems (I'll let you read the book to understand all those terms). One thing to note is that for <code>f</code> failures, consensus can be found for <code>2f + 1</code> participants.</p>
+<p>The first early consensus protocol was published in 1983 by Micheal Ben-Or. It is described as such in the book:</p>
+<blockquote>
+<ol start="0">
+<li>For every N processes p set an estimate e(p) to Red or Blue randomly, they also set their round r(p) = 0</li>
+</ol>
+<p>Phase 1:</p>
+<ul>
+<li>every process broadcasts a message of type (Phase1, r(p), e(p))</li>
+<li>wait to receive N/2 phase 1 messages of round r(p)</li>
+<li>if every message has the same estimate e, choose v(p) = e</li>
+<li>else v(p) = <code>_|_</code> (bottom or null for instance)</li>
+</ul>
+<p>Phase 2:</p>
+<ul>
+<li>every process broadcasts a message of type (Phase2, r(p), v(p))</li>
+<li>wait to receive N/2 phase 2 messages of round r(p)</li>
+<li>if every message has the same value v (!= <code>_|_</code>), <strong>decide</strong> e(p) = v</li>
+<li>else if a message has a non bottom value v, e(p) = v</li>
+<li>else choose a random Red or Blue estimate e(p) = Red | Blue</li>
+</ul>
+</blockquote>
+<p>The two phase algorithm allows to reduce the number of processes, as the single phase variant protocol would require <code>3f + 1</code> processes to guarantee the same properties. This algorithm is C-valid, C-agreement and completes with a probability 1 (like the probability of getting head when tossing a coin for an infinite amount of times).</p>
+<p>Although this is a theoretical only algorithm, it can be extended to other consensus algorithms.</p>
+<p>In 1984, the Dwork, Lynch &amp; Stockmeyer (DLS) introduces the notion of leader to simplify the complexity of communication. The alternative presented in the book is called the Franken algorithm. It only works for <em>Partial Synchrony</em>, while Ben-Or worked for <em>Asynchrony</em> systems.</p>
+<ul>
+<li>There is a timeout T(p), doubled at the end of each round</li>
+<li>In phase 1, a leader broadcasts his estimate. If a process waits more than T(p) for the leader's estimate, it chooses its own</li>
+<li>In phase 2 if process p receives multiple estimates, it chooses its own instead of a received value.</li>
+</ul>
+<p>DLS is still a theoretical algorithm, but it is an improvement over Ben-Or since any value can be used as estimates.</p>
+<p>Finally in 1989, Lamport published the first paper on the first Paxos consensus algorithm. Instead of using O(N²) messages by rounds, it would only use O(N) messages, making it the first possibly interesting algorithm for the industry. It uses a leader and is also aimed at <em>Partial Synchrony</em> systems.</p>
+<blockquote>
+<ol start="0">
+<li>set e(p) = <code>_|_</code>, r(p) = 1 and T(p) &gt; 0</li>
+</ol>
+<p>Phase 1a.</p>
+<ul>
+<li>if p is leader of r(p) broadcast (Phase1a, r(p))</li>
+<li>wait for message of type Phase1a, with r &gt;= r(p), then set r(p) = r</li>
+</ul>
+<p>Phase 1b.</p>
+<ul>
+<li>send (Phase1b, r(p), e(p)) to leader of r(p)</li>
+<li>if p leader of r(p):</li>
+<li>wait for N/2 messages of Phase1b with E = set of estimates received,</li>
+<li>if there is an non bottom estimate in E, v(p) = max(E) else use the initial estimate of p</li>
+</ul>
+<p>Phase 2a.</p>
+<ul>
+<li>if p is leader of r(p) broadcast (Phase2a, r(p), e = (v(p), r(p)))</li>
+<li>wait for message of type Phase2a, and accept e(p) = e</li>
+</ul>
+<p>Phase 2b.</p>
+<ul>
+<li>send (Phase2b, r(p)) to leader of r(p)</li>
+<li>if p is leader of r(p):</li>
+<li>wait for N/2 messages from Phase2b, then <strong>decide</strong> the proposal e(p) and broadcast to all replicas</li>
+</ul>
+<p>Optional Phase 3</p>
+<ul>
+<li>if a p is not leader of r(p) then upon timeout T(p) of not receiving from the leader:</li>
+<li>increase r(p) for which p is leader</li>
+<li>double T(p) and go back to phase 1a.</li>
+</ul>
+</blockquote>
+<p>Leaders of rounds are choosen by a simple mecanism like p is leader of rounds <code>r mod N = p</code>. Although I had a pretty clear picture in my head of previous algorithms I am not sure I understand how Paxos could work and be complete. The tricky part to me is understanding when the leader does not respond, how the new leader is choosen.</p>
+<p>Paxos has opened a whole family of consensus algorithms that were successfully implemented in distributed systems thoughout the industry, but also inspired more recent Raft.</p>
+<p>The weakness of Paxos algorithm is dynamic configuration. Changing the processes configuration have tricky corner-cases and need special care.</p>
+<h2>Formal verification</h2>
+<p>Leslie Lamport has a mathematician background which influences his work in the sense that he does not focus on language specific syntax in elegant algorithms. He tries to study systems as a whole and properties that are common to every technology. This makes his work applicable to memory, multiprocesses or distributed systems alike.</p>
+<p>He coined the terms &quot;Safety&quot; (nothing bad ever happen in a system) and &quot;Liveness&quot; (Something good eventually happens). These were later defined. </p>
+<p>In the 70s there was work on temporal logic, in the 80s Lamport worked on temporal logic to try coming up with a formal method specific for distributed problems and finally in the early 90s he put the foundation of TLA (Temporal Logic Action). This is the subject of my next book so I didn't get into this part of the book.</p>
+<p>The rest of the book consists of a collection of groundbraking papers proposed by Leslie Lamport. I didn't read that either.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

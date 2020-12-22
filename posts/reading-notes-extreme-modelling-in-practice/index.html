@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Reading notes: eXtreme Modelling in Practice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Reading notes: eXtreme Modelling in Practice</h2>
+<time>04 June 2020</time>
+<p>This is the first time I read a full paper. This is the <a href="https://arxiv.org/pdf/2006.00915.pdf">eXtreme Modelling in Practice</a> paper written by a team of engineer at MongoDB. The paper's insight on eXtreme modelling is really interesting and I was not disappointed reading the paper. Here are my notes:</p>
+<p>MongoDB already used TLA+ to check some high level specifications. TLA+ is already used in the industry by Amazon, Microsoft, Intel, etc. It successfully helped teams identify bugs. But the authors note a reluctancy in using TLA+ in fear of the &quot;transcription bug&quot;: when the implementation and the model do not match.</p>
+<p>eXtreme Modelling was introduced by this <a href="https://arxiv.org/pdf/1111.2826.pdf">paper</a>, and explored the possibility of implementing and modelling at the same time. The specification would evolve with the implementation and the system is tested directly with the model. Two techniques are presented:</p>
+<ul>
+<li>Model-based trace-checking (MBTC): it consists of running the system, capturing traces then checking them with the model</li>
+<li>Model-based test-case generation (MBTCG): we run the model, capture the states and implement the corresponding tests in the implementation language.</li>
+</ul>
+<p>There are alternatives to these two methods (specifications and implementation in the same language, generating code from specs, refinement, direct check on existing implementation, etc.) but they are not applicable to MongoDB's use cases. The author has doubts in refinement: it implies maintaining mutliple models and their implementation. It is costly and conflicts with the eXtreme Modelling that suggests to maintain a single model.</p>
+<p>They tested two systems that already run randomized testing: MongoDB and Mongo Realm Sync.</p>
+<h2>MBTC applied to MongoDB</h2>
+<p>MBTCG is hard to apply to MongoDB because it requires to introduce hooks in the code to stop processes. It is expensive and could change the system's behavior. Note: The last claim is not proved or explained a lot. Once you know all the issues they had, maybe this approach could have worked.</p>
+<p>The database has 423 hand-written integration tests and 23 randomized tests. First they implemented a <code>MongoRaft.tla</code> specification to match high level specs of MongoDB consensus protocol. They changed the implementation from the original Raft protocol, since MongoDB has some implementation differences.</p>
+<p>The specification had 3 nodes having their own state (4 variables) and 7 labelled operations (It is weird because they list 9 operations but the paper states only 7 throughout, I don't where the discrepancy comes from). This leads to a state space of around 371k states.</p>
+<p>The author then describes the protocol used to analyse traces within the system. They basically introduced logs after each operation.</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/mbtc-pipeline.png" alt="each Node logs to files, then a python script turns them into TLA+ which is then checked"/></figure>
+<h3>Analysis</h3>
+<p>The analysis on this case is really insightful, I would say it's the most interesting part of the paper.</p>
+<p>They invested 10 weeks of work to validate one specification. Due to discrepancies between the code and the model, there was a lot of effort to fix the model and the lack of tooling did not help. The problems they faced:</p>
+<ul>
+<li>The traces need to be written before the action of a node is visible to other nodes, otherwise the traces are wrongly ordered. They had to lock the code when writing the traces which is quite expensive</li>
+<li>Each nodes of MongoDB are multi-threaded. Each thread shares locking mechanisms, latches, use futures, etc. All of this makes snapshoting the state of each node very difficult</li>
+</ul>
+<p>Note: I'm surprised the author did not anticipate this problem. Lamport is known for consensus algorithm, but he planned their usage for both distributed systems and multi-threaded environments. I think they secretly hoped not to encounter such issues.</p>
+<ul>
+<li>The specification did not model arbiters in the protocol (oversimplification)</li>
+<li>Initial synchronisation of nodes needed extra work</li>
+<li>MongoDB can have 2 leaders for a short amount of time (!!!)</li>
+<li>Copying the oplog did not work has specified</li>
+</ul>
+<p>All these problems could be solved by changing the specification, but the authors feared it would implode the state space. The spec had already a runtime of 15 minutes, finer specification would mean a lot more time to wait for results.</p>
+<p>The final cost for the MBTC method is really high and the authors dropped this experimentation when they see the amount of work to put in it.</p>
+<h2>MBTCG applied to Mongo Realm Sync</h2>
+<p>The system is under migration from the C++ implementation to a Golang implementation. The authors used MBTCG to check both implementations. They checked 6 operations that represented 21 rules of merge implemented in approximately 1000 lines of C++.</p>
+<p>They used the C++ implementation directly and slowly converted it into TLA+ in 40 hours. They met 2 challenges: C++ relied heavily on the mutation of arguments of methods which is not possible in TLA+. Operation are unordered in and could lead to a state space explosion.</p>
+<p>To constrain the state space, instead of modelling a lot of state transitions, they used only one operation applied to a lot of initial states.</p>
+<p>TLC (TLA+ main checker) helped finding a non terminating bug in the translation that was also present in the C++ implementation but not catched by the existing tests. They decided to deprecate the operation and to focus on the tests.</p>
+<p>The pipeline in this case is simpler: TLC generated a graphiz DOT file for every states. They translated theses files into C++ code corresponding to the implementation. It results in 4913 tests.</p>
+<p>The existing hand-written tests had a 21% branch coverage. The fuzzy tests had a 92% branch coverage. The MBTCG tests had a wooping 100% branch coverage. The author are therefore very confident the specification matches the implementation and that MBTCG proved itself useful. The overall process was 4 weeks long.</p>
+<h2>Personal notes</h2>
+<p>This paper is really interesting. I feel like eXtreme Modelling has a lot to offer. The comparison in the paper seems unfair: MBTC failed because of the complexity of the system they were testing. If they had applied MBTC to the second case, would they have failed the same? I am seduced by the MBTCG approach, but the paper is not sufficient to decide.</p>
+<p>I think that both approaches require tools to more accessible to most software engineers. But I'm sure that there is a place for this kind of approaches in a lot of cases. I hope you enjoyed reading me as I enjoyed reading the paper.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Common pattern for bash auto complete</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Common pattern for bash auto complete</h2>
+<time>24 August 2017</time>
+<p>After reading <a href="https://sadraskol.com/posts/how-to-create-a-bash-auto-complete">my last article</a>, I was disappointed. I could have shown you how to deal with the point 1:</p>
+<blockquote>
+<p>[You can] Suggest based on subcommands and options available to the user. This means you need to create a tree of possibilities: goat push supports --force option but goat pull does not, etc.</p>
+</blockquote>
+<p>The first thing to discuss is the <code>COMP_WORDS</code> variable. <code>COMP_WORDS[0]</code> is always the name of the command, <code>goat</code> in our case. Also the current word to be completed <code>${COMP_WORDS[COMP_CWORD]}</code> represent at least an empty string. You can be sure that you have at least 2 string in your <code>COMP_WORDS</code> array. We'll use that at our avantage and use a <code>case</code> to complete subcommands:</p>
+<pre><code class="language-bash">_goat() {
+  prev=${COMP_WORDS[COMP_CWORD - 1]}
+  cur=${COMP_WORDS[COMP_CWORD]}
+
+  COMPREPLY=()
+  case "$prev" in
+  	goat)
+    	COMPREPLY=( $( compgen -W "log commit push pull clone add" -- ${cur} ) )
+      return
+      ;;
+    commit)
+      case "$cur" in
+        -*)
+          COMPREPLY=( $( compgen -W "--author= --edit --no-edit --amend --include --only --allow-empty" -- ${cur} ) )
+          return
+          ;;
+      esac
+      break
+      ;;
+  esac
+  COMPREPLY=( $( compgen -f "${cur}" ) )
+}
+
+complete -F _goat goat
+</code></pre>
+<p>We declared <code>$prev</code> and we are sure it equals either <code>goat</code>, a subcommand or some other string. Note that we use <code>compgen -f</code> to suggest files in current directory, like the default behavior of bash auto complete. This code would grow in complexity pretty fast if we were to add some more subcommands. Let's first gather each behavior in a function:</p>
+<pre><code class="language-bash">__goat_commit() {
+  case "$cur" in
+    -*)
+      COMPREPLY=( $( compgen -W "--author= --edit --no-edit --amend --include --only --allow-empty" -- ${cur} ) )
+      return
+      ;;
+  esac
+  COMPREPLY=( $( compgen -f "${cur}" ) )
+}
+
+# Somewhere in _goat()
+case "$prev" in
+  # ...
+  commit)
+  	__goat_commit
+    return
+    ;;
+esac
+</code></pre>
+<p>Now the main function consist only of a giant <code>case</code>, and could be pretty good as such. But after reading the <code>git</code> usage of Bash, i've crossed a pretty smart way to make the code less brittled by the verbosity of <code>case</code> statement, the trick is a simple two-liner:</p>
+<pre><code class="language-bash"># declaring _goat() with $prev and $cur globals
+local completion_func="__goat_${prev}"
+declare -f $completion_func >/dev/null 2>/dev/null && $completion_func && return
+# default completion here
+</code></pre>
+<p>The first line allow to declare the name of the function the code is going to execute. We use the same pattern that we presented in the last example: <code>__goat_commit</code>, etc. The second line can be explained in steps:</p>
+<ol>
+<li><code>declare -f $completion_fun</code> will display the content of function <code>$completion_fun</code>
+<ul>
+<li>if the function exists, we forward the standard and error output in <code>/dev/null</code></li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>otherwise, it interrupts the evaluation of the line (more info on <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html">declare</a>)</li>
+</ul>
+<ol start="2">
+<li>the function is evaluated</li>
+<li>we exit from the current function</li>
+</ol>
+<p>Although the technique seems like a hack, it's really nice because it allows you to add a new subcommand without modifying the main or dealing with a very verbose <code>case</code>. You have to make sure that people contributing know the convention, because it's not obvious for people not proficient in Bash.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Méthodes formelles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Méthodes formelles</h2>
+<time>23 February 2020</time>
+<p>Je cite souvent Hillel Wayne et il cite souvent les méthodes formelles. Pour expliquer ces concepts, j'ai décider d'apprendre à utiliser différentes méthodes légères pour modéliser un cas d'usage.</p>
+<p>Deux concepts sont au cœur des méthodes formelles :</p>
+<ul>
+<li>La conception formelle : comment concevoir des fonctionnalités sans ambiguïté</li>
+<li>La vérification formelle : comment vérifier que les fonctionnalités n'ont pas d’ambiguïté</li>
+</ul>
+<p>Les deux concepts sont très liés car on ne peut répondre qu'aux deux problèmes en même temps. Par contre, les deux fournissent des outils différents.</p>
+<p>Pour illustrer les outils et leurs limitations, nous allons spécifier le cas d'usage suivant :</p>
+<ul>
+<li>Pour utiliser le service X, il faut que l'utilisateur ait vérifié son email</li>
+<li>Tout utilisateur peut changer son email</li>
+<li>Pour vérifier son email, l'utilisateur doit appeler le lien unique contenu dans l'email envoyé lors de son inscription</li>
+<li>Les emails venant du domaine <code>gmail.com</code> ne peuvent pas être vérifiés (disons que ce n'est pas la cible du service X)</li>
+</ul>
+<p>Cette spécification est ambiguë car faite pour : <a href="https://www.hillelwayne.com/post/feature-interaction/">https://www.hillelwayne.com/post/feature-interaction/</a></p>
+<h2>La table de vérité</h2>
+<p>Outil issu du domaine de la logique booléenne, la table de vérité est un outil très simple à appréhender les problèmes qui peuvent se réduire à des propositions logiques.</p>
+<table><thead><tr><th>Lien envoyé</th><th>Email en <code>gmail.com</code></th><th>Lien visité</th><th>Accès au service X</th></tr></thead><tbody>
+<tr><td>Non</td><td>Oui</td><td>X</td><td>Non</td></tr>
+<tr><td>Non</td><td>Non</td><td>X</td><td>Non</td></tr>
+<tr><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+<tr><td>Oui</td><td>Non</td><td>Oui</td><td>Oui</td></tr>
+<tr><td>Oui</td><td>Non</td><td>Non</td><td>Non</td></tr>
+<tr><td>Oui</td><td>Oui</td><td>Non</td><td>Non</td></tr>
+</tbody></table>
+<p>C'est la seule table de vérité que j'ai réussi à faire pour lever l'ambiguïté. En entrée (les trois premières colonnes), on note si la proposition est vraie ou fausse, et on entre dans la dernière colonne si l'accès au service est permis ou pas. Je me suis permis de réduire le tableau dans le cas où on n'envoie pas de lien, car dans ce cas, il n'est pas possible pour l'utilisateur de visiter le lien qui n'existe pas.</p>
+<p>Les tables de vérité ont été popularisé par le philosophe et logicien <a href="https://en.wikipedia.org/wiki/Ludwig_Wittgenstein">Ludwig Wittgenstein</a>. Elles sont un premier pas pour vérifier les spécifications. Bien que formellement correcte, l'ambiguïté de la spécification n'est pas levé par la table elle-même : de quel email parlons-nous quand on dit que <code>gmail.com</code> est interdit ? L'erreur peut encore se glisser dans le manque de clarté dans la définition des termes.</p>
+<h2>Le diagramme de flux</h2>
+<p>Le deuxième outil léger pour faire de la spécification formelle : les diagrammes de flux. Plutôt que de se concentrer sur un état fixe, on se concentre plutôt sur l'enchaînement des actions et des conditions. Les outils tels que <a href="https://en.wikipedia.org/wiki/DRAKON">DRAKON</a> permettent ensuite de vérifier que de tels schémas sont cohérents, voire de générer du code à partir de ceux-ci. Attention DRAKON n'est pas un outil de graphes, mais bien de spécification. On peut valider le modèle contrairement aux outils de dessin qui permettent des graphes incorrects.</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/drakon.png" alt="diagramme DRAKON de la spécification précédemment présentée"/><figcaption>Spécification avec DRAKON</figcaption></figure>
+<p>Les diagrammes ont une lisibilité et une facilité de compréhension sans pareil. Ils ont été conçus dans ce but et c'est une valeur sur pour explorer des processus métiers. On peut mieux saisir les contraintes temporelles, limiter les variables changeantes. Dans notre cas on peut lever facilement l'ambiguïté de la spécification en nommant un &quot;Email To Verify&quot; et un &quot;Secondary Email&quot;.</p>
+<p>Il est intéressant de voir que l'on peut rapidement exploser la complexité tout en restant clair sur les cas qui amène aux mêmes finalités. Alors que les tables de vérité peuvent vite devenir incompréhensibles au fur et mesure de l'augmentation du nombre de cas, il est plus facile de suivre un diagramme de flux, car les trajectoires sont tout de suite reconnues par notre œil habitué à ces motifs. Pour vous en convaincre, réaliser le tableau de vérité qui correspond à la séquence &quot;User Inbox&quot; de notre diagramme : vous vous retrouverez avec 3 entrées, 2 sorties et 8 lignes pour explorer tous les cas.</p>
+<h2>Le langage de spécification</h2>
+<p>Pour l'instant, nous n'avons utilisé que des outils de spécifications qui pourrait être fait sur papier rapidement. Nous allons à présent utiliser un langage de modélisation. Dans les outils de spécification, le langage de spécification est le plus avancé car il permet de fournir des vérifications très avancées et automatiques. Par exemple TLA+ peut explorer rapidement des problématiques pour évaluer des problèmes de concurrence. Pour notre cas, nous allons utiliser Alloy pour vérifier la validation des emails. Le langage se veut similaire de l'orienté objet et permet de produire des exemples et des contre-exemples aux contraintes que l'on fournit.</p>
+<h4>La logique de validation</h4>
+<p>Alloy étant difficile à saisir rapidement, nous allons spécifier chaque partie de la fonctionnalité itérativement.</p>
+<pre><code class="language-alloy"><span class="h-keyword">open</span> util/ordering[Service] <span class="h-comment">// L'objet "Service" sera représenté par des états successifs</span>
+
+<span class="h-keyword">sig</span> Email {}  <span class="h-comment">// On définit le set d'emails</span>
+<span class="h-keyword">sig</span> User {} <span class="h-comment">// ainsi que les utilisateurs</span>
+
+<span class="h-comment">// Pour chaque état du service</span>
+<span class="h-keyword">sig</span> Service {
+	live: <span class="h-keyword">set</span> User, <span class="h-comment">// on a un set d'utilisateurs utilisant le service</span>
+	verified: <span class="h-keyword">set</span> User, <span class="h-comment">// Le service aura un set d'utilisateurs vérifiés</span>
+	email: User -> <span class="h-keyword">one</span> Email, <span class="h-comment">// Pour chaque utilisateur il y a un email</span>
+} {
+	verified <span class="h-keyword">in</span> live <span class="h-comment">// les utilisateurs vérifiés utilisent le service</span>
+	live = User <span class="h-comment">// on ne s'intéresse qu'aux utilisateurs qui utilise le service</span>
+}
+
+<span class="h-comment">// Les relations d'utilisateurs à Email ne changent pas : L'utilisateur ne peut changer son Email</span>
+<span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s, s': Service | s.email = s'.email }
+
+<span class="h-comment">// Un utilisateur vérifié restera toujours vérifié</span>
+<span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s: Service, s': s.next | <span class="h-keyword">all</span> u: s.live | u <span class="h-keyword">in</span> s.verified => u <span class="h-keyword">in</span> s'.verified }
+
+<span class="h-comment">// Exemple avec aucun utilisateur vérifié au départ et tous les utilisateurs véfifiés dans le dernier état</span>
+<span class="h-keyword">run</span> { <span class="h-keyword">no</span> first.verified && last.verified = User }
+</code></pre>
+<p>La commande <code>run</code> permet de demander à Alloy de générer des exemples de la spécification. L'aide visuelle est très pratique, on peut ainsi rapidement explorer les incohérences du modèle.</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/email.png" alt="Exemple de la spécification présenté, avec un utilisateur vérifié"/><figcaption>Exemple visuel de notre modèle</figcaption></figure>
+<h4>Exclusion des Emails en Gmail</h4>
+<p>Pour spécifier le fait que les emails peuvent être <code>@gmail.com</code>, on va étendre le set d'emails :</p>
+<pre><code class="language-alloy"><span class="h-keyword">sig</span> Gmail <span class="h-keyword">extends</span> Email {}
+</code></pre>
+<p>Ensuite on introduit la notion de lien envoyé à l'utilisateur et qu'il ne sera validé que s'il n'est pas dans <code>Gmail</code> :</p>
+<pre><code class="language-alloy"><span class="h-keyword">sig</span> Service {
+	live: <span class="h-keyword">set</span> User,
+	verified: <span class="h-keyword">set</span> User,
+	email: User -> <span class="h-keyword">one</span> Email,
+	link: User -> <span class="h-keyword">one</span> Email
+}
+
+<span class="h-comment">// ...</span>
+
+<span class="h-comment">// Les utilisateurs ne peuvent pas changer de lien d'inscription</span>
+<span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s, s': Service | s.link = s'.link }
+<span class="h-comment">// Les utilisateurs ne peuvent pas changer d'Email</span>
+<span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s, s': Service | s.email = s'.email }
+<span class="h-comment">// si l'utilisateur est vérifié, son email `u.(s.email)` dans le précédent état n'appartient pas à Gmail</span>
+<span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s: Service, s': s.next | <span class="h-keyword">all</span> u: s'.verified | u.(s.email) <span class="h-keyword">in</span> Email - Gmail }
+</code></pre>
+<p>Enfin on vérifie que notre modèle est correct :</p>
+<pre><code class="language-alloy"><span class="h-keyword">check</span> { <span class="h-keyword">all</span> s: Service | <span class="h-keyword">all</span> u: s.verified | u.(s.link) <span class="h-keyword">in</span> Email - Gmail } <span class="h-keyword">for</span> 3
+</code></pre>
+<p>Il est à noté qu'étant un vérificateur partiel, on ne peut faire des vérifications que pour un nombre limité de cas avec le mot clé <code>for x</code> (ici 3 instances de <code>Service</code>). On peut augmenter notre confiance dans le modèle en augmentant ce paramètre.</p>
+<h4>Possibilité de changer les Emails</h4>
+<p>Enfin, on peut rajouter à l'utilisateur la possibilité de changer d'email. On enlève la contrainte sur le modèle précédent et rajoutons la condition que l'utilisateur ne peut pas à la fois changer d'email et confirmer son email au même moment :</p>
+<pre><code class="language-alloy"><span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s: Service, s': s.next | <span class="h-keyword">all</span> u: s'.verified | u <span class="h-keyword">in</span> s.live - s.verified => u.(s.email) = u.(s'.email) }
+</code></pre>
+<p>On peut faire tourner le modèle et là... patatra, un contre exemple est trouvé :</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/counter.png" alt="Contre exemple à la spécification: l'utilisateur passe d'un email en gmail à un email autorisé pour se vérifier au service"/><figcaption>Contre exemple !</figcaption></figure>
+<p>Comme vous le constatez, l'utilisateur change son email avant de cliquer sur le lien et cela lui permet de valider le mauvais email. La solution devient évidente : on doit vérifier l'email auquel le lien est envoyé et non à celui de l'utilisateur.</p>
+<pre><code class="language-alloy"><span class="h-keyword">fact</span> { <span class="h-keyword">all</span> s: Service, s': s.next | <span class="h-keyword">all</span> u: s'.verified | u.(s.link) <span class="h-keyword">in</span> Email - Gmail }
+</code></pre>
+<p>Et voilà que Alloy valide qu'il ne trouve plus de contre exemple, même si on augmente le nombre d'occurrence !</p>
+<h3>Alloy</h3>
+<p>C'est la première fois que j'utilise Alloy et j'ai évité de parler des problèmes que j'ai rencontré (toujours pas compris <code>not in</code>) et la documentation est assez peu bavarde. Par contre, il est assez simple de vérifier que le modèle est cohérent grâce à la visualisation des états. Bien que le cas choisi peut sembler assez évident, Alloy est le seul outil utilisé qui permet de valider le modèle sans lever l'ambiguïté par distinction de grammaire. Les autres outils avaient besoin de spécifier &quot;L'email à vérifier&quot; ou pirouette du genre pour cela, ce qui pourrait être de la triche. Il est donc normal que sa prise en main soit moins facile (j'ai pris une journée pour lire le <a href="http://alloytools.org/tutorials/online/index.html">tutoriel</a> et réalisé le modèle tout en écrivant l'article).</p>
+<p>Malgré ses apparences trompeuses (Alloy se donne des airs de langage orienté objet, alors que c'est vraiment un jeu sur les sets), je suis surpris d'avoir si facilement pris en main l'outil et je vais passer mon temps à imaginer comment l'utiliser au boulot. D'autant que je n'ai pas exploré l'utilisation des modules ou des fonctions.</p>
+<p>Je suis fermement convaincu de l'utilité des outils de formalisation partielle. En apprenant à les utiliser, on apprend aussi à spécifier nos besoins avec moins d'ambiguïté. On peut plus facilement trouver la bonne représentation qui permet de faire comprendre à une personne sans connaissance sur un sujet complexe les problèmes que l'on peut rencontrer lors de son implémentation. Je ne suis néanmoins pas convaincu que les langages de formalisation comme Alloy trouveront grâce aux yeux de la majorité des développeurs vu les prérequis et la motivation nécessaire pour modéliser avec ces outils. Espérons que cet article vous aura convaincu à vous y pencher.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

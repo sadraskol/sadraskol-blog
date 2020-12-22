@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>L&#x27;éthique libérale et l&#x27;esprit de l&#x27;Agile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>L&#x27;éthique libérale et l&#x27;esprit de l&#x27;Agile</h2>
+<time>06 February 2016</time>
+<p>Dans son livre <em>L'Éthique protestante et l'esprit du capitalisme</em>, Max Weber a montré l'influence des courants protestants sur le développement du capitalisme dans l'Europe du 18ème siècle. Cette démarche d'archéologie des idées est très inspirante (je vous conseille l'écoute de <a href="http://www.franceculture.fr/emission-les-nouveaux-chemins-de-la-connaissance-max-weber-14-la-cage-d%E2%80%99acier-du-capitalisme-2014-03">ce podcast</a> sur le sujet), nous allons nous en inspirer pour comprendre la particularité de la méthode Agile dans l'écosystème des méthodes de l'entreprise et comprendre les risques de sa propagation au delà du monde de l'entreprise.</p>
+<h2>Agile, discipline et efficacité</h2>
+<p>Les valeurs de l'Agile sont avant tout des valeurs d'entreprise, rien de surprenant dans cela, c'est le domaine dans lequel l'Agile a vocation de se déployer. Parmi les douze principes de son <a href="http://agilemanifesto.org/iso/fr/">manifeste</a>, le premier pourrai servir de définition du capitalisme :</p>
+<blockquote>
+<p><em>Notre plus haute priorité est de satisfaire le client
+en livrant rapidement et régulièrement des fonctionnalités
+à grande valeur ajoutée.</em></p>
+</blockquote>
+<p>La définition que Max Weber donne est &quot;[le capitalisme] repose sur l'espoir d'un profit par l'exploitation des possibilités d'échange&quot;. Ici le client et l'entité échange de satisfaction pour de la valeur ajouté. L'Agile repose bien sur l'espoir des &quot;chances pacifiques de profit&quot;. Les objets de ces concepts sont l'entreprise, son profit et celui de son client.</p>
+<p>Peu de principes parlent des individus engagés dans la production du logiciels. Seul le cinquième évoque le traitement des membres d'une équipe :</p>
+<blockquote>
+<p><em>Réalisez les projets avec des personnes motivées.
+Fournissez-leur l’environnement et le soutien dont ils
+ont besoin et faites-leur confiance pour atteindre les
+objectifs fixés.</em></p>
+</blockquote>
+<p>Dans le reste des principes, les individus sont réduits à leur fonction. Or la première valeur privilégiée dans l'entreprise d'après le manifeste est &quot;les individus et les interactions&quot;. Mais alors comment privilégier l'individu quand celui-ci est silencieusement rappelé au plus important : la satisfaction du client. Une qualité qui est omniprésente dans la littérature Agile qui n'apparaît pourtant pas dans le manifeste est la discipline. Kent Beck l'évoque le plus explicitement dans son livre <em>Extreme Programming Explained: Embrace Change</em> : pour lui la discipline est la première qualité qui l'a frappée quand il a rencontré l'équipe de Martin Fowler (tel Proust, je cite de mémoire, corrigez moi si je me trompe).</p>
+<p>Pourtant pour qu'un système s'accomplisse dans la discipline, il faut pouvoir faire régner une peur dans l'esprit des membres de l'équipe, ai-je besoin de vous rappeler le titre du blog ?! La discipline et l'ordre sont au cœur de l'objectif gouvernemental chez Machiavel, car il n'y saurait y avoir d'état dans le désordre et l'indiscipline.</p>
+<h2>Agile et le panoptique</h2>
+<p>La notion de panoptique est assez riche pour mériter son détour dans ce billet. Utilisé par le philosophe Michel Foucault dans son livre <em>Surveiller et Punir</em> pour montrer l'évolution de la justice dans les sociétés occidentales modernes, le panoptique est un dispositif architectural permettant la surveillance des individus. <a href="https://fr.wikipedia.org/wiki/Panoptique">L'article wikipédia</a> explique mieux que moi le dispositif. Ce dont il faut se souvenir c'est que c'est un dispositif qui permet de voir sans être vu, ainsi le prisonnier ne peut savoir s'il est surveillé et donc est dans un état de surveillance constante. La force de ce dispositif est d'être normatif, car la surveillance étant à la fois permanente et implicite, elle oblige le détenu à se surveiller son comportement à tout moment. C'est donc un outil de surveillance générale d'une efficacité sans égal.</p>
+<p>Il est intéressant que l'Agile ait épousé des dispositifs que l'on pourrait qualifier de panoptiques. Par exemple l'utilisation de l'aménagement en open space, qui est loin d'être spécifique à l'Agile, est typiquement un environnement de normalisation par la surveillance aveugle de tout un chacun. La diminution de l'espace intime permet de mieux réduire l'individu à sa fonction.</p>
+<p>De la même façon, l'utilisation des tableaux d'avancement Kanban est un dispositif qui, plus discrètement que l'open space, permet la normalisation des comportements par la simple possibilité que tout un chacun puisse observer l'avancement du travail de son voisin à tout moment.</p>
+<p>Notons que l'open space et le tableau Kanban ne sont pas des dispositifs panoptiques à proprement parlé, Oscar Gnouros décrit justement dans <a href="http://www.morbleu.com/l-open-space-et-le-panoptique-le-pouvoir-et-le-travail/">son blog</a> que l'open space est un espace de contrôle et non un espace disciplinaire au sens où Foucault définissait le panoptique. Cette distinction a relativement peu d'importance pour l'entreprise, ce sont tout de même des espaces où peut s’exercer son pouvoir. Enfin, au crédit de l'entreprise, l'évolution vers ses outils ne lui est pas reprochable, ils servent son intérêt et s'ils sont quelque peu déshumanisants, leur objectif s'aligne avec celui de l'entreprise : l'efficacité.</p>
+<h2>Inefficacité philosophique</h2>
+<p>Voici le paradoxe de l'Agile : il impose la primauté des intérêts de l'entreprise comme étant le cœur de l'activité de l'individu. Pourtant le manifeste affirme haut et fort que c'est l'auto-organisation des équipes, voire leur confort, qui permet l'émergence des &quot;meilleures architectures&quot;. Il est bien clair que l'adjectif &quot;meilleur&quot; désigne ici la capacité de l'architecture à répondre aux besoins du client, pas de répondre aux besoins des individus engagés dans la réalisation de cette architecture. Une liberté de façade fait opposition à une surveillance silencieuse au nom d'une efficacité qui efface l'individu.</p>
+<p>En concentrant tout ses objectifs sur l'efficacité, la performance, l'amélioration continue, elle en devient un outil trop moderne et peu humain. Moderne car la recherche de la performance, de l'amélioration est propre d'un temps où il n'y a plus d'Histoire et où nous nous répétons sans cesse que nous n'avons qu'une vie. Inhumaine, car pauvre philosophiquement, elle ne propose aucun chemin pour une sagesse de l'individu.</p>
+<p>Force est de reconnaître que l'Agile a donné naissance à une myriade de pratiques (le <a href="https://en.wikipedia.org/wiki/Test-driven_development">TDD</a>), de méthodes (Kanban, Lean, etc.), d'outils (<a href="https://pragprog.com/book/rails4/agile-web-development-with-rails-4">Ruby on Rails</a>, etc.) et à une littérature d'une étendue sans précédent dans l'informatique. Au point où l'Agile déborde du cadre de l'entreprise, comme en atteste cette présentation sur <a href="https://www.youtube.com/watch?v=EJv6TQWgclI">l'Agile en famille</a> ou encore la <a href="http://pedagogieagile.com">pédagogie Agile</a>. Je ne me permettrai pas de critiquer ces pratiques, qui n'utilise pas tant le mot Agile pour référer au manifeste du même nom mais pour signifier leur modernité et leur anti-conformisme. Je pense néanmoins qu'il faut se méfier de la tentative de pénétration d'une éthique fortement capitaliste et normalisatrice en dehors des systèmes dans lesquels elle est destinée.</p>
+<p><em>Post-scriptum : <a href="http://www.slate.fr/story/113619/surveiller-punir-jouir">l'article du slate.fr</a>, éclaire parfaitement sur le glissement de la punition vers une surveillance plus lente et insidieuse chez Foucault.</em></p>
+<p><em>ps: la publication de cet article est antérieur à la création de ce blog.</em></p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

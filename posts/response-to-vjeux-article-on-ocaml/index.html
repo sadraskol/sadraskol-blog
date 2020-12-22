@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Response to Vjeux article on Ocaml</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Response to Vjeux article on Ocaml</h2>
+<time>25 December 2017</time>
+<p><a href="https://twitter.com/Vjeux">Vjeux</a> works on React at Facebook. He published a <a href="https://gist.github.com/vjeux/cc2c4f83a6b60d69b79057b6ef651b56">small list</a> of things that he feels are bad patterns in Ocaml language. I can't have an opinion on Ocaml itself, since I don't know the language, but I disagree strongly on some point he makes about functional programming.</p>
+<h2>Naming is the most difficult thing in computer science</h2>
+<p>This famous quote by <a href="https://skeptics.stackexchange.com/questions/19836/has-phil-karlton-ever-said-there-are-only-two-hard-things-in-computer-science">Phil Karlton</a> captures a lot of our job: naming things is hard, because it's the only way we have to carry meaning and intentions. Here's the example vjeux uses to critisize a bad style of writing code:</p>
+<pre><code>array.map(fn)
+array.map(x => fn(x))
+</code></pre>
+<p>I'm gonna stop a moment to make fun of the author: he said some lines before this snippet that:</p>
+<blockquote>
+<p>This means that you end up with a bunch of places with inconsistent names for attributes or even worse, one letter names</p>
+</blockquote>
+<p>The snippet of code is the worst example you could give, in vjeux's own judgement! All names in here are ambiguous, unclear, and completely obscure the argument being made:</p>
+<ul>
+<li><code>array</code>: array of...? what is in this array we'll never know</li>
+<li><code>fn</code>: a function? Does it take arguments and return a result?</li>
+<li><code>x</code>: is it unknown? why not y or z?</li>
+</ul>
+<p>The issue is that the poor name does not allow to discuss the main point: passing arguments is more explicit than passing functions. How can <code>x =&gt; fn(x)</code> be more explicit than <code>fn</code>? I could say that <code>meanTimesToFinish.map(addToStats)</code> is more readeable than <code>array.map(x =&gt; fn(x))</code>, but the poor choice of example does not allow to judge.</p>
+<p>Please name things correctly in your examples and we might discuss it in details.</p>
+<h2>Partial evaluation</h2>
+<p>When declaring a function with multiple arguments in a functional language, what you really do is declaring a chain of functions. The equivalent in javascript is currying:</p>
+<pre><code>let add = (left) => (right) => left + right;
+// equivalent to add(left, right) {...}
+</code></pre>
+<p>This is pretty practical when you need to contextualize an operation. For instance:</p>
+<pre><code class="language-haskell">addInDatabase database left right = in database do left + right
+-- somewhere else
+let add = addInDatabase database
+-- use 'add' without bothering with the database anymore
+</code></pre>
+<p>Although it might be counter intuitive when the only language you know are C like, but partial application (or evaluation) is quite useful when you want to compose functions together. And that's pretty useful when composition is at the core of functional languages.</p>
+<h2>Of the lack of early return</h2>
+<p>You can use Maybe, more generally monads to stop computation when it's not needed. For instance, such a construct <code>heavyComputation = doALotOn Nothing</code>, will be compiled as a no operation, skipping the heavy computation.</p>
+<p>I'm not sure early return is needed in functional computing, once again the lack of concrete and thorough example does not allow to discuss the idea in depth.</p>
+<h2>My opinion</h2>
+<p>Everyone has an opinion, and I'm not blaming Vjeux to give his. I regret that he does not provide any in depth argument and examples to illustrate his points. Sharing ideas is much more interesting when they give room to other people to discuss and eventually respond in a positive way. I feel like he didn't go far in his usage of functional languages. Here, the lack of culture makes the opinions pointless.</p>
+<p>It might feel stupid but I feel like this lack of culture and proper documentation is the reason documents like the &quot;<a href="https://en.wikipedia.org/wiki/Google%27s_Ideological_Echo_Chamber">google memo</a>&quot; do exist, a combinaison of seclusion and a false idea of sharing idea. For ideas to spread, you need to have an opinion, but not any kind of opinion, a documented one. Otherwise you will not spread ideas, but preconception, biases and false information.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

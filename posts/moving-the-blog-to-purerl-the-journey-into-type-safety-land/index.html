@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Moving the blog to Purerl, the journey into type safety land</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Moving the blog to Purerl, the journey into type safety land</h2>
+<time>27 July 2018</time>
+<p>I started implementing my own blog more than a year and a half ago. Since I was working with Ruby on Rails at the time, I wanted to experiment <a href="https://phoenixframework.org/">Phoenix</a>. It was an introduction to functional programming and I really enjoyed it. I wrote a <a href="https://sadraskol.com/posts/the-survival-kit-for-functional-language-beginner">small guide for beginners</a> and later learned <a href="http://www.purescript.org/">Purescript</a>. I consider myself as an intermediate haskeller (my understanding goes as far as <code>ReaderT</code>). I used to enjoy dynamically typed languages, but my experience with <a href="https://sadraskol.com/posts/les-types-algbriques-pour-les-langages-orients-objet">sum types</a> really changed my perspective. I cheer on the static side now!</p>
+<p>I implemented my blog with a full event driven approach. It allowed me to fix issues more safely than ever. At least that was what I thought. A year after the first lines, it had become very difficult to fix bugs. The problem is really about refactoring the code. Not declaring types had become a pain. In the following code, focus on the <code>publication.publication_date</code> variable:</p>
+<pre><code class="language-elixir"><span class="h-keyword">def</span> execute({state, new_events}, %PublishDraft{} = publication) <span class="h-keyword">do</span>
+  <span class="h-keyword">cond</span> <span class="h-keyword">do</span>
+    state == <span class="h-keyword">nil</span> ->	{state, {:error, <span class="h-string">"Does not exist yet"</span>}}
+    draft_should_not_be_published?(state) -> {state, {:error, <span class="h-string">"Draft non conform to publication"</span>}}
+    <span class="h-keyword">true</span> ->
+      {state, new_events}
+      |> apply_event(%PostPublished{
+        aggregate_id: publication.aggregate_id,
+        publication_date: publication.publication_date,
+        slug: slugify(state.title)
+      })
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+</code></pre>
+<p>What is its type? Is it type that my database driver expects, <code>NaiveDateTime</code>? Or is it a string that I need to format? What does the <code>apply_event</code> function expect as an argument, a string or a <code>NaiveDateTime</code>? If I want to answer those questions, I need to dig in two directions in my code and I might not even find a satisfying answer, since some library might hide the details of implementation. I really enjoy Elixir as a language, but refactoring can be really problematic, especially when you don't actively maintain the code base.</p>
+<h2>Purerl: the miracle solution</h2>
+<p><a href="https://github.com/purerl">Purerl</a> is a fork of Purescript. The core language is the same, but it compiles to Erlang instead of Javascript. Do you see it coming? Yes, the blog still runs with Elixir, but it also uses Purerl to compile to Erlang and run alongside with the Elixir components. How did I do it? First, a Makefile that fetches Purerl dependencies, and compile the sources to Erlang.</p>
+<pre><code>all:
+	psc-package install
+	psc-package sources | xargs purerl compile 'purerl/**/*.purs'
+</code></pre>
+<p>Then in my <code>mix.exs</code> configuration for Elixir, I specify the path where my Erlang sources are:</p>
+<pre><code class="language-elixir"><span class="h-keyword">def</span> project <span class="h-keyword">do</span>
+  [app: :sadraskol,
+  <span class="h-comment"># ... other confs</span>
+  erlc_paths: [<span class="h-string">"output"</span>], <span class="h-comment"># Path where purerl will generate the erlang</span>
+  <span class="h-comment"># rest as usual</span>
+  ]
+<span class="h-keyword">end</span>
+</code></pre>
+<p>And <em>voilà</em>! The code is ready to use the Purerl within Elixir.</p>
+<h2>Switching to a statically typed language</h2>
+<p>The first major difference from Elixir, was that I was able to define types much more expressively and to gather them together. For instance, every domain event had a file for itself, with only the keys defined:</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Sadraskol.Blog.Events.LegacyPostImported <span class="h-keyword">do</span>
+  <span class="h-keyword">defstruct</span> [:title, :pub_date, :html_content, :slug, :status, :description, :language]
+<span class="h-keyword">end</span>
+</code></pre>
+<p>The equivalent in Purerl was much easier to read, see for yourself:</p>
+<pre><code class="language-haskell"><span class="h-keyword">type</span> Title = String
+<span class="h-keyword">data</span> Status = Published | Draft
+<span class="h-keyword">data</span> PostEvent
+  = DraftEdited Title HtmlContent Language Description (Maybe MarkdownContent)
+  | PostPublished PublicationDate
+  | LegacyPostImported Title HtmlContent Status Description Language Slug PublicationDate
+  | DraftDeleted
+  | PostEdited EditDate HtmlContent Language Description (Maybe MarkdownContent)
+  | PostTitleChanged Title
+</code></pre>
+<p>Here every value is either a type synonym or has its proper data type. It gives me a lot of flexibility when it comes to replacing changing them with more complex logic. My decision aggregate is also much more specific:</p>
+<pre><code class="language-haskell"><span class="h-keyword">data</span> BlogPost
+  = Draft Title HtmlContent Language Description (Maybe MarkdownContent)
+  | Published Title HtmlContent Language Description (Maybe MarkdownContent)
+  | Deleted
+  | NoPost
+</code></pre>
+<p>When implementing a method, the compiler will complain if a case was not taken into account. It makes my refactoring much easier and painless.</p>
+<h2>Cheating for foreign communication</h2>
+<p>Purerl does not provide the <a href="https://github.com/purescript/purescript-foreign">purescript-foreign</a> library which allow to safely use foreign bindings. Most bugs I ran into during the implementation were caused by using badly the Erlang data in the Purerl code. So such a library would have been of a wonderful help.</p>
+<p>The real problem is passing data back to Elixir code: since there's no real easy way of asserting the data representation, I limited myself to using very simple data structure, mostly maps with <code>Atoms</code> as keys.</p>
+<p>Talking of <code>Atoms</code>, They were in the heart of the reason I couldn't unit test my code (I tired of fighting against myself and libraries). I'm using <a href="https://github.com/elixir-ecto/ecto">Ecto</a> to save the events. It takes maps with strings as keys, but returns structured maps with atoms. The way I binded the Purerl and Ecto was a complete failure in that regard, and I already regret it.</p>
+<h2>Introducing a new aggregate</h2>
+<p>For a long time I didn't let myself change titles on my blog, The code just didn't implement the logic behind it. You would think changing a blog post title is a benign operation, but it's not. One thing that needs to be kept is the slug of the post. The <a href="https://en.wikipedia.org/wiki/Clean_URL#Slug">slug</a> is the human readable section of an url. When I publish an article, a slug is automatically generated from the title of the article. But since my article can be referenced from Twitter or other media, the old slugs should redirect to the updated slug.</p>
+<p>This refactoring with a type safe language allowed me to implement this feature without the fear of breaking anything. I admit I also felt the pleasure of doing something that would not be allowed in an industrial environment! Using less maintained languages are a real pleasure! And pain! But just as Marcel Proust would say:</p>
+<blockquote>
+<p><em>J’en conclus plus tard qu’il y a une chose aussi bruyante que la souffrance, c’est le plaisir.</em></p>
+<p>I concluded later that there is something as noisy as suffering, it is pleasure.</p>
+<p><em>Marcel Proust, <a href="https://marcelproustrecherche.wordpress.com/2015/05/04/chez-proust-il-ny-a-pas-de-bien-sans-que-lon-sente-le-souffle-du-mal/">Sodome et Gomorrhe</a></em></p>
+</blockquote>
+<h2>You should introduce Purerl in your Erlang code?</h2>
+<p>Only if you don't fear diving deep into weird problems, having to support basing utilities for yourself, building your own <code>package-set.json</code> file, and have fun! I guess Javaist can use <a href="https://eta-lang.org/">eta</a>, javascripters Purescript and Csharper <a href="https://fsharp.org/">F#</a>. Since most of those languages have tricks to be easily integrated, test them for simple modules, so you can easily come back from them.</p>
+<p><em>A special thanks to <a href="https://twitter.com/nwolverson">Nicolas Wolverson</a> who did an awesome job at implementing Purerl!</em></p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Quick Recap on The Manager&#x27;s Path</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Quick Recap on The Manager&#x27;s Path</h2>
+<time>22 March 2019</time>
+<p>The Manager's Path is the reference book if you want to learn about engineer management, that is anything ranging from a mentor position to being CTO. The book emphasizes on the obvious state of becoming a manager as a technical engineer: you will code less, you will have more responsibilities and your capacity to lead others will be key to your success. Here's what I learned by reading it.</p>
+<h3>Mentoring</h3>
+<p>The first step to enter in a manager's position is to mentor an intern or a junior dev entering the company. If you are assigned to the task, don't discard the importance of taking care of her. Take time and attention to:</p>
+<ul>
+<li>Provide clear goals: how do you expect your mentee to perform</li>
+<li>Provide guidance and reassurance: entering a new company can be disturbing and stressful. Your action can make a change</li>
+<li>Assess your mentee progression with regular 1-to-1s</li>
+</ul>
+<h3>Why doing 1-to-1s</h3>
+<p>Precious tool to assess your mentee or your team members. It allows providing a regular feedback, to spot problems early, and to update everyone on the situation of the team in the larger context of the company. Tackle most important and difficult issue during those 1-to-1s, before these poison your team efficiency and well being.</p>
+<h3>Tech Lead</h3>
+<p>A Tech Lead is the position you start managing a whole team by yourself. You provide technical guidance and help a small team achieve their goal. One big part of the job is explaining the goals set for the team and decide by which means those will be achieved.</p>
+<h3>The importance of feedback</h3>
+<p>Feedback and communication is a great part of a manager's role. Other roles have tasks to achieve with the constraint they understood. If their actions or their misunderstanding hurts the company you are in the front line to tell them and solve the situation. You can issue positive or negative feedbacks but they need to be shared in different settings.</p>
+<p>When you are happy with the work of a collaborator or with her behavior, you can congratulate her directly in a team meeting. Positive feedbacks make the team feel better and improve their mindset.
+In case you need to provide a negative feedback, see directly with the person. She doesn't have to be humiliated in front of everyone for something that can also be a mistake/misunderstanding.
+In any case, don't provide shallow feedback. It has to be actionable.</p>
+<h3>Tech Manager</h3>
+<p>The tech manager guides multiple teams. He has delegated most of his past work, including developing. Her main role is to help other people grow to their full potential.</p>
+<h3>Conclusion</h3>
+<p>What I learned by reading this book is:</p>
+<ul>
+<li>The more you know your collaborator, the better (What do they aspire at?)</li>
+<li>Fix problems the soonest possible</li>
+<li>Tackle touchy issues instead of fleeing away</li>
+<li>Listen and watch for signs of discomfort</li>
+</ul>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

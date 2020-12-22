@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>When business rules become technical problems</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>When business rules become technical problems</h2>
+<time>21 August 2020</time>
+<p>Sometimes business rules are easy to implement. Let's say a PM comes to me and asks &quot;make sure the price of a product never goes below zero&quot;. Piece of cake:</p>
+<pre><code class="language-java"><span class="h-keyword">public</span> <span class="h-keyword">void</span> save(Product product) {
+  <span class="h-keyword">if</span> (product.price < 0) {
+    <span class="h-keyword">throw</span> <span class="h-keyword">new</span> IllegalArgumentException(String.format(
+      <span class="h-string">"tried to save product %s with negative price %d"</span>,
+      product.id,
+      product.price
+    ));
+  }
+  myOrm.save(product);
+}
+</code></pre>
+<p>You disagree on the exception being used as control flow? Replace it with your favorite way of dealing with conditions. Can one save a negative price product with this code? Is this code correct?</p>
+<p>It is not as obvious as it seems. In a fully concurrent application, the reference to <code>product</code> could be shared by multiple threads. Another thread could change the price of the product after the check and before it is saved by the current thread leading to wrong behavior.</p>
+<p>We do not consider this kind of scenario in DDD approaches or blog posts. To answer to an HTTP requests, threads do not share references to domain objects. They would rather share references to the database pool. Each request fetches the domain object from the database, applies changes and saves the result. Since each request creates a different object for the same Entity (uniquely identified domain concept), the code above solves the business need to refuse negative prices.</p>
+<p>Here's an example of an execution of two requests at the same time:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/multiple-save-sequence.png" alt="sequence diagram of multiple user changing the price at the same time"/>
+<figcaption>In purple the product at its current price, in green the product with price 14. </figcaption>
+</figure>
+<p>In any order of execution, user B will never be able to save the product at a negative price. As long as the database acts like a <strong>regular</strong> register (see my <a href="https://sadraskol.com/posts/reading-notes-concurrency-the-works-of-leslie-lamport">notes on Concurrency</a> for a definition), the business rule is correctly solved.</p>
+<p>For this kind of business needs, the architecture of systems makes our code safe. This technical detail provides a safe environment for our code. This environment sparks conversations around the best way to express our business rules with code. These conversations lead to DDD practices (it's a bit far fetched, bear with me for a moment).</p>
+<h2>Is domain purity possible?</h2>
+<p>When all business rules are expressed in a single place in the code, some call that domain purity. In this <a href="https://enterprisecraftsmanship.com/posts/domain-model-purity-completeness">article</a>, the author insists on the distinction between completeness and purity. This is not what I'll discuss here. I want to focus on the example used in the article.</p>
+<p>I have a problem with this example. I tweeted about it:</p>
+<blockquote>
+<p>If you consider isolation, all implementations fail to check uniqueness in a concurrent environment, even with the in-memory database...
+This is a very good example of technical constraints influencing domain code.
+Could you find a correct way to check uniqueness?
+<a href="https://twitter.com/sadraskol/status/1292744962161946624">@sadraskol - August 10, 2020</a></p>
+</blockquote>
+<p>I think this tweet is too provocative to explain the kind of problem it points out. Since tweets are too short for an explanation, let's dig into it here.</p>
+<h2>Database isolation</h2>
+<p>Let's consider Postgres. By default, when running a transaction, it's under <em><a href="https://www.postgresql.org/docs/current/transaction-iso.html">Read Committed</a></em> isolation. At this level of isolation <em>&quot;a SELECT query sees a snapshot of the database as of the instant the query begins to run&quot;</em>. Note that the snapshot is before the <em>query</em>, not before the <em>transaction</em>.</p>
+<p>It means that two concurrent transactions can run without hindering each other. Let's run the example in a <em>Read Committed</em> transaction in the worst case:</p>
+<ul>
+<li>Database has no user</li>
+<li>User A opens a transaction</li>
+<li>User A checks for email &quot;a@a.com&quot;</li>
+<li>User B opens a transaction</li>
+<li>User B checks for email &quot;a@a.com&quot;</li>
+<li>Database saves user A with email &quot;a@a.com&quot;</li>
+<li>Database saves user B with email &quot;a@a.com&quot;</li>
+</ul>
+<p>This behavior can be checked using a formal specification. In TLA+, this would look like that:</p>
+<pre><code class="language-tla"><span class="h-comment">\* We consider 3 accounts that can choose from 3 distinct emails</span>
+Users == { <span class="h-string">"tom"</span>, <span class="h-string">"nas"</span>, <span class="h-string">"hyp"</span> }
+Emails == { <span class="h-string">"a"</span>, <span class="h-string">"b"</span>, <span class="h-string">"c"</span> }
+Nil == <span class="h-string">"Nil"</span>
+
+VARIABLE possibleEmails, chosenEmails, userRegistered, checkedEmails
+vars == << possibleEmails, chosenEmails, userRegistered, checkedEmails >>
+
+<span class="h-comment">\* At first no user registered</span>
+Init == /\ chosenEmails = << >>
+        /\ userRegistered = << >>
+        /\ possibleEmails = Emails
+        /\ checkedEmails = [ u <span class="h-keyword">\in</span> Users |-> Nil ]
+
+UserRegisteredYet(user) == <span class="h-keyword">\A</span> u <span class="h-keyword">\in</span> <span class="h-keyword">DOMAIN</span> userRegistered : userRegistered[u] /= user
+
+CheckEmailUniqueness(user, email) == /\ email <span class="h-keyword">\in</span> possibleEmails
+                                     /\ checkedEmails[user] = Nil
+                                     /\ checkedEmails' = [ checkedEmails <span class="h-keyword">EXCEPT</span> ![user] = email ]
+                                     /\ <span class="h-keyword">UNCHANGED</span> << possibleEmails, chosenEmails, userRegistered >>
+
+EmailChecked(user, email) == checkedEmails[user] = email
+
+ChooseEmail(user, email) == /\ UserRegisteredYet(user)
+                            /\ EmailChecked(user, email)
+                            /\ chosenEmails' = Append(chosenEmails, email)
+                            /\ userRegistered' = Append(userRegistered, user)
+                            /\ possibleEmails' = possibleEmails \ { email }
+                            /\ <span class="h-keyword">UNCHANGED</span> << checkedEmails >>
+
+NoEmailToChoose == possibleEmails = {} /\ <span class="h-keyword">UNCHANGED</span> vars
+
+EmailChecking == <span class="h-keyword">\E</span> u <span class="h-keyword">\in</span> Users: /\ <span class="h-keyword">\E</span> e <span class="h-keyword">\in</span> possibleEmails: CheckEmailUniqueness(u, e)
+
+Range(f) == { f[x]: x <span class="h-keyword">\in</span> <span class="h-keyword">DOMAIN</span> f }
+
+UserRegistering == <span class="h-keyword">\E</span> u <span class="h-keyword">\in</span> Users: /\ <span class="h-keyword">\E</span> e <span class="h-keyword">\in</span> Range(checkedEmails): ChooseEmail(u, e)
+
+Next == \/ EmailChecking \/ UserRegistering \/ NoEmailToChoose
+
+Spec == /\ Init
+        /\ [][Next]_vars
+        /\ WF_vars(UserRegistering)
+        /\ WF_vars(EmailChecking)
+
+<span class="h-comment">\* Invariants</span>
+EveryChosenEmailMustBeUnique ==
+        \/ Len(userRegistered) = 0
+        \/ <span class="h-keyword">\A</span> email <span class="h-keyword">\in</span> Emails:
+            Len(SelectSeq(chosenEmails, <span class="h-keyword">LAMBDA</span> x: x = email)) <= 1
+
+EveryRegisteredEmailHasARegisteredAccount == Len(userRegistered) = Len(chosenEmails)
+
+<span class="h-comment">\* Property: here we check for liveness of our implementation,</span>
+<span class="h-comment">\* that is that at least one email is chosen by account</span>
+EventuallyAtLeastAnEmailIsChoosen == <>(Len(chosenEmails) >= 1)
+</code></pre>
+<p>The model checker of TLA+, TLC, will find the same example as previously described:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/tlc-check-email-uniqueness.png" alt="TLC finds a counter example for our specification"/>
+<figcaption>TLC finds a counter example for our specification</figcaption>
+</figure>
+<p>If you think I wrote this article only to practice my TLA+ skills... You're right! But let's not stop there.</p>
+<h2>Finding an elegant solution</h2>
+<p>There are multiple solutions to that problem.</p>
+<p>The first one would be to set the transaction level of your database to <em>Serializable</em>, the highest level of isolation. It guarantees that every transaction is serializable: you can find a linear execution of all transactions. It simulates transactions being run sequentially in a single thread. This has a lot of performance drawbacks, so my team was shy to try it. If you use this isolation in production, I'd be curious of your experience with it!</p>
+<p>Another solution would be to set up a lock on the table for unicity. You can use <code>SELECT ... FOR UPDATE</code> to lock the rows of the table. It protects against concurrent conflict updates in the same row. Since it's a one liner, it's easy to implement in your current code.</p>
+<p>Serializable isolation and locks are good solutions but they can be quite expensive. If a transaction takes a long time, it slows down every request waiting for the lock. If misused, you can find yourself in deadlocks or having poor performances. There is a simpler solution: unique constraints. Constraints are checked within the database. Unique constraints are tailored for unicity check.</p>
+<p>Using the database constraints to check unicity means moving some of the business needs outside your application code. This is not coherent to an approach that centralized all rules in one place. There's an easy mitigation to this problem. Since the repository interface is defined by the domain, we can add this case to the domain:</p>
+<pre><code class="language-java"><span class="h-keyword">interface</span> UserRepository {
+  <span class="h-keyword">void</span> save(User user) <span class="h-keyword">throws</span> EmailAlreadyTakenException
+}
+</code></pre>
+<p>Every caller will have to define a behavior in case the exception is thrown. Once again exception is not the best control flow ¯\_(ツ)_/¯ Use the control flow that fits your code style.</p>
+<h2>End notes</h2>
+<p>It's always better to express code in pure domain code: checking rules in pure memory is much simpler than mixing Database calls with logic. But sometimes pure memory code will not cut it. Concurrent problems, unicity across systems, partial failures, time related tasks are difficult to check without battle tested technical solutions. I would recommend retrofitting technical constraints in the domain code. It's safer and would lead to less painful bugs rather than depending on an unadapted architecture.</p>
+<p><em>ps: race condition, race condition is the missing word of this post. It took me a week to figure it out...</em></p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

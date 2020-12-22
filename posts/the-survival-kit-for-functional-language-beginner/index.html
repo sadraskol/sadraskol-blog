@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>The survival kit for functional language beginner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>The survival kit for functional language beginner</h2>
+<time>04 July 2017</time>
+<p>Functional languages like <a href="https://www.haskell.org">Haskell</a>, OCaml or Erlang based <a href="https://elixir-lang.org">Elixir</a> are difficult to learn when you come from an imperative or object oriented languages. Concepts like immutability, high order functions or monads are very difficult to implement in classical languages (let's call them that way). Thankfully, those functional languages share a lot in common and i'll try to introduce to the most important concepts behind them.</p>
+<p>This kit is not a learning guide, and knowing those patterns will not teach you the specifics of each langugages. The road to mastering functional languages remains a hard path to take!</p>
+<h2>Pattern Matching</h2>
+<p>Let's start with the most important syntax helper from functional programming: pattern matching. Did the ruby syntax of <code>a b = b a</code> mixed your head up? Prepare some aspirin because... no, I'm joking! Pattern matching is very straight forward if you start practicing it. It allows to assign variable similarly to arithmetic equations. For instance: <em>(Note: example are written in Elixir or Haskell)</em></p>
+<pre><code class="language-elixir"><span class="h-string">"hello "</span> <> x = <span class="h-string">"hello world"</span> # x == <span class="h-string">"world"</span> !!!
+</code></pre>
+<p><em>Simple pattern matching on a string in Elixir. <code>&lt;&gt;</code> is the string concatenation operator</em></p>
+<p>The compiler solves the equation for you! Beware though, the comparison with maths falls short if you start writing simple &quot;equations&quot; like:</p>
+<pre><code class="language-elixir">x + 1 = 34 <span class="h-comment"># oups!</span>
+** (CompileError) iex:3: illegal pattern
+</code></pre>
+<p>But then, you might ask why is it so powerful if it cannot solve such simple equations. Patience, you'll learn how pattern matching can reveal itself very powerful along the way. The reason is that it matches the representation of the variable, it doesn't &quot;solve&quot; anything. Let's talk about the simplest pattern matching construct: <code>case</code> (<code>match</code> in some languages). It allows you to return a value based on pattern matching. Look how simple it reads:</p>
+<pre><code class="language-haskell">case age of
+  12  -> <span class="h-string">"Hey! that's young!"</span>
+  118 -> <span class="h-string">"No kidding?!"</span>
+  21  -> <span class="h-string">"You can vote in the UK!"</span>
+  _   -> <span class="h-string">"Hmm that's boring"</span>
+</code></pre>
+<p>Notice the <code>_</code> underscore notation which matches any value, you're going to see it a lot if you start learning functional languages.</p>
+<p>But it's not over, you can also use pattern matching when declaring function arguments. As the following example:</p>
+<pre><code class="language-haskell">stupidRemark :: Int -> String
+stupidRemark 12  = <span class="h-string">"Hey! that's young!"</span>
+stupidRemark 118 = <span class="h-string">"No kidding?!"</span>
+stupidRemark 21  = <span class="h-string">"You can vote in the UK!"</span>
+stupidRemark _   = <span class="h-string">"Hmm that's boring"</span>
+
+--later
+stupidRemark 12 -- returns <span class="h-string">"Hey! that's sweet"</span>
+</code></pre>
+<p>This bit of code is the exact equivalent of the following:</p>
+<pre><code class="language-haskell">stupidRemark :: Int -> String
+stupidRemark age = case age of
+  12  -> <span class="h-string">"Hey! that's young!"</span>
+  118 -> <span class="h-string">"No kidding?!"</span>
+  21  -> <span class="h-string">"You can vote in the UK!"</span>
+  _   -> <span class="h-string">"Hmm that's boring"</span>
+</code></pre>
+<p>You will see pattern matching everywhere in functional programming. It's a simple way of writing how you want to manipulate the data, but we'll come back to it later.</p>
+<h2>Guards</h2>
+<p>Let's say we want to go further on those stupid remarks. We could group the remarks by age. You would have to compare the age with arbritary thresholds. Guards are the utility to do that:</p>
+<pre><code class="language-haskell">stupidRemark :: Int -> String
+stupidRemark age
+  | age < 13            = <span class="h-string">"Hey! that's young!"</span>
+  | age < 117           = <span class="h-string">"No kidding?!"</span>
+  | age > 20 && odd age = <span class="h-string">"You can vote in the UK!"</span>
+  | otherwise           = <span class="h-string">"Hmm that's boring"</span>
+
+--later
+stupidRemark 110 -- <span class="h-string">"Hmm that's boring"</span>
+stupidRemark 119 -- <span class="h-string">"No kidding?!"</span>
+stupidRemark 71  -- <span class="h-string">"You can vote in the UK!"</span>
+</code></pre>
+<p>As you can see, guards allow to create much more complex conditions without a lot of boilerplate code. Beware though as they allow a limited number of operations, especially in Elixir. The reason you won't see guards as often as pattern matching is that they do not assign variables, they are very practical as <code>if</code> replacement.</p>
+<h2>Lists</h2>
+<p>Lists are a very perticular construct in functional languages. They are the opening gates to high order functions, the introduction to recursion and so on. They are very simple objects though: an ordered list of elements. We would write for instance: <code>[1, 2, 3, 4]</code>. Lists support two operations:</p>
+<ul>
+<li><code>head</code> (<code>hd</code> in Elixir) returns the first element of a non empty list, <code>1</code> in our case</li>
+<li><code>tail</code> (<code>tl</code> in Elixir) returns a list of all elements except for the first one, <code>[2, 3, 4]</code> in our case</li>
+</ul>
+<p>As mentioned in their description, <code>head</code> and <code>tail</code> do not work on empty list. Why would you do that then? As such those methods are not much used. They will allow you to understand something much more useful: pattern matching on lists. A list can be constructed from its <code>head</code> (a single element) and its <code>tail</code> (the rest of the elements). In Haskell you write it:</p>
+<pre><code class="language-haskell">(head:tail)
+</code></pre>
+<p>In Elixir:</p>
+<pre><code class="language-elixir">[head|tail]
+</code></pre>
+<p>And guess what?! You can pattern match with this syntax on lists!</p>
+<pre><code class="language-elixir">[head|tail] = [1, 2, 3, 4]
+head == 1
+tail == [2, 3, 4]
+</code></pre>
+<p>How can we iterate on a list from what we know as far? Let's try to upper case a list of names:</p>
+<pre><code class="language-elixir"><span class="h-keyword">def</span> uppercaseAll [], <span class="h-keyword">do</span>: []
+<span class="h-keyword">def</span> uppercaseAll [head|tail], <span class="h-keyword">do</span>: [String.uppercase(head) | uppercaseAll(tail)]
+
+<span class="h-comment"># Here we shortcut "String.uppercase" to "up" for readability issue</span>
+uppercaseAll [<span class="h-string">"Fanny"</span>, <span class="h-string">"Eric"</span>, <span class="h-string">"Maïté"</span>, <span class="h-string">"Charles"</span>]
+<span class="h-comment">#<=> [up("Fanny") | uppercaseAll(["Eric", "Maïté", "Charles"])]</span>
+#<=> [up(<span class="h-string">"Fanny"</span>) | [up(<span class="h-string">"Eric"</span>) | uppercaseAll([<span class="h-string">"Maïté"</span>, <span class="h-string">"Charles"</span>])]]
+<span class="h-comment">#<=> [up("Fanny") | [up("Eric") | [up("Maïté") | uppercaseAll(["Charles"])]]]</span>
+#<=> [up(<span class="h-string">"Fanny"</span>) | [up(<span class="h-string">"Eric"</span>) | [up(<span class="h-string">"Maïté"</span>) | [up(<span class="h-string">"Charles"</span>) | uppercaseAll([])]]]]
+<span class="h-comment">#<=> [up("Fanny"), up("Eric"), up("Maïté"), up("Charles")]</span>
+</code></pre>
+<p>As you can see, we can use the <code>head</code>/<code>tail</code> to match non empty lists and an empty list for the special case. This type of coding, recursingly call the function until you have the right result is a very common pattern in functional languages. Let's see another one. This time we'll generate the length of the list:</p>
+<pre><code class="language-elixir"><span class="h-keyword">def</span> lengthAcc(acc, []), <span class="h-keyword">do</span>: acc
+<span class="h-keyword">def</span> lengthAcc(acc, [head:tail]), <span class="h-keyword">do</span>: lengthAcc (acc + 1) tail
+<span class="h-keyword">def</span> length list, <span class="h-keyword">do</span>: lengthAcc 0 list
+</code></pre>
+<p>I hope you understand better recursion in functional languages. Those pattern are so common they have utilities to write them quickly. It's out of the scope of this article, but you'll cross them when you'll learn one of those language (you might even already know <code>map</code> or <code>reduce</code> as they are now available in other languages).</p>
+<h2>Side note on immutability</h2>
+<p><em>This chapter is pretty low level, you don't need to read it if you trust functional languages.</em></p>
+<p>I often hear that immutability will plummet performances, that it means copy on change. The reality is more complex. Immutability in the language does not mean unoptimized code: it let the compiler optimize the code. lets consider this &quot;mutable&quot; code</p>
+<pre><code class="language-elixir">x = 127
+<span class="h-comment"># somewhere in memory: (x = 127 | ...)</span>
+x += 7 <span class="h-comment"># mutate x</span>
+# in memory (x = 134 | ...)
+</code></pre>
+<p>The equivalent &quot;immutable&quot; code:</p>
+<pre><code class="language-elixir">x = 127
+<span class="h-comment"># (x = 127 | ...)</span>
+y = x + 7
+<span class="h-comment"># (x = 127 | y = 134 | ...) OR (y = 134 | ...) the compiler decides</span>
+</code></pre>
+<p>This is not a very representative example of course, but it introduces to the type of optimisations the compiler can perform on an immutable language. Virtually, you could even optimise concurrent computation with a full immutable and pure language (apart from obscure concurrent languages like <a href="https://code.google.com/archive/p/anic/wikis/Tutorial.wiki">ANI</a>). If you thought immutability would hit your performances, it's not the case. Ocaml has very similar performance benchmark to Java in the <a href="http://benchmarksgame.alioth.debian.org/u64q/compare.php?lang=ocaml&amp;lang2=java">CLBG</a>.</p>
+<h2>Conclusion</h2>
+<p>I write this article while I'm learning Haskell, and I gather here every similarities and concepts I was happy to have discovered in Elixir first. Like you i've started on introduction pages of functional languages and felt lost, like this one:</p>
+<figure>
+  <img alt="screen shot of introduction code on ocaml website" src="https://s3.eu-central-1.amazonaws.com/sadraskol/really-not-simple-ocaml.png" />
+  <figcaption><i>Really OCaml? It's the simplest example you could pull out?!</i></figcaption>
+</figure>
+<p>Concepts in functional languages are very weird and different from object oriented languages. But they should not be fear you out! I hope that with this kit you'll get yourself up and learning some functional niceties!</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

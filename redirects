@@ -1,0 +1,7 @@
+rewrite /posts/reading-the-manager-s-path /posts/quick-recap-on-the-manager-s-path permanent;
+rewrite /posts/4d697e12-1f4f-41ad-b394-4b54a3328751 /posts/luttons-contre-les-pouvoirs-reactionnaires-et-autoritaires permanent;
+rewrite /posts/revue-de-presse-spcial-parcousup /posts/revue-de-presse-spcial-parcoursup permanent;
+rewrite /posts/les-types-algbriques-pour-les-languages-orients-objets /posts/les-types-algbriques-pour-les-langages-orients-objet permanent;
+rewrite /posts/developers-proust-questionnaire /posts/developer-s-proust-questionnaire permanent;
+rewrite /posts/ifless-game-life /posts/if-less-game-of-life permanent;
+rewrite /posts/largument-ontologique-de-lagilite /posts/l-argument-ontologique-de-l-agilite permanent;

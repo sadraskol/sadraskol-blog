@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Reading notes: scalable state-machine replication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Reading notes: scalable state-machine replication</h2>
+<time>22 September 2020</time>
+<p>This article is about my second paper reading. I really enjoyed my <a href="https://sadraskol.com/posts/reading-notes-extreme-modelling-in-practice">first one</a>, and I was excited to read another one. I couldn't make my mind up until I spotted Murat Demirbas' <a href="https://muratbuffalo.blogspot.com/2020/08/my-distributed-systems-seminars-reading.html">reading list</a>. Since an expert on distributed systems will make his own review, I'll be able to compare and check for improvement in my own reading. Let's go!</p>
+<h3>Background and challenges</h3>
+<p><a href="https://www.inf.usi.ch/faculty/pedone/Paper/2014/2014DSNa.pdf">Scalable State-Machine Replication (S-SMR)</a> is a paper showing a generic way of providing SMR while partitionning the application state. Why would you do that? SMR algorithms offer a reliable way of building fault-tolerant systems. Unfortunately they suffer from scalability issues. To mitigate those issues, you can partition the state, which improve the systems throughput. The goal of the paper is to show that both SMR and partitionning can be used to improve the throughput of a system compared to a single node solution like Zookeeper.</p>
+<p>They are 2 challenges to overcome:</p>
+<ol>
+<li>Keeping the linear order of commands accross and within partitions. SMR offer linearizability (more on this later) and S-SMR should as well</li>
+<li>Optimizing requests through cache, fine tuning of parameters, etc. to mitigate impacts on latency</li>
+</ol>
+<h3>Definitions</h3>
+<p>The paper goes on defining the assumptions of the systems and definitions. It considers asynchronous systems (see Asynchrony in the <a href="https://sadraskol.com/posts/reading-notes-concurrency-the-works-of-leslie-lamport">work of Leslie Lamport</a>) which does not suffer Byzantine failures, and communications offer <strong>atomic multicast</strong>.</p>
+<p>Say server s sends a message to a group of server R (receivers). We consider the two primitives <code>multicast(R, m)</code> and <code>deliver(m)</code> where <strong>R</strong> is the server or group of server and <strong>m</strong> is the message. <strong>Atomic multicast</strong> means:</p>
+<ol>
+<li>if r delivers m, then all correct servers in R deliver m (agreement)</li>
+<li>if s is correct and multicasts m to R, all correct r in R deliver m (validity)</li>
+<li>if r delivers m then m', r' in R delivers m then m'</li>
+</ol>
+<p>I had some problems understanding difference between agreement and validity. I already read it somewhere but my mind just skipped it. To be honest the <a href="https://en.wikipedia.org/wiki/Atomic_broadcast">wikipedia entry</a> did not help me here, I hope I find another reading to understand the definitions better.</p>
+<p>The paper goes on defining linearizability. Fortunately I knew this one before. The definition of the paper is okay but, I could not understand it without prior knowledge. To make it short, a system is linearizable if it behaves like a single thread (you can find a coherent order for command execution to stand) and the order of execution of commands is respected. It's like a real time single thread.</p>
+<p><a href="https://www.youtube.com/watch?v=tRc0O9VgzB0">Kyle Kingsbury explains it much better</a>.</p>
+<h3>The S-SMR</h3>
+<p>Although the paper starts with a general idea of how the algorithm works, i'll start introducing the detailed algorithm:</p>
+<pre><code>// Client side of code here: before command C is submitted, clients asks the oracle
+dests <- oracle(C)
+multicasts(dests, C)
+wait for response of from one server
+
+// for each server of partition P, 3 processes run
+upon deliver(C)
+  others = dests \ {P}
+  multicasts(others, signal(C))
+  for each operation op in C do
+    if op is read(v) then
+      if v belongs to P then
+        multicasts(others, {v, C.id})
+      else
+        wait_until v belongs to received_variables(C)
+        update v with value in received_variables(C)
+    execute op
+  wait until received_signals(C) == others
+  send reply to client
+
+upon deliver(signal(C)) from partition P'
+  received_signals(C) <- received_signals(C) \union {P'}
+
+upon deliver({v, C.id}) from partition P'
+  received_variables(C) <- received_variables(C) \union {v}
+</code></pre>
+<p>Let's break down every primitives of the algorithm.</p>
+<p>Batgirl... I mean the oracle can tell which partitions have to be queried to fulfill command C. A naive approach is to return all partitions. It would be costly, so you need to take time to implement a query analyser for that purpose. Unfortunately, the paper does not go in details on the ways to achieve that.</p>
+<p>To answer the query, the server executes every operation of the command sequentially. If the operation is a reading of a value belonging to the partition, the server sends the value to other partitions. If the value is not from the current partition, the server waits for other partition to send the value. Then the server executes the operation.</p>
+<p>Note that the server can execute a write operation without any need from other partitions. This property is an interesting property that will be discussed in the optimization part.</p>
+<p>There is one part still unexplained in this algorithm: what is the use of the <code>signal(C)</code> and <code>received_signals</code>? The short answer is: provide linearizability. The paper shines at explaining this part. It uses this schema:</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/linearizability.png"/><figcaption>Example showing how <code>signal(C)</code> ensures linearizability</figcaption></figure>
+<p>In the example on the left, Cy happens before Cxy because of causation: <code>x = 10</code> so Cy &lt; Cxy. In real time, Cy happens after Cx so Cx &lt; Cy &lt; Cxy. But Cx happens after Cxy because of causation: <code>y = 20</code> so Cxy &lt; Cx. The only sequential execution of commands available is Cy &lt; Cxy &lt; Cx. Since it breaks real time order of execution of requests, the system would not be linearizable (although it would be serializable, since a sequence exists).</p>
+<p>To fix this problem, signal(C) is shared between partitions allowing to &quot;pause&quot; a partition until other partitions receives the command. This behavior introduces latency, as later discussed.</p>
+<h3>Optimizations</h3>
+<p>The primitives of the algorithm are set. As mentioned, with a naïve oracle the scalability cannot be achieved. The authors are very aware of this problem and suggest a couple of optimizations.</p>
+<p>The first possible optimization is in writing the oracle. Unfortunately, the paper only assumes an optimal oracle is possible, there is no discussion regarding the assumption made. I guess they used an optimal oracle for Zookeeper, who knows ¯\_(ツ)_/¯</p>
+<p>The second optimization is rather easy given an oracle: since the server receiving C already know which variables are read during the command and the partitions it should send values to, it can multicast to every partitions each values it has ownership on. Each partitions have less waiting for values it does not have ownership.</p>
+<p>Also since write operations are executed on every partitions, there is no need to query servers for subsequent reads on a value.</p>
+<p>Moreover the requests of format <code>multicasts(others, {v, C.id})</code> can be used as <code>signal(C)</code> instead of using a dedicated request.</p>
+<p>A single answer from a server is sufficient to finish a command for the client. I haven't wrapped my head around the correctness of such claim. The author seem confident it is, I trust them only because I don't have time to find a failure scenario.</p>
+<p>Finally, servers can make extensive use of two types of caching: conservative caching and speculative caching. Speculative caching assumes the existence of rollback on operation execution. Also it's unclear whether each algorithm were implemented in Eyrie (the implementation of S-SMR of the authors in Java).</p>
+<p>All optimization techniques are food for thoughts and show case a lot of opportunities to optimize the general approach. It's a shame there is no evaluation on the impact of each optimizations.</p>
+<p>The paper goes on to prove that the algorithm is correct. I won't go in details on how they do it. As a non academic, I do not have the courage to decypher it again. </p>
+<h3>Implementation &amp; Performance evaluation</h3>
+<p>The two last parts span most of the content of the paper. The first thing that I noted is that they use a Multi Ring Paxos as base for the SMR. There is no explanation why this implementation and not another one, say <a href="https://raft.github.io/">raft</a>. It has some implication since performance depends heavily on the tuning of Multi Ring Paxos. </p>
+<p>They benchmarked performances for two types of mesurement: Throughput and Latency. The benchmarks run against an instance of Zookeeper, ZKsmr, and Volery (implementation of S-SMR for Zookeeper) of 1, 2, 4 and 8 partitions.</p>
+<p>The weird parameter for me in this benchmark is the dimension choosen for the messages: they compared the mesurements for messages of 100 bytes, 1000 bytes and 10000 bytes. It seems odd since it does not compare the number of variables of the requests. How can we be sure that the linear scale they observe is not due to variables queried simply being dispatch to a single partition for each messages?</p>
+<p>Also when comparing memory configurations, the weird latency for 4 partitions is not explained. Since there is no discussion around this, it's very suspicious.</p>
+<h3>Conclusion</h3>
+<p>This paper has been a lot of fun for me to read and understand. I really enjoyed the optimization part and understanding how linearizability is guaranteed. The great thing about the paper is that it goes from a general algorithm that works in any case and they open the door for a lot of optimization. Also they introduce a lot of related works that tackled the same problem with different perspectives.</p>
+<p>3 questions remains for me:</p>
+<ol>
+<li>Where could the algorithm serve in the industry? Most replication use a specialized algorithm, thing like geo-partionning. How could a general purpose algorithm compete against them?</li>
+<li>Is the latency worth the throughput?</li>
+<li>The author mention that the algorithm is write optimized but zookeeper is read optimized. Is there a place for such algorithm in the industry?</li>
+</ol>
+<p>I do not have sufficient knowledge in this area to answer these questions. I really enjoyed reading this paper and I really want to keep reading academic papers. They open my mind on difficult subject that I would not realize in my day to day engineering.</p>
+<hr />
+<p>Update: Murat Demirbas wrote a <a href="https://muratbuffalo.blogspot.com/2020/10/scalable-state-machine-replication.html">quick article on this paper</a>. For him, there is no doubt: the algorithm have limited applications. It clears out things that were out of my knowledge. First, multiring paxos is used to respect the atomic multicast. Since it's already a difficult problem to solve on its own, you cannot use any regular SMR. Also this means that comparing to a single Zookeeper cluster is not enough. Secondly, the graphs are pretty bad case for this solution.</p>
+<p>It answers my questions, and I think my intuitions were correct: the paper will remain a research subject and won't have industry applications.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

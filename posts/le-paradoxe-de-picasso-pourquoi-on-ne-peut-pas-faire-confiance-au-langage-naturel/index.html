@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Le paradoxe de Picasso : pourquoi on ne peut pas faire confiance au langage naturel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Le paradoxe de Picasso : pourquoi on ne peut pas faire confiance au langage naturel</h2>
+<time>30 March 2020</time>
+<p>Au fondement de la logique, il y a les <a href="https://fr.wikipedia.org/wiki/Syllogisme">syllogismes</a>. 
+Aristote les formula en premier comme cela : 3 propositions s'enchaînent, 2 prémisses et une conclusion.
+La conclusion est une idée nouvelle qui permet d'être déduit des 2 prémisses. Par exemple :</p>
+<ol>
+<li>Socrate est un Homme</li>
+<li><em>Mais</em> Tous les Hommes sont mortels</li>
+<li><em>Donc</em> Socrate est mortel</li>
+</ol>
+<p>Les propositions possibles dans ces syllogismes sont séparés en 4 catégories :</p>
+<ul>
+<li><em>A</em> Les affirmatives universelles : Tous les hommes sont mortels</li>
+<li><em>E</em> Les négations universelles : Aucun homme n'est mortel</li>
+<li><em>I</em> Les affirmations particulières : Au moins un homme est mortel</li>
+<li><em>O</em> Les négations particulières : Au moins un homme n'est pas mortel</li>
+</ul>
+<p>Comme la sémantique est limitée, il n'y a qu'un nombre restreint de raisonnements qui font sens, tous présentés avec leur petit nom dans l'<a href="https://fr.wikipedia.org/wiki/Syllogisme#Les_modes_concluants">article wikipedia</a>. Avant d'aller plus loin, comprenons ce que &quot;valide&quot; veut dire en logique.</p>
+<h2>Validité et vérité</h2>
+<p>On distingue ces deux concepts dans la logique. La vérité est une valeur que l'on donne aux prémisses. On dit qu'une prémisse est soit juste, soit fausse. C'est au lecteur de décider de la vérité d'une prémisse, car s'il est facile d'admettre que &quot;Socrate est un Homme&quot; est une prémisses vraie, dire que la prémisse &quot;Le bonheur est bleu&quot; est vraie est totalement arbitraire. La logique n'est pas un outil qui permet de déterminer le vrai du faux, il s'applique à savoir si les raisonnements sont <em>valides</em>.</p>
+<p>La validité est une propriété d'un syllogisme. Elle n'indique que si les prémisses et la conclusion sont cohérents. Grâce à un syllogisme valide, on peut dire : si les prémisses sont vraies, alors la conclusion est vraie. Ainsi La validité permet de transférer la vérité à des propriétés. La vérité serait de l'électricité, la validité serait la conductivité.</p>
+<h2>Le paradoxe de Picasso</h2>
+<p>Prenons cet exemple de syllogisme :</p>
+<ul>
+<li>Un Picasso bleu est rare</li>
+<li><em>Mais</em> tout ce qui est rare est cher</li>
+<li><em>Donc</em> un Picasso bleu est cher</li>
+</ul>
+<p>À priori le raisonnement est toujours valide. Ainsi on peut dire que si on utilise des adjectifs, les règles des syllogismes tiennent toujours. Pourtant, il est facile de trouver un contre-exemple à cela :</p>
+<ul>
+<li>Un Picasso bon marché est rare</li>
+<li>Mais tout ce qui est rare est cher</li>
+<li>Donc un Picasso bon marché est cher</li>
+</ul>
+<p>Et c'est là que le langage naturel trouve ses limites. En utilisant un adjectif inoffensif on voit bien qu'on arrive à un raisonnement invalide. En effet, le langage naturel n'a pas pour objectif la validité de ses formulations mais d'être un équilibre entre le débit d'information et la vitesse d'assimilation.</p>
+<h2>Corriger le paradoxe</h2>
+<p>Pour comprendre ce qui ne colle pas, on va enlever la possibilité d'avoir des adjectifs :</p>
+<ul>
+<li>Un Picasso bon marché : Il existe un Picasso bon marché (<em>I</em> affirmation particulière)</li>
+<li><em>Mais</em> Tout ce qui est rare est cher (<em>A</em> affirmation universelle)</li>
+</ul>
+<p>Ça ne suffit pas, il faut que l'enchaînement des propriétés colle. Donc on va renverser pour toujours traiter de l'ensemble de ce qui est bon marché. On peut utiliser pour cela la contraposée de l'affirmation universelle : tout P est Q est équivalent à tout &quot;non Q&quot; est &quot;non P&quot;. Ce qui nous donne :</p>
+<ul>
+<li>Un Picasso bon marché : Il existe un Picasso bon marché (<em>I</em> affirmation particulière)</li>
+<li><em>Mais</em> Tout ce qui est bon marché est commun (<em>A</em> affirmation universelle, contraposée)</li>
+<li><em>Donc</em> il existe un Picasso commun (<em><a href="https://commons.wikimedia.org/wiki/File:Modus_Dimatis.svg?uselang=fr">Modus Dimatis</a></em>)</li>
+</ul>
+<p>Un joli <em>Modus Dimatis</em> (je suis ravi d'apprendre ce nom en écrivant cet article), donc qui ne nous apprend pas grand chose, mais qui ne nous permet certainement pas de dire qu'un Picasso est bon marché et cher à la fois.</p>
+<h2>Langage naturel = danger</h2>
+<p>Les langages naturels sont un danger pour la validité de nos raisonnements et sont souvent la raison de nos pensées magiques : l'impression d'avoir compris un problème pour découvrir plus tard que notre modèle mental est trompeuse.</p>
+<p>La pensée magique a des antidotes, commencez par des <a href="https://sadraskol.com/post/methodes-formelles">tableaux de vérité</a> pour vous soigner !</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

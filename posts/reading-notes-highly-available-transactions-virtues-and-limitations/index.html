@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Reading notes: Highly Available Transactions: Virtues and Limitations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Reading notes: Highly Available Transactions: Virtues and Limitations</h2>
+<time>30 October 2020</time>
+<p>For a long time I wanted to learn more about consistency models. There is a nice recap on <a href="https://jepsen.io/consistency">Jepsen's website</a>. Aphyr mostly references back to 2 papers, this reading note is about the one from <a href="http://www.vldb.org/pvldb/vol7/p181-bailis.pdf">Bailis, Davidson, Fekete et al</a>. The paper does more than only describing consistency levels, it shows that the theoretical limits of high availability and consistency levels is not yet reach.</p>
+<h2>High availability</h2>
+<p>Why does the paper focus on high availability? Since high levels of consistency require communication between nodes, applications depending on it have two limits:</p>
+<ol>
+<li>Large disruption of popular services like Reddit or Heroku originated in network partitions</li>
+<li>Application latency is limited by the regions where nodes are deployed</li>
+</ol>
+<p>Many databases offer default isolation that are relatively weak. For instance Postgres defaults to Read Committed (RC) within transactions and MySQL to Repeatable Read (RR). Since applications do not require higher levels of isolation like Serializability, one can wonder: what is the highest level of isolation we can achieve without paying the price of consensus?</p>
+<p>A system provides high availability when users contacting non-failing server eventually receives a response from that server under any network partition. Under this definition, users can contact multiple correct server during a transaction. The paper adds the definition of sticky availability: users always contact the same replica. Authors note that this is pretty much always the case for databases. So it's a low cost constraint under which systems can achieve higher consistency models.</p>
+<p>The paper also defines some liveness properties and transactions, but I think it goes too much in details to be explained here.</p>
+<h2>Achievable ACID Isolation for high available systems</h2>
+<p>This part is really the crux of the paper, what got me to read it in the first place. It explains isolations and the anomalies they avoid.</p>
+<h3>Read Uncommitted</h3>
+<p>Read uncommitted (RU) is the lowest isolation defined in <a href="http://bnrg.cs.berkeley.edu/%7Eadj/cs262/papers/icde00.pdf">Generalized Isolation Level Definitions</a>. Let's consider two transactions:</p>
+<ul>
+<li>T1: w_x(1) w_y(1)</li>
+<li>T2: w_x(2) w_y(2)</li>
+</ul>
+<p>The RU isolation forces all writes from transaction T1 to be applied before or after transaction T2.</p>
+<p>The reason of this constraint is that if both transaction gets aborted, the recovery would not restore overwritten data. Let's imagine this non RU compliant application of writes with T1 being aborted then T2:</p>
+<p>w_x(1) w_x(2) T1_abort(w_x(null)) T2_abort(w_x(1))</p>
+<p>When T1 aborts first, it restores <code>null</code> original value of <code>x</code>. Then T2 aborts and restore the preceding value it snapshots: <code>1</code>. The resulting history would result in a &quot;Dirty write&quot;: write was performed without any transactions!</p>
+<p>This isolation level does not have any restrictions on reads. It means that transactions can read data from aborted transaction, infamous &quot;Dirty Reads&quot;.</p>
+<h3>Read Committed</h3>
+<p>Read Committed (RC) is the default isolation of many databases. In addition to forbid dirty writes, it ensures no dirty reads are allowed. Let's consider the following transactions running at the same time:</p>
+<ul>
+<li>T1: w_x(1) w_x(2)</li>
+<li>T2: w_x(3)</li>
+<li>T3: r_x(a)</li>
+</ul>
+<p>The possible values possible to read for the last transactions cannot be uncommitted writes. Therefor <code>a ∈ { null, 2, 3 }</code>, either no transaction is committed, it reads the last write of T1 or last write from T2.</p>
+<p>This level of isolation is usually provided through locks, but the paper note that it could be done otherwise. Unfortunately, ANSI SQL RC also requires recency and monotonicity, which are harder to achieve in a high-level setup (especially recency).</p>
+<h3>Repeatable Read</h3>
+<p>RC can still permit serializability anomalies like fuzzy reads, Repeatable Reads (RR) prevents them. Consider this example:</p>
+<ul>
+<li>T1: w_x(1)</li>
+<li>T2: w_x(2)</li>
+<li>T3: r_x(1) r_x(a)</li>
+</ul>
+<p>Under RC, <code>a ∈ { 1, 2 }</code> depending on whether T2 transaction committed. To avoid that situation, RR isolation requires that transactions are isolated from other transactions. This level of isolation is also achieveable in theory using sticky highly available transactions. It doesn't require replicas to talk to one another.</p>
+<p><em>Note</em>: This definition of RR is not coherent for SQL standard, so the author use Item Cut Isolation (ICI) instead.</p>
+<h3>Monotonic Atomic View</h3>
+<p>Isolations are not the only guarantees provided by ACID models. Monotonic Atomic View (MAV) is the atomic allows guarantees in session. If a transaction is visible to another, all writes should also be visible. Given:</p>
+<ul>
+<li>T1: w_x(1) w_y(1) w_z(1)</li>
+<li>T2: r_x(a) r_y(1) r_x(b) w_z(c)</li>
+</ul>
+<p>Under RC, <code>a, b, c  ∈ { null, 1 }</code> but MAV inforces that <code>b = c = 1</code>. This is required by the atomicity: either all operations in a transaction occured or none. Note that Postgres respects MAV under at RC level.</p>
+<p>This level of guarantee is trivial to achieve in a single node database like Postgres, but is much more difficult to achieve in distributed conditions. The paper suggests an implementation that does not require a blocking coordination.</p>
+<h3>Session Guarantees</h3>
+<p>A session corresponds to the view of a single client. High available transaction can guarantee:</p>
+<ul>
+<li>Monotonic reads: You can't read values back in the past</li>
+<li>Monotonic writes: writes are visible in the order they are submitted</li>
+<li>Writes follow reads: if a session observes T1, commits T2 and another session observes T2, it should also observe T1. It means that sessions cannot rewrite their past</li>
+<li>Read your writes: clients should see the last version of a value they updated or a overriden value by another client</li>
+<li>Pipelined random access memory (PRAM): combination of monotonic reads, writes and read your writes</li>
+<li>Causal consistency: All the above</li>
+</ul>
+<p>The sessions guarantees can be achieved for sticky high available transactions.</p>
+<h2>Other ACID Isolation</h2>
+<p>We did not tackle two serial anomaly yet: Lost Update and Write Skew. First let's look at a lost update case:</p>
+<ul>
+<li>T1: r_x(a) w_x(a + 2)</li>
+<li>T2: w_x(2)</li>
+</ul>
+<p>If T1 read <code>a = 1</code> before T2 but T2's write is applied before T1's, the database ends up with <code>x = 3</code>. We lost the write of T2. It is a serial anomaly because if you apply T1 then T2 or T2 then T1 you should not have this result. This anomaly is quite common when you use 'Read Then Update' pattern, as I illustrated in one of my <a href="https://sadraskol.com/posts/when-business-rules-become-technical-problems">latest post</a>.</p>
+<p>Snapshot Isolation (SI) or RR (for Postgresql) prevent Lost updates.</p>
+<p>Write skew are a generalization of lost update when multiple keys are involved. Consider the following:</p>
+<ul>
+<li>T1: r_y(0) w_x(1)</li>
+<li>T2: r_x(0) w_y(1)</li>
+</ul>
+<p>If both transactions commit, no update are lost. But you can't find an order under which T1 and T2 can be applied serially. Only Serializable isolation can prevent such cases.</p>
+<p>These two isolation cannot be achieved by distributed systems without sacrificing availability at some point. We are limited here by the <a href="https://en.wikipedia.org/wiki/CAP_theorem">CAP theorem</a>.</p>
+<h2>Conclusion</h2>
+<p>The paper summarizes the consistency models with the following graph:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/consistency.png"/>
+<figcaption>Graph of consistency levels, in order of constraints for the system</figcaption>
+</figure>
+<p>Black and white models are achievable by highly available systems. Blue one can also be achieved by sticky clients. Red models require some coordination: they are unavailable consistency models.</p>
+<p>This paper is a must read for anyone who wants to get into distributed systems and understand the tradeoffs from a theoratical point of view but also gives practical implementations. I didn't cover the part of the paper talking about the performance of an implementation of a high available transaction system, but it's also worth a look.</p>
+<p>This was a blast, and I can't wait to read the more on the theory of consistency levels. This paper uplifts my soul and I confinced me to go deeper in the theory of consistency in distributed systems.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

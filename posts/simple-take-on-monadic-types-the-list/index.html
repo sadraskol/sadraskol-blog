@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Simple take on monadic types : the List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Simple take on monadic types : the List</h2>
+<time>03 April 2018</time>
+<p>Monads are often introduced as an abstract mathematical concept or as an abstract design pattern. In this series, humbly called &quot;Simple take on monadic types&quot;, we're going to manipulate the objects which have monadic instances. We'll extrapolate their properties and gradually discover their power. If the concept of monads is not familiar to you, you only need some knowledge of Java or Javascript and some attention. For the first article of the series, let's play with the type <code>List&lt;T&gt;</code> or <code>List a</code>.</p>
+<p>The goal of our program is to harvest trees (🌳) to get apples (🍎) and bake them into pies (🥧)! In order to store them, we'll use the abstract (but familiar) concept of <code>List</code>, everything is much easier when stored in a list.</p>
+<h2>Bake the piece of pie</h2>
+<p>Let's consider this function:</p>
+<pre><code class="language-haskell">bake :: 🍎 -> 🥧
+bake apple = -- details the recipe
+</code></pre>
+<p>It takes an apple, a value of type 🍎, and returns a piece of pie, a value of type 🥧. Emojis represent types, which are a set of value. All the apples, that my computer can deal with, are values of type 🍎. The function signature reads as simply as : I take one apple and I give one piece of pie.</p>
+<p>An apple tree does not grow an apple at a time. It provides you with a large quantity of apples, you can organize them in a list, a <code>List 🍎</code>. If the tree does not give any apple, then it's an empty list, so you're all covered. An efficient way of providing pies to your customers would be to deliver a bunch of pies at the same time. You would provide a <code>List 🥧</code>. Snap! You only have a <code>bake</code> routine which does not deal with <code>List</code>. With Java, you would normally mitigate this by implementing <code>bakeAll</code>:</p>
+<pre><code class="language-java">List<🥧> bakeAll(List<🍎> apples) {
+  List<🥧> result = <span class="h-keyword">new</span> ArrayList<>();
+  <span class="h-keyword">while</span> (iterator.hasNext()) {
+    result.add(cook(iterator.get()));
+  }
+  <span class="h-keyword">return</span> result;
+}
+</code></pre>
+<p>That's cool but wouldn't there be a more comfortable way of writing this? After all, it's all boiler plate to extend the capability of <code>bake</code> from the signature <code>🍎 -&gt; 🥧</code> to the list equivalent <code>bakeAll</code> of signature <code>List 🍎 -&gt; List 🥧</code>. There could be a boilerplate-free method of signature <code>(🍎 -&gt; 🥧) -&gt; (List 🍎 -&gt; List 🥧)</code>, that would take <code>bake</code> function and return the <code>bakeAll</code> equivalent. Could you write it in your language of preference? You may have already used it, it's the <code>map</code> method. It is implemented in <a href="https://en.wikipedia.org/wiki/Map_(higher-order_function)">most languages</a> for lists or arrays. In Haskell, you would write it as follows:</p>
+<pre><code class="language-haskell">bakeAll :: List 🍎 -> List 🥧
+bakeAll apples = map bake apples
+</code></pre>
+<p>It's not idiomatic Haskell yet (more to come later), but it reads nicely:</p>
+<blockquote>
+<p><em>To</em> Bake all apples, <em>apply</em> bake <em>to every</em> apple.</p>
+</blockquote>
+<p>Now that, we baked all apples, we need to deal with the upstream providing apples. In other words, let's harvest apple trees!</p>
+<h2>Harvesting a tree</h2>
+<p>Let's consider the following function:</p>
+<pre><code class="language-haskell">harvest :: 🌳 -> List 🍎
+harvest tree = -- details the harvesting
+</code></pre>
+<p>Harvesting takes a single tree (🌳) and returns a lot of apples (🍎). One tree can produce up to 1000 apples, which can be baked into a 1000s of pies. We can directly have the list of pies as a result, some signature that resemble <code>🌳 -&gt; List 🥧</code>. We have both functions <code>harvest :: 🌳 -&gt; List 🍎</code> and <code>bakeAll :: List 🍎 -&gt; List 🥧</code>, how hard could it be to compose them?! The output of <code>harvest</code> can be the input of <code>bakeAll</code>. We can &quot;plug&quot; them to create the equivalent: <code>harvestAndBake :: 🌳 -&gt; List 🥧</code>. Let's use Haskell again:</p>
+<pre><code class="language-haskell">harvestAndBake :: 🌳 -> List 🥧
+harvestAndBake tree = bakeAll (harvest tree)
+</code></pre>
+<p>Substituting <code>bakeAll</code> by its implementation, we can get rid of the <code>bakeAll</code> intermediary step:</p>
+<pre><code class="language-haskell">harvestAndBake :: 🌳 -> List 🥧
+harvestAndBake tree = map bake (harvest tree)
+</code></pre>
+<h2>Harvesting a field of trees</h2>
+<p>We do not own just a single tree, but hundreds of apple trees blooming happily in our field. Let's call that a <code>List 🌳</code>. Since we already know of the <code>map</code>, we could use it to compose a <code>harvestAndBakeAll</code> for our field:</p>
+<pre><code class="language-haskell">harvestAndBakeAll :: List 🌳 -> List (List 🥧)
+harvestAndBakeAll trees = map harvestAndBake trees
+</code></pre>
+<p>The problem comes with the type <code>List (List 🥧)</code>. It's not a convenient type to deal with for our consumers. It's like nested packages, a wasteful way of wrapping goods. Fortunately, there's an easy way of unwrapping <code>List (List 🥧)</code> into <code>List 🥧</code>: <code>join</code>. Let's look at its signature: <code>join :: List (List 🥧) -&gt; List 🥧</code>. It removes a layer of <code>List</code>, returning a less intricate  Can you implement this method in your favorite language? Let's use it to simplify <code>harvestAndBakeAll</code>:</p>
+<pre><code class="language-haskell">harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = join (map harvestAndBake trees)
+</code></pre>
+<h2>Assembling into simple bricks</h2>
+<p>Let's assemble every small pieces we've covered until now:</p>
+<pre><code class="language-haskell">-- given
+harvest :: 🌳 -> List 🍎
+bake    :: 🍎 -> 🥧
+
+-- we compose
+harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = join (map (\tree -> map bake (harvest tree)) trees)
+</code></pre>
+<p>We are here inlining the previous <code>harvestAndBake</code> function into the <code>\tree -&gt; map bake (harvest tree)</code> anonymous function, or lambda. This is the way of writing anonymous functions in Haskell. The two expression are equivalent.</p>
+<p>There's a problem of readability with this one liner <code>harvestAndBakeAll</code> function, right? We are using composition glue functions, like <code>join</code>, <code>map</code> and the lambda. It would be elegant to make the expression less noisy, since the core functions are <code>harvest</code> and <code>bake</code>, our domain functions.</p>
+<h2>Reduce the noise of composition</h2>
+<p>In order to reduce noisy functions, we will use the union of <code>map</code> and <code>join</code>: <code>bind</code>, sometimes called <code>flatMap</code>. Let's first look at the signature of it: <code>bind :: List 🌳 -&gt; (🌳 -&gt; List 🍎) -&gt; List 🍎</code>. Read the signature out loud to help yourself understand it: it takes a list of trees, takes a function which can harvest a tree into a list of apples and returns a list of apples. Could you implement this method using <code>map</code> and <code>join</code>? Signatures are helping a lot to answer this problem.</p>
+<p>Now that we have the <code>bind</code>, we can reduce the <code>harvestAndBakeAll</code> method a little:</p>
+<pre><code class="language-haskell">harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = bind trees (\tree -> map bake (harvest tree))
+</code></pre>
+<p>We didn't do anything fancy here, but notice that we didn't use the <code>bind</code> with the same signature and it works the same. Can you spot the difference from what we saw before and explain how we didn't change the behavior of <code>bind</code>?</p>
+<h2>Introducing Haskell operators</h2>
+<p>Those operations (<code>bind</code>, <code>map</code>) are so common in Haskell that they have dedicated operators which reduce the amount of noise. First there is the map operator: <code>&lt;$&gt;</code>. Then there is the bind operator: <code>&gt;&gt;=</code>. They are written with arguments the same way the <code>+</code> applies to numbers in place of the <code>add</code> function:</p>
+<pre><code class="language-haskell">           add 1 2 == 1 + 2
+   map bake apples == bake <$> apples
+bind trees harvest == trees >>= harvest
+</code></pre>
+<p>Some might say that it makes the code less readable with obscure symbols, but haskellers would tell you that it's only a glue operation, it does not carry any meaningful value. If we were to write <code>harvestAndBakeAll</code> again, it would become:</p>
+<pre><code class="language-haskell">harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = trees >>= (\tree -> bake <$> (harvest tree))
+</code></pre>
+<p>Try to focus on the above expression and try to understand how each symbol works. A haskeller would not find this the best writing. arguably, the optimal way of writing it would be something like <code>harvestAndBakeAll trees = bake &lt;$&gt; harvest &lt;.&gt; trees</code>, but we'll cover this is later articles. </p>
+<h2>Monadic operations</h2>
+<p>Let's recap the three monadic operations we've seen so far:</p>
+<ul>
+<li><code>map :: (🍎 -&gt; 🥧) -&gt; (List 🍎 -&gt; List 🥧)</code> or <code>&lt;$&gt;</code>: it takes a function of simple types and returns a function of list of types</li>
+<li><code>join :: List (List 🥧) -&gt; List 🥧</code>: it takes a nested list and returns a flat list</li>
+<li><code>bind :: List 🌳 -&gt; (🌳 -&gt; List 🍎) -&gt; List 🍎</code>: it takes a list of stuff, a function of a single element returning a list and returns a flat list. It's the composition of the two last functions</li>
+</ul>
+<p>There's two important things to note: monadic functions always return a monad, here <code>List a</code>. Once you are dealing with a list, monadic function won't allow you to get an element of the list. You could have an element of a list with a function like <code>get</code>, or <code>pop</code>, or something else, but those are not monadic anymore.</p>
+<p>The second thing to note is that monadic functions compose well because they keep the integrity of the data and functions they apply on. The <code>map</code> is only a nice commodity to avoid boilerplate code. To be so, map keeps all the properties of the function <code>(🍎 -&gt; 🥧)</code> in the &quot;realm&quot; of lists. You can easily check that by replacing emojis by any other type you want to work with: <code>String</code>, <code>Date</code>, <code>Int</code>, etc. <code>map</code> and <code>bind</code> only translate functions to be used with a type <code>List</code>.</p>
+<p>That's all for <code>List</code> and <code>Monad</code> for now. There are many more properties that we haven't covered here. In my next article, I'll use the <code>Maybe</code> monad, and we'll verify the laws a monad abide to.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Quick introduction to macro in Elixir</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Quick introduction to macro in Elixir</h2>
+<time>13 January 2017</time>
+<p>When i first ran into <code>macro</code> in Elixir, i felt it was too much for me to learn on the first round. The concept seemed too stepped to digest for the moment. Immutability, pattern matching and Erlang processes are already pretty difficult to grasp when you come from utterly different environment (Java &amp; Javascript in my case).</p>
+<p>What a regret i have now! Even if macros are a powerful and complex tool, you can use them to make code much more readable without having to enter the hard bits. That's what i'll try to prove you with some simple examples.</p>
+<h2>What is a macro</h2>
+<p>Elixir is a compiled language based on Erlang. Compilation time can be annoying, but it provides more powerful tools such as code generation through their preprocessors. This feature is called a <code>macro</code> in Elixir. When I learned C I felt this was a useless feat, but now that I've grown aware to readability and reusability in programming, thanks to Software Craftsmanship mentality, I see <code>macro</code> a very different way.</p>
+<p><code>Macro</code> allow you to use Elixir code to generate code, which can help you design complex APIs and sleek <a href="https://en.wikipedia.org/wiki/Domain-specific_language">domain specific languages</a>. But with great power comes great responsabilities, and there could be some issues:</p>
+<ul>
+<li>It hides information that developer might want to access to</li>
+<li>It is not as easy to debug as plain code</li>
+<li>Complex <code>macro</code> can inflate compilation time by a lot</li>
+</ul>
+<p>We won't cover those as they are specific issues that could be very dependent on the context or subjective perception.</p>
+<h2>Our first macro</h2>
+<p>Let's say I want to spell numbers literally, write <code>two</code> instead of <code>2</code> for instance. Nothing more simple:</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> two, <span class="h-keyword">do</span>: 2
+<span class="h-keyword">end</span>
+<span class="h-keyword">defmodule</span> Integers <span class="h-keyword">do</span>
+  <span class="h-keyword">import</span> Integers.Macro
+  
+  <span class="h-keyword">def</span> addTwo(addend), <span class="h-keyword">do</span>: two + addend
+<span class="h-keyword">end</span>
+</code></pre>
+<p>This example is straight forward, the final result is exactly the same as if we'd use a function. The only difference is that the expression <code>two</code> is not evaluated at runtime but at compilation.</p>
+<p>The process of generating code is call macro expand, and the above code generates the very expected:</p>
+<pre><code class="language-elixir"><span class="h-keyword">def</span> addTwo(addend), <span class="h-keyword">do</span>: 2 + addend
+</code></pre>
+<p>So far so good, as the expanded version is arguably more readable then its macro version. Let's dig in a more useful example.</p>
+<h2>A more realistic use case</h2>
+<p>When i started this blog, I wanted to sanitize the content of my articles. Remove traces of classes, and eventually protect users from my mistakes by removing any hazardous inline scripts. The excellent <a href="https://github.com/rrrene/html_sanitize_ex">html_sanitize_ex</a> provides such functionality.</p>
+<p>Unfortunately, the basic sanitizer was sanitizing more than i would like. I will cut down the part of me reading the code, it's pretty straight forward (like any Elixir code base to be honest). I ended up on the <a href="https://github.com/rrrene/html_sanitize_ex/blob/v1.0.1/lib/html_sanitize_ex/scrubber/basic_html.ex">module</a> which scrubs every unwanted html tags. It has a very elegant usage of <code>macro</code>. The scubber looks like:</p>
+<pre><code class="language-elixir"><span class="h-comment"># ...</span>
+Meta.allow_tag_with_these_attributes <span class="h-string">"hr"</span>, []
+Meta.allow_tag_with_these_attributes <span class="h-string">"i"</span>, []
+
+Meta.allow_tag_with_uri_attributes   <span class="h-string">"img"</span>, [<span class="h-string">"src"</span>], [<span class="h-string">"http"</span>, <span class="h-string">"https"</span>]
+Meta.allow_tag_with_these_attributes <span class="h-string">"img"</span>, [<span class="h-string">"width"</span>, <span class="h-string">"height"</span>, <span class="h-string">"title"</span>, <span class="h-string">"alt"</span>]
+
+Meta.allow_tag_with_these_attributes <span class="h-string">"li"</span>, []
+Meta.allow_tag_with_these_attributes <span class="h-string">"ol"</span>, []
+Meta.allow_tag_with_these_attributes <span class="h-string">"p"</span>, []
+<span class="h-comment"># ...</span>
+</code></pre>
+<p>What is really nice with this way of writing is that you understand almost immediately what the code is doing. If i were to ask you to add the <code>iframe</code> to the list of allowed tag, you would probably come up with:</p>
+<pre><code class="language-elixir">Meta.allow_tag_with_uri_attributes <span class="h-string">"iframe"</span>, [<span class="h-string">"src"</span>], [<span class="h-string">"http"</span>, <span class="h-string">"https"</span>]
+</code></pre>
+<p>Moving forward a few minutes later, I had a complete scrubber that was complying with my needs. As you already suspect it, the above snippet uses <code>macro</code> too. But before getting into how the code works, i need to explain what quote and unquoted code is in Elixir.</p>
+<h2>Quote and unquote code</h2>
+<p>If the term scare you a little, don't worry it's the only concept of the article and it's easy to grasp.</p>
+<p>Let's go back to the first snippet. Let's say that instead of generating a literal, i generate a method declaration. The following code wouldn't compile:</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Sadraskol.Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> def_two <span class="h-keyword">do</span>
+    <span class="h-keyword">def</span> two, <span class="h-keyword">do</span>: 2
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+</code></pre>
+<p>Instead, you have to <code>quote</code> the method declaration. It tells the preprocessor to treat the quoted code like a a representation of the Elixir code, not a expression to compile directly. You don't understand what I've just said, me neither. The <a href="http://elixir-lang.org/getting-started/meta/quote-and-unquote.html">official docs</a> explains it better than i do. The final code you want is as follows: (the code generation equivalence is inlined each time):</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> def_two <span class="h-keyword">do</span>
+    <span class="h-keyword">quote</span> <span class="h-keyword">do</span>
+      <span class="h-keyword">def</span> two, <span class="h-keyword">do</span>: 2
+    <span class="h-keyword">end</span>
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+<span class="h-comment"># ...</span>
+Integers.Macro.def_two
+<span class="h-comment"># Generates</span>
+def two, <span class="h-keyword">do</span>: 2
+</code></pre>
+<p>Let's try to generalize the <code>add_two</code> with any number. The <code>def_add_N</code> <code>macro</code> would take the <code>base_addend</code> as argument and generate the according method declaration. With the information i provided you so far, you could think that the above implementation works:</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> def_add_N(base_addend) <span class="h-keyword">do</span>
+    <span class="h-keyword">quote</span> <span class="h-keyword">do</span>
+      <span class="h-keyword">def</span> add_N(addend), <span class="h-keyword">do</span>: base_addend + addend
+    <span class="h-keyword">end</span>
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+<span class="h-comment">#...</span>
+Integers.Macro.def_add_N(2)
+<span class="h-comment"># Generates</span>
+def add_N(addend), <span class="h-keyword">do</span>: base_addend + addend
+</code></pre>
+<p>Unfortunately, this code generates a compilation error, <code>base_addend</code> is undefined. This is where unquoting comes into play. It will take the value of an variable outside the <code>quote</code> scope and replace it.</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> def_add_N(base_addend) <span class="h-keyword">do</span>
+    <span class="h-keyword">quote</span> <span class="h-keyword">do</span>
+      <span class="h-keyword">def</span> add_N(addend), <span class="h-keyword">do</span>: unquote(base_addend) + addend
+    <span class="h-keyword">end</span>
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+<span class="h-comment">#...</span>
+Integers.Macro.def_add_N(2)
+<span class="h-comment"># Generates</span>
+def add_N(addend), <span class="h-keyword">do</span>: 2 + addend
+</code></pre>
+<p>We could stop here but my perfectionism wants to provide you with a useless but coherent code. We can introduce another parameter <code>literal_name</code> to produce different declarations:</p>
+<pre><code class="language-elixir"><span class="h-keyword">defmodule</span> Integers.Macro <span class="h-keyword">do</span>
+  <span class="h-keyword">defmacro</span> def_add_N(name, base_addend) <span class="h-keyword">do</span>
+    <span class="h-keyword">quote</span> <span class="h-keyword">do</span>
+      <span class="h-keyword">def</span> unquote(:<span class="h-string">"add_#{name}"</span>)(addend), <span class="h-keyword">do</span>: unquote(base_addend) + addend
+    <span class="h-keyword">end</span>
+  <span class="h-keyword">end</span>
+<span class="h-keyword">end</span>
+<span class="h-comment">#...</span>
+Integers.Macro.def_add_N <span class="h-string">"two"</span>, 2
+<span class="h-comment"># Generates</span>
+def add_two(addend), <span class="h-keyword">do</span>: 2 + addend
+</code></pre>
+<p>What i used here is a little trick: in Elixir (and Erlang), all methods are identified by an <code>atom</code>, so i generate the <code>atom</code> in the unquoted code. As you can see unquoting can also be used to execute plain Elixir code within the <code>macro</code>.</p>
+<h2>Your turn to play</h2>
+<p>I've exposed here all i knew about generating code with Elixir <code>macro</code>. I hope that it has motivated you to dig a bit more into the language. As a cautious developer, I would not suggest you to use macro everywhere in your code since it could severely hinders readability.</p>
+<p>Oh and for the explanation of the <a href="https://github.com/rrrene/html_sanitize_ex">html_sanitize_ex</a> snippet, i strongly suggest that you read the <a href="https://github.com/rrrene/html_sanitize_ex/blob/v1.0.1/lib/html_sanitize_ex/scrubber/meta.ex">module defining the macro</a> 🙂</p></p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

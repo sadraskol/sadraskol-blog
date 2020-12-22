@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Learning Alloy the hard way</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Learning Alloy the hard way</h2>
+<time>15 April 2020</time>
+<p>Reading <a href="http://softwareabstractions.org/">Software Abstractions</a> was a blast. It is complete, very insightful in first order logic, and makes Alloy an intuitive tool. That was until page 171 and the chapter &quot;Leader Election In A Ring&quot;. This chapter gave me a serious headache, and I needed to write about it here so I can clear my head out.</p>
+<p>This article is not meant to be a tutorial on Alloy and I won't explain the logic or syntax of the language here. Sorry if you're not familiar to the language, this post won't be very easy on you. </p>
+<h2>How the book states the problem</h2>
+<p>Let's imagine you have a ring of processes, the goal is to elect the leader of the group of processes. Each process will be given a unique identifier (say a MAC ID, or something) and the leader will be the process with the largest identifier. To achieve that, we'll use the <a href="https://en.wikipedia.org/wiki/Chang_and_Roberts_algorithm">Chang and Roberts algorithm</a>, a well known approach to solve the problem. The given Alloy code is explained first:</p>
+<pre><code class="language-alloy"><span class="h-keyword">open</span> util/ordering[Time]
+<span class="h-keyword">open</span> util/ordering[Process]
+
+<span class="h-keyword">sig</span> Time {}
+<span class="h-keyword">sig</span> Process {
+  succ: Process,
+  toSend: Process -> Time,
+  elected: <span class="h-keyword">set</span> Time
+}
+
+<span class="h-keyword">fact</span> Ring { <span class="h-keyword">all</span> p: Process | Process <span class="h-keyword">in</span> p.^succ }
+</code></pre>
+<p>As a complete stranger to this kind of algorithm, it took me quite some time to understand the ordering of the processes: it simulates the unique identifiers of processes.</p>
+<p>I have to point out something that bothers me at this point. The book reads &quot;[...] a <strong>token</strong> can be taken from the <strong>pool</strong> of one <strong>process</strong> and moved to the <strong>pool</strong> of its <strong>successor</strong> in the ring&quot; (I put emphasis on the words myself). Out of 4 concepts, two of them are completely dropped from the Alloy specification, <strong>token</strong> and <strong>pool</strong> does never appear, and it seems is replaced by <strong>toSend</strong>, which kind of feel an arbitrary name.</p>
+<p>Then the core of the algorithm is presented:</p>
+<pre><code class="language-alloy"><span class="h-keyword">pred</span> step (t, t': Time, p: Process) {
+  <span class="h-keyword">let</span> from = p.toSend, to = p.succ.toSend |
+    <span class="h-keyword">some</span> id: from.t {
+      from.t' = from.t - id
+      to.t' = to.t + (id - p.succ.prevs)
+    }
+}
+
+<span class="h-keyword">fact</span> DefineElected {
+  <span class="h-keyword">no</span> elected.first
+  <span class="h-keyword">all</span> t: Time - first |
+    elected.t = { p: Process | p <span class="h-keyword">in</span> p.toSend.t - p.toSend.(t.prev) }
+}
+</code></pre>
+<p>And this is where I lost myself, not only are these steps explained in a paragraph or less, but there's no more explanation to relate the choices of writing this way compared to the original algorithm. Where are the pools, the tokens, and above all why toSend?!</p>
+<p>I was angry and I could not wrap my head around the problem. Plus it was the first time graphs presented by the examples did not help me. I did not understand the distance between the original algorithm and the solution in Alloy. I doubted Alloy for the first time.</p>
+<h2>Revamping the specifications</h2>
+<p>My hubris took place: I'm smarter than Daniel Jackson, am I not? I will revamp his example into a more faithful example. Let's look at the description of the algorithm in Wikipedia: </p>
+<blockquote>
+<ol>
+<li>Initially each process in the ring is marked as non-participant.</li>
+<li>A process that notices a lack of leader starts an election. It creates an election message containing its UID. It then sends this message clockwise to its neighbour.</li>
+<li>Every time a process sends or forwards an election message, the process also marks itself as a participant.</li>
+<li>When a process receives an election message it compares the UID in the message with its own UID.
+<ol>
+<li>If the UID in the election message is larger, the process unconditionally forwards the election message in a clockwise direction.</li>
+<li>If the UID in the election message is smaller, and the process is not yet a participant, the process replaces the UID in the message with its own UID, sends the updated election message in a clockwise direction.</li>
+<li>If the UID in the election message is smaller, and the process is already a participant (i.e., the process has already sent out an election message with a UID at least as large as its own UID), the process discards the election message.</li>
+<li>If the UID in the incoming election message is the same as the UID of the process, that process starts acting as the leader.</li>
+</ol>
+</li>
+</ol>
+</blockquote>
+<p>This is the part the specification treats, the second phase of the algorithm is not modeled here.</p>
+<p>What do we read? Firstly, there is a notion of <code>participant</code> that is not in the specification of the book. Secondly, the message being carried out is not present in the original specification. So here is the new <code>Process</code> definition:</p>
+<pre><code class="language-alloy"><span class="h-keyword">sig</span> Time {}
+<span class="h-keyword">sig</span> Process {
+  neighbor: Process,
+  token: Process -> Time,
+  inbox: Process -> Time,
+  participant: <span class="h-keyword">set</span> Time,
+  elected: <span class="h-keyword">set</span> Time
+}
+</code></pre>
+<p>Our goals are:</p>
+<ul>
+<li>make the message passing more obvious, so we name an <code>inbox</code></li>
+<li>the <code>succ</code> being too close from <code>next</code>, we rename it <code>neighbor</code></li>
+<li>instead of having a <code>sendTo</code>, rename it <code>token</code> just as the description says</li>
+<li>introduce the concept of <code>participant</code> that is in the description as well</li>
+</ul>
+<p>Since we renamed all of these concepts, I feel more confident in refactoring the <code>step</code> method:</p>
+<pre><code class="language-alloy"><span class="h-keyword">pred</span> startsElection (t, t': Time, p: Process) {
+  p <span class="h-keyword">not</span> <span class="h-keyword">in</span> participant.t <span class="h-keyword">implies</span> <span class="h-comment">// (1)</span>
+    p <span class="h-keyword">in</span> participant.t' <span class="h-comment">// (2)</span>
+    <span class="h-keyword">and</span> p.neighbor.inbox.t' = p.token.t <span class="h-comment">// (3)</span>
+    <span class="h-keyword">and</span> messageReception [t', p.neighbor] <span class="h-comment">// (4)</span>
+}
+</code></pre>
+<p>Whenever a process <code>p</code> is not a participant (1), it becomes one (2) and sends a message in it's neighbor's inbox (3), and the neighbor will act the message reception as it should (4). The message reception logic follows the one from the description:</p>
+<pre><code class="language-alloy"><span class="h-keyword">pred</span> messageReception (t: Time, p: Process) {
+  p.inbox.t = p <span class="h-keyword">implies</span> p <span class="h-keyword">in</span> elected.t <span class="h-keyword">and</span> p <span class="h-keyword">not</span> <span class="h-keyword">in</span> participant.t <span class="h-comment">// (4.4)</span>
+  p.inbox.t <span class="h-keyword">in</span> p.^next <span class="h-keyword">implies</span> messageReception [t.next, p.neighbor] <span class="h-comment">// (4.1)</span>
+  p.inbox.t <span class="h-keyword">in</span> p.^prev <span class="h-keyword">and</span> p <span class="h-keyword">not</span> <span class="h-keyword">in</span> participant.t <span class="h-keyword">implies</span> <span class="h-comment">// (4.2)</span>
+    p <span class="h-keyword">in</span> participant.t.next
+    <span class="h-keyword">and</span> p.neighbor.inbox.t.next = p.token.t
+    <span class="h-keyword">and</span> messageReception [t.next, p.neighbor]
+}
+</code></pre>
+<p>For each proposition, the comment links to the rule in the algorithm description above. Although this code is not perfect, I was confident it was an improvement compared to the example in the book.</p>
+<p>Let's run the code...</p>
+<figure>
+  <img src="https://sadraskol.s3.eu-central-1.amazonaws.com/no-recursion-alloy.png" alt="pred this/messageReception cannot call itself recursively!"/>
+  <figcaption>This is what happens when you are not attentive enough</figcaption>
+</figure>
+<h2>Hubris is not a good advisor</h2>
+<p>Alright, this approach is uselessly aggressive and full of pride. I admit my anger blinded me and hubris brought me to think <strong>I</strong> could do better! First, I don't know a penny about concurrent algorithms (apart from distant lessons during my studies). Two, I am still a beginner in Alloy. I only used the language for its boosted graphs drawing capabilities and not for its formal logic powers. I forgot the one and only rule the author has being repeating again and again in the book: Alloy is a <a href="https://en.wikipedia.org/wiki/First-order_logic">first order logic</a> langage. It means that recursions, variables bindings, etc. are not part of the tools available to express ideas.</p>
+<p>Therefore, Alloy is definitely not the intuitive approach to specifications like a typical language would be. One must bind their mind to the first order logic (pun intended).</p>
+<h2>What now?</h2>
+<p>I want to try two things: first rename variables in the algorithm from the book to understand it better, then fix my own implementation to check my understanding of the approach and to formulate the limitations of the algorithm. Alright, so let's rename the variables and understand how an election can be generated by the algorithm:</p>
+<figure>
+  <img src="https://sadraskol.s3.eu-central-1.amazonaws.com/ring-trace.png" alt="traces of the original specification when renaming methods"/>
+  <figcaption>Let's analyse the traces carefully</figcaption>
+</figure>
+<p>We'll try to understand this example of an election.</p>
+<ol start="0">
+<li>At the initial state, no process is elected. We know Process2 should become elected, as it has the higher id. Each process has a token to itself. This is the initial state of every simulation</li>
+<li>Process0 has lost its token while others have their own token. This can be explained for a call of <code>step [Time0, Time1, Process0]</code>. Let's see how by replacing the terms in the predicate:</li>
+</ol>
+<pre><code class="language-alloy">step [Time0, Time1, Process0] <span class="h-keyword">iff</span> {
+  <span class="h-keyword">let</span> from = Process0.token, to = Process0.neighbor.token |
+    <span class="h-keyword">some</span> id: from.Time0 {
+      from.Time1 = from.Time0 - id
+      to.Time1 = to.Time0 + (id - Process0.neighbor.prevs)
+    }
+}
+</code></pre>
+<p>This substitution unravels the following predicate:</p>
+<pre><code class="language-alloy"><span class="h-keyword">some</span> id: Process0.token.Time0 {
+  Process0.token.Time1 = Process0.token.Time0 - id
+  Process2.token.Time1 = Process2.token.Time0 + (id - Process2.prevs)
+}
+</code></pre>
+<p>Since we know that <code>Process0.token.Time0</code> is a scalar, <code>id</code> must be <code>Process0.token.Time0</code> and since we know <code>Process0.token.Time0 = Process0</code> and <code>Process2.token.Time0 = Process2</code> we can keep on reducing:</p>
+<pre><code class="language-alloy">Process0.token.Time1 = Process0 - Process0
+<span class="h-keyword">no</span> Process0.token.Time1
+Process2.token.Time1 = Process2 + (Process0 - Process2.prevs)
+</code></pre>
+<p>We confirmed that the <code>Process0.token</code> is empty on the second step, but what about <code>Process2.token.Time1</code>? For that we need to explain <code>Process2.prevs</code>: it's all the processes with a smaller id than the current one. This term is the translation of the rule 4.3: the bigger process will discard messages of smaller ids. So:</p>
+<pre><code class="language-alloy">Process2.token.Time1 = Process2 + (Process0 - (Process1 + Process0))
+Process2.token.Time1 = Process2
+</code></pre>
+<p>That's it, the reduction is valid, we proved the predicate <code>step[Time0, Time1, Process0]</code>. Let's be a bit quicker for other steps</p>
+<ol start="2">
+<li>Here token points from Process0 to Process1, that would happen if Process1 passed its token to Process0, this is <code>step[Time1, Time2, Process1]</code>:</li>
+</ol>
+<pre><code class="language-alloy"><span class="h-keyword">let</span> from = Process1.token, to = Process1.neighbor.token |
+  <span class="h-keyword">some</span> id: from.Time1 {
+    from.Time2 = from.Time1 - id
+    to.Time2 = to.Time1 + (id - Process1.neighbor.prevs)
+  }
+</code></pre>
+<p>Again <code>Process1.token.Time1 = Process1</code>, therefor <code>id = Process1</code>, <code>Process1.neighbor = Process0</code> and <code>Process1.neighbor.prevs = {}</code> the empty set. We have our final reduction:</p>
+<pre><code class="language-alloy"><span class="h-keyword">no</span> Process1.token.Time2
+Process0.token.Time2 = Process1
+</code></pre>
+<ol start="3">
+<li>We can use the same proof: this time Process2 sent a message to Process1.</li>
+<li>This time, it seems that Process1 sent the message to Process0, since Process0 already had a token for Process1, it also has a token to Process2 now.</li>
+<li>Okay, we arrived at the crux of the algorithm, the two next step are the most important. This one is trickier, because so far, we only solved the <code>step</code> predicate with a single possible value for <code>id</code>. Since Process0 has two tokens now, there is a choice to make. We'll focus on the three options:</li>
+</ol>
+<pre><code class="language-alloy"><span class="h-comment">// id = Process1</span>
+Process0.token.Time6 = Process2
+Process2.token.Time6 = Process1 - (Process0 + Process1)
+<span class="h-keyword">no</span> Process.token.Time6
+
+<span class="h-comment">// id = Process2</span>
+Process0.token.Time6 = Process1
+Process2.token.Time6 = Process2
+
+<span class="h-comment">// id = Process2 + Process1</span>
+<span class="h-keyword">no</span> Process0.token.Time6
+Process2.token.Time6 = Process2
+</code></pre>
+<p>Alright, so we can see clearly that this time, it's the last option that is right. We'll keep the second option in our mind, since we can wonder if it can imply the election of Process2 in the next step.</p>
+<ol start="6">
+<li>Finally last step, this time, we need to understand the election predicate:</li>
+</ol>
+<pre><code class="language-alloy"><span class="h-keyword">fact</span> DefineElected {
+  <span class="h-keyword">all</span> t: Time - first |
+    elected.t = { p: Process | p <span class="h-keyword">in</span> p.token.t - p.token.(t.prev) }
+}
+
+<span class="h-comment">// t = Time6 and p = Process2</span>
+elected.Time6 = Process2.token.Time6 - Process.token.Time5
+</code></pre>
+<p>It means that the elected process will be the one having received his own token. The fact it just received it is garanteed by the fact that the system only evolves with the step predicate. The condition <code>- p.token.(t.prev)</code> also prevents processes that did not change to elect themselves. The process being elected is the process that has it's own token and received it from its left neighbor with the <code>step</code> predicate.</p>
+<h2>Conclusion</h2>
+<p>Now that I've understood the version of the book, I'm confident that I won't be able to do better than renaming the variables. I understand now how Alloy can help in this kind of approach but I can't stop thinking that a temporal logic tool like TLA+ is a much better fit. As Hillel Wayne (yes him again!) puts it:</p>
+<blockquote>
+<p>the more “timelike” the problem gets, the worse Alloy becomes at handling it</p>
+<p><a href="https://news.ycombinator.com/item?id=21226370">Hillel Wayne on HN</a></p>
+</blockquote>
+<p>Don't be discouraged by this post to learn Alloy. I'm still convinced it is a very powerful tool to understand constraints in systems. I think that the first order logic means that you cannot use familiar techniques like recursion.</p>
+<p>Also traces can be misleading, the first read might make you feel confident, but you need to decypher and fully understand the underlying specification. And I think this is what Daniel Jackson meant at the beginning of his book when he says Alloy focuses on the deep concepts behind your design and not intricacies of transient technology.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

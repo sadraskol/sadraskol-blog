@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Une compilation de quadrant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Une compilation de quadrant</h2>
+<time>16 March 2020</time>
+<p>Connaissez-vous le <a href="https://www.gartner.com/en/research/methodologies/magic-quadrants-research">quadrant</a> de Gartner ? Cet indicateur est vendu par Gartner pour choisir le bon prestataire de service, comment situer l'acteur dans un marché difficile à lire. Ne nous détrompons pas : les entreprises paient des sommes suffisantes pour que Gartner fasse l'audit qui permettra de les inclure dans le quadrant, le quadrant est biaisé par défaut. Apparaître sur le quadrant devient un argument de vente pour les entreprises présentes dans le quadrant. Ce n'est pas ce qui nous intéresse ici.</p>
+<p>Le quadrant lui-même utilise deux variables pour placer les acteurs. La première est la &quot;completeness of vision&quot; et la seconde &quot;ability to execute&quot;. Si l'on se place à la place d'un décideur, on veut certainement que le prestataire soit fort dans les deux variables. Pour éviter donc de diriger tout le monde vers le même prestataire (et donc perdre l'intérêt des concurrents de s'inscrire à ce quadrant), Gartner définit 4 zones pour faire que tout le monde soit content : &quot;Niche players&quot;, &quot;Challengers&quot;, &quot;Visionaries&quot; et les &quot;Leaders&quot;.</p>
+<p>Cette séparation en 2 dimensions et en séparation de l'espace permet de donner l'impression que chacun a ses forces et faiblesses et de s'introduire à une rationalisation des solutions possibles. Au-delà de l'usage superficiel qui peut être fait de cet outil, il reste à la base des études comparatives, crucial pour comparer avec hauteur et discernement.</p>
+<h2>Le quadrant de Kano</h2>
+<p>La <a href="https://uxways.wordpress.com/2018/11/21/la-methode-kano/">méthode de Kano</a> permet d'évaluer la pertinence d'une fonctionnalité en répondant à deux questions : Quel est mon sentiment si la fonctionnalité est présente ? Quel est mon sentiment si la fonctionnalité est absente ?</p>
+<p>Encore une fois la catégorisation est capitale : une fonctionnalité est soit &quot;indispensable&quot;, &quot;performante&quot;, &quot;attractive&quot; ou &quot;répulsive&quot;. La position relative de chaque fonctionnalité importe assez peu car c'est surtout la catégorie qui va aider à comprendre son utilité.</p>
+<h2>Les limites du quadrant</h2>
+<p>Je fais une parenthèse dans cette énumération de quadrants, car il me semble capital de contextualiser les quadrants. Leur aspect magique de catégorisation n'est pas absolu car 1) l'arbitraire des deux variables utilisées rend facile l'attaque de l'étude et 2) rien ne dit que le quadrant sera pertinent dans le futur.</p>
+<p>Pour le premier point, il ne faut pas oublier que le quadrant n'est pas une étude comparative et qu'il faut multiplier les points de vue sur un problème pour évaluer finement les possibilités. Si vous voulez un exemple d'étude plus fine, vous pouvez consulter cette étude comparative de 7 langages pour réimplémenter <a href="http://roscidus.com/blog/blog/2013/06/09/choosing-a-python-replacement-for-0install/">0install</a>.</p>
+<p>Le temps est le second traître des quadrants et des études comparatives en général. Ce n'est pas un hasard si Gartner dépublie leurs articles car les acteurs de 2014 ne sont plus ceux de 2020. Il en est de même de l'étude sur <a href="http://roscidus.com/blog/blog/2013/06/09/choosing-a-python-replacement-for-0install/">0install</a> : les résultats sur rust ne serait certainement pas les mêmes aujourd'hui vu son évolution depuis 2013. Paradoxalement les quadrants sont tels la beauté des fleurs : aussi puissants qu'ils sont éphémères.</p>
+<h2>Se débarrasser des variables</h2>
+<p>Il existe un quadrant qui ne s'embarrasse pas des variables et ne garde que les catégorisations. C'est le cas du framework <a href="https://en.wikipedia.org/wiki/Cynefin_framework">Cynefin</a>. Ce que le quadrant perd en finesse, il le gagne en assertivité. Je dois admettre ne pas comprendre ce genre de framework basé sur des théories assez fumeuses. Je laisse le lecteur juge des interprétations que formule ici.</p>
+<p>Ce qui semble crucial dans ce genre de quadrant, c'est la capacité de la personne qui manipule le framework qui va donner l'illusion de son efficacité, non le framework lui-même. La catégorisation sera facilement compréhensible pour la personne qui lit le résultat, mais ne m'aidera pas à mieux comprendre un problème. Cela est dû à une difficulté à catégoriser les problèmes : un problème simple pour une entreprise sera complexe pour une autre et vice-versa. Les critères d'attribution deviennent tellement subjectifs que ce n'est pas le quadrant qui fait le travail mais son manipulateur.</p>
+<p>Néanmoins, Cynefin n'est pas un échec total du point de vue des quadrants, il existe bien pire.</p>
+<h2>Comment louper son quadrant</h2>
+<p>Si le quadrant du Cynefin est douteux, il est aussi possible de totalement loupé un quadrant. C'est à mon avis le cas des études de Redmonk, en particulier le <a href="https://redmonk.com/sogrady/files/2020/02/lang.rank_.120.wm_.png">classement des langages les plus populaires</a>. Cette fois-ci il y a aussi deux variables : Le nombre de dépôt Github et la popularité sur StackOverflow. Par contre pas de catégorisation des langages. La majorité des langages étant proches du même axe, les langages sont finalement très homogènes. Or l'intérêt de la catégorisation est justement de discriminer intelligemment les choix sans les réduire à une variable arbitraire discutable.</p>
+<hr />
+<p>La force du quadrant est qu'il complexifie assez le problème pour éviter d'être dogmatique, et rend plus difficile d'attaquer les critères choisis. Il est clairement le plus utile quand il est utilisé pour répondre à une question simple : cette fonctionnalité est-elle nécessaire ? Cette tâche est-elle à faire ? etc. L'exemple de Kano est bon car il a permis de bien prioriser les fonctionnalités. J'aurais pu aussi présenter le <a href="https://en.wikipedia.org/wiki/Time_management#The_Eisenhower_Method">quadrant d'Eisenhower</a> qui est aussi très discriminant et permet de répondre à un problème avec peu de variables.</p>
+<p>Il est utile cependant d'utiliser d'autres méthodes quand la décision est plus importante. Les études qualitatives (comme celle de <a href="http://roscidus.com/blog/blog/2013/06/09/choosing-a-python-replacement-for-0install/">0install</a>) ou des méthodes impliquant plus de participants et de documentation sont à favoriser.</p>
+<p>Mon quadrant favori n'est pourtant aucun de ceux nommés :</p>
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/quadrant.jpeg" alt="Economic-Left/Authoritarian: It's ___state, Economic-Right/Authoritarian: ________, Economic-Left/Libertarian It's Free ___, Economic-Right/Libertarian: It's ___ Real Estate, "/><figcaption>Tim & Eric + Internet</figcaption></figure>
+<hr />
+<p>P.S. : alors que je relis mon article pour le publier, je remarque que je suis un piètre blogueur. Le vrai blogueur aurait fini l'article sur un quadrant de quadrants, rendant bien plus passionnant l'article. Je laisse l'exercice au lecteur motivé par des heures de recherches de quadrants plus ennuyants les uns que les autres !</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

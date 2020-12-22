@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Happy new year of code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Happy new year of code</h2>
+<time>05 January 2018</time>
+<h2>What happened in 2017</h2>
+<p>2017 has been a rich year for me! All of those good things happened to me this year:</p>
+<ul>
+<li>
+<p>I have found a job at <a href="https://www.malt.fr">malt</a>. It's the best working environment i've experienced so far: a growing team of fantastic individuals, a motivated and welcoming team spirit. I'm super happy to contribute to the adventure!</p>
+</li>
+<li>
+<p>I'm a new member of the <a href="http://www.lyontechhub.org/#!/">Lyon Tech Hub</a> and the <a href="http://lyon.clubagilerhonealpes.org">Cara Lyon</a>, mostly organizing the Coding dojos and DDD events. Our biggest feat has been the return of the Code Retreat.</p>
+</li>
+<li>
+<p>I wrote a blog post every month at least on this very blog. I didn't write compuslively, and I tried to search for my articles. Most of them are short but most likely asked a lot of research.</p>
+</li>
+<li>
+<p>I have abandonned the redaction of an unusually long article on processes and threads in different languages. I worked many hours on it, and it will certainly never be published but I learned a lot on concurrency models a low level.</p>
+</li>
+<li>
+<p>I have learned Purescript/Haskell basics while working on side projects. It took a lot of effort to get to a poor level, but it teached me a lot about other languages and gives me a higher point of view (and reasons to dislike javascript)</p>
+</li>
+</ul>
+<h2>What is planned for 2018</h2>
+<p>I'm writing down my resolutions here so that people can blame me next year. Pardon if I've been slacky, there must be a good reason!</p>
+<ul>
+<li>
+<p>I will focus on the languages I already know, this year I'll learn no other language. It's really time consuming and enriching my knowledge of Java, Ruby, Elixir, Erlang, Haskell, Purescript or Javascript is already quite some work!</p>
+</li>
+<li>
+<p>I will keep on organizing and coordinating the software crafters of Lyon. We'll be more active on twitter and already prepared a good program for next year!</p>
+</li>
+<li>
+<p>I will provide a new podcast for the LyonTechHub, the project is still in its infancy, but it will happen at some point!</p>
+</li>
+<li>
+<p>I will write French articles on my blog. Writing English is sometimes necessary to have feedback (<a href="https://sadraskol.com/posts/my-experience-with-purescript-so-far">my article on purescript</a> is a good example), but I could very well write my blog in French.</p>
+</li>
+<li>
+<p>I won't stop experimenting on my blog. Some cleaning is still necessary for my old blog posts written in HTML. But I will relentlessly try new things here.</p>
+</li>
+</ul>
+<p>Hope you have the best 2018!</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

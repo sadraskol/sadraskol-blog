@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>If-less game of life</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>If-less game of life</h2>
+<time>10 May 2016</time>
+<p>Let's implement an if-less <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">game of life</a>. I discovered this game during a <a href="http://coderetreat.org">code retreat</a> and the simplicity of its rules make it the perfect field to experiment patterns.</p>
+<h2>The rules</h2>
+<p>The game of life consists of a two dimension board filled with cells. Each cell can be either dead or alive. For simplicity sake, we'll only implement the behavior at the cell level. At each step, a cell behavior follows those 4 rules :</p>
+<ol>
+<li>Any live cell with fewer than two live neighbors dies.</li>
+<li>Any live cell with more than three live neighbors dies.</li>
+<li>Any live cell with two or three live neighbors lives on to the next generation.</li>
+<li>Any dead cell with exactly three live neighbors becomes a live cell.</li>
+</ol>
+<p>Applying those simple rules on every cell of the board and you can come up with surprising and intriguing self-generated structures.</p>
+<figure><img src="https://s3.eu-central-1.amazonaws.com/sadraskol/2g3_fontaine.gif" width="148" height="121" /><figcaption> Game of life fontain pattern</figcaption></figure>
+<p>During a code retreat session, you have 45 minutes to craft the most beautiful code that implements the Game of Life. At the end of the 45 minutes, you drop the code and restart from scratch with a new constraints. The constraint can be &quot;use a different paradigm editor (vim/eclipse)&quot;, &quot;only 4 lines of code per methods&quot; or, you guessed it &quot;no conditional statement&quot;. You can find a lot more activities <a href="http://coderetreat.org/group/facilitators/forum/topics/what-are-some-exercises-and-constraints-that-people-use-during-se">here</a>.</p>
+<p>Now, let's dig in the coding of an if-less Game of life!</p>
+<h2>First draft</h2>
+<p>Let's say that, after a first round of test-implement-refactor on all the different states of the cell, we have the following class for the cell:</p>
+<pre><code class="language-java"><span class="h-keyword">class</span> Cell {
+ <span class="h-keyword">private</span> final boolean isAlive;
+
+ Cell(final boolean isAlive) {
+   this.isAlive = isAlive;
+ }
+
+ <span class="h-keyword">public</span> Cell mutate(int neighbors) {
+   <span class="h-keyword">if</span> (neighbors &lt; 2 &amp;&amp; neighbors &gt; 3) {
+     <span class="h-keyword">return</span> <span class="h-keyword">new</span> Cell(false);
+   } <span class="h-keyword">else</span> <span class="h-keyword">if</span> (this.isAlive || (!this.isAlive &amp;&amp; neighbors == 3)) {
+     <span class="h-keyword">return</span> <span class="h-keyword">new</span> Cell(true);
+   } <span class="h-keyword">else</span> {
+     <span class="h-keyword">return</span> <span class="h-keyword">new</span> Cell(false);
+   }
+ }
+}
+</code></pre>
+<p>Okay the code is ugly. But hey! it's your first time and we only wanted to get familiar with the game of life &quot;business&quot;. We have plenty of space for improvement so let's get started and achieve this if-less game of life. We'll first remove the boolean member of the class.</p>
+<h3>Alive and dead cells</h3>
+<p>The first concept that we can implement and that is explicit in the rules is the concept of living and dying cells. We will get rid of the boolean that hang some how in there and simplify the big <em>if-else if-else</em> conditional.</p>
+<pre><code class="language-java"><span class="h-keyword">class</span> LivingCell <span class="h-keyword">implements</span> Cell {
+  <span class="h-keyword">public</span> Cell mutate(int neighbors) {
+    <span class="h-keyword">if</span> (neighbors &lt; 2 &amp;&amp; neighbors &gt; 3) {
+      <span class="h-keyword">return</span> <span class="h-keyword">new</span> DeadCell();
+    } <span class="h-keyword">else</span> {
+      <span class="h-keyword">return</span> <span class="h-keyword">new</span> LivingCell();
+    }
+  }
+}
+</code></pre>
+<pre><code class="language-java"><span class="h-keyword">class</span> DeadCell <span class="h-keyword">implements</span> Cell {
+  <span class="h-keyword">public</span> Cell mutate(int neighbors) {
+    <span class="h-keyword">if</span> (neighbors == 3) {
+      <span class="h-keyword">return</span> <span class="h-keyword">new</span> LivingCell();
+    } <span class="h-keyword">else</span> {
+      <span class="h-keyword">return</span> <span class="h-keyword">new</span> DeadCell();
+  }
+}
+</code></pre>
+<p>By having more fine grained classes, we remove a level of ifs and clearly improved readability. I guess that a colleague, or the future you, would better understand what <code>new LivingCell()</code>is rather than <code>new Cell(true)</code> when reading those lines. To convince you, just read it out loud, you'll feel more natural to say that it &quot;returns new living cell&quot;.</p>
+<p>But it's not enough to achieve if-less game of life. We need to find an alternative to <code>int</code> for the concept of neighbors.</p>
+<h3>Extract concept from the rules</h3>
+<p>Depending on the population surrounding the cell, it is modified. But currently, the cell decides if the population is worth living or dying. It is too much responsibilities for a single cell. So instead of passing an <code>int</code> we'll pass a <code>Population</code> and let it decide when to switch the cell state.</p>
+<pre><code class="language-java"><span class="h-keyword">class</span> LivingCell <span class="h-keyword">implements</span> Cell {
+  <span class="h-keyword">public</span> Cell mutate(Population population) {
+    <span class="h-keyword">return</span> population.mutateLivingCell();
+  }
+}
+</code></pre>
+<pre><code class="language-java"><span class="h-keyword">class</span> DeadCell <span class="h-keyword">implements</span> Cell {
+  <span class="h-keyword">public</span> Cell mutate(Population population) {
+    <span class="h-keyword">return</span> population.mutateDeadCell();
+  }
+}
+</code></pre>
+<p>Okay, there's no ifs in there but we don't go really very far, do we ? What should we do with the populations ? First let's categories them. We have three type of population:</p>
+<ul>
+<li>When there is not enough neighbors or too much any cell dies. Let's call that a <code>DeadlyPopulation</code>.</li>
+<li>The opposite case: any cell with a perfect amount (3) of neighbors will come to live whatever state it had before. Let's call that a <code>PerfectPopulation</code>.</li>
+<li>Finally, there's a population for which any dead cell remains dead and living cells remain alive. Let's call that a <code>FragilePopulation</code>.</li>
+</ul>
+<pre><code class="language-java"><span class="h-keyword">class</span> DeadlyPopulation <span class="h-keyword">implements</span> Population {
+  <span class="h-keyword">public</span> Cell mutateDeadCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> DeadCell();
+  }
+  <span class="h-keyword">public</span> Cell mutateLivingCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> DeadCell();
+  }
+}
+</code></pre>
+<pre><code class="language-java"><span class="h-keyword">class</span> PerfectPopulation <span class="h-keyword">implements</span> Population {
+  <span class="h-keyword">public</span> Cell mutateDeadCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> LivingCell();
+  }
+  <span class="h-keyword">public</span> Cell mutateLivingCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> LivingCell();
+  }
+}
+</code></pre>
+<pre><code class="language-java"><span class="h-keyword">class</span> FragilePopulation <span class="h-keyword">implements</span> Population {
+  <span class="h-keyword">public</span> Cell mutateDeadCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> DeadCell();
+  }
+  <span class="h-keyword">public</span> Cell mutateLivingCell() {
+    <span class="h-keyword">return</span> <span class="h-keyword">new</span> LivingCell();
+  }
+}
+</code></pre>
+<p>And that's it! I skipped the test-refactor test to keep the code as readable as possible. But to explain quickly, I start with the <code>LivingCell</code> removing the <em>if</em> and introducing the concept of population. The tests should be red, saying that the <code>Population</code>, <code>DeadlyPopulation</code>, etc. don't exists and then implements their tests, adding their methods, implementing them. Once done it's pretty straight forward to add the <code>DeadCell</code> cases.</p>
+<p>And that's it, we've implemented an if-less game of life, or to be more precise the set of rules for the cell, since the board logic is nowhere to be seen.</p>
+<h2>Wrapping up</h2>
+<p>What have we done really ? There is no conditional statement in the cells behavior now, but it does not mean that we really made them disappear from the implementation, we just <em>postponed</em> them to another class. For instance it could be the grid's responsibility to choose what kind of population is around the cell. The benefit of this postponement is that we don't have to stick with the rules, if we decide to change the <em>perfect</em> population to 6 neighbors, this piece of code would not change.</p>
+<p>One might argue that the use of a <a href="https://en.wikipedia.org/wiki/Strategy_pattern">strategy pattern</a> is over zealous in this case, could impair readability. I will not discuss if it is good or bad to use this pattern, but to knowing it gives you another tool that you can think of when encountering a problem you can't sort out.</p>
+<p>The goal of retreat coding or other type of katas is not to make you program &quot;better&quot; but to broaden your skills. There is a nice word to describe the process of learning from constraints: <em>maieutics</em>. It comes from Socrates philosophy and means giving birth with the mind. Think of the birth of Athena: Zeus ate Metis, goddess of intelligence. After a while he felt some headaches. Hephaestus took an axe and opened the head of Zeus and so was Athena, goddess of wisdom, born. The process of eliminating conditional statements is as painful as Zeus headaches since we have to unlearn the way we are thinking to discover techniques that we already know. In our case, getting rid of booleans and conditional to implement a variation of the strategy pattern to obtain an if-less game of life.</p>
+<p><em>I hoped you liked this quick and dirty presentation. I will continue writing on other patterns you can experiment implementing the game of life. If you have any questions or feedback to make, feel free to contact me on <a href="https://twitter.com/sadraskol">twitter</a>.</em></p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

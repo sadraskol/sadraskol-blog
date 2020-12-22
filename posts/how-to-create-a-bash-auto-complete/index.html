@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>How to create a bash auto complete</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>How to create a bash auto complete</h2>
+<time>07 August 2017</time>
+<p>Bash auto-complete seems pretty magic. People who use bash extensively (I'm part of them) tend to have a certain love for the <code>[TAB]</code> key! It looked mysterious to me until I implemented one for myself. I'm not proficient at Bash, but basic knowledge of <a href="http://www.linuxjournal.com/content/bash-arrays">arrays</a> and <code>compgen</code> will make you king of autocomplete.</p>
+<h2>The <code>compgen</code> magic</h2>
+<p>This Bash builtin is the base of auto-completion. It takes two arguments: a list of terms, a dictionary, and an input to compare it with. It will return the list of terms in the dictionary which could match with the input. You can use it like this:</p>
+<pre><code>$ compgen -W 'init list new compile install lint' -- li
+list lint
+$ compgen -W 'init list new compile' -- compile
+compile
+$ compgen -W 'init list new compile' -- lists
+
+</code></pre>
+<p>The options <code>-W</code> stands for words. You can find the documentation of this builtin and in <code>man bash</code> or <a href="https://tiswww.case.edu/php/chet/bash/bashref.html#Programmable-Completion-Builtins">here</a>.</p>
+<h2>Working on a simple example</h2>
+<p>Let's say we decide to create an auto-complete functionality for <code>goat</code>, your homemade version of <code>git</code>. We would like to complete subcommands like <code>goat log</code> or <code>goat commit</code>. Firstly you'd need to create a script to let Bash know how to perform the completion. You'd write this script in <code>/etc/bash_completion.d/goat</code>.</p>
+<p>The content would look like this:</p>
+<pre><code class="language-bash">_goat() 
+{
+    local cur opts
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    opts="log commit push pull clone add"
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+}
+complete -F _goat goat
+</code></pre>
+<p><code>COMP_WORDS</code>, <code>COMP_CWORD</code> are variables provided by Bash respectively containing an array of each terms in the command line and the index of the word being completed (more documentation on bash internal linked with completion <a href="https://devmanual.gentoo.org/tasks-reference/completion/index.html">here</a>). The selection of words suggested to the user will be taken from the <code>COMPREPLY</code> variable. Calling the <code>complete</code> builtin will allow Bash to perfom the actual completion. Here's the result:</p>
+<pre><code>$ goat [TAB]
+log commit push pull clone add
+$ goat com[TAB]
+$ goat commit
+$ goat pu[TAB]
+push pull
+$ goat ad[TAB] some_file
+$ goat add some_file
+$ goat log [TAB]
+log commit push pull clone add
+</code></pre>
+<p>As you can see in the last attempt to complete the sentence, there is no consideration of the place in the command line you are which would do a pretty bad autocompletion feature. Plus there is no completion of options or sub commands.</p>
+<h2>Where to go from here</h2>
+<p>If you want a smarter completion feature, you'll have to:</p>
+<ol>
+<li>
+<p>Suggest based on subcommands and options available to the user. This means you need to create a tree of possibilities: <code>goat push</code> supports <code>--force</code> option but <code>goat pull</code> does not, etc.</p>
+</li>
+<li>
+<p>Suggest based on the type of argument expected. For instance Git auto completion will suggest branches and remote repository when using <code>git push [TAB]</code>.</p>
+</li>
+<li>
+<p>You can even suggest files based on their types, size, content, etc.</p>
+</li>
+</ol>
+<p>Those tasks might feel simple to achieve, but remember that you also have to deal with Bash language which is not the most elegant one. To give you an idea, <code>docker</code> has a 3k lines script to perform completion.</p>
+<p>I hope this post helped you!</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

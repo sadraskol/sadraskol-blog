@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Reading notes: Common Ground and Coordination in Joint Activity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Reading notes: Common Ground and Coordination in Joint Activity</h2>
+<time>26 October 2020</time>
+<p>This paper is less technical and more on collaboration on common tasks. The main author is famous doctor in psychology <a href="https://en.wikipedia.org/wiki/Gary_A._Klein">Gary Klein</a>. This paper was part of Lorin Hochstein's <a href="https://surfingcomplexity.blog/">blog</a>, but I couldn't get my hand on where I found it precisely. Anyway, let's get into the paper.</p>
+<h2>Joint activity</h2>
+<p>The paper starts with the idea that communication between experts is mystery to anyone external to the domain or even the team. The performance of a team depends on coordination, and the paper tries to explore issues of coordination. Previous papers focused on coordination, meaning people having the same goal, this paper will introduce joint activities: participants do not have to have the same goal.</p>
+<p>The paper divides joint activities in three domain:</p>
+<ol>
+<li>Criteria for a joint activity: the basic compact</li>
+<li>Requirements for joint activity: common ground</li>
+<li>Choreography of joint activity: phases</li>
+</ol>
+<h2>Basic compact</h2>
+<p>The basic compact is an agreement to support coordination. It constitutes a level of commitment of all parties. The base compact requires reinforcement and renewal. It is not eternal, it breaks when the goals are meet, when a party retires from the joint activity or participants disagree.</p>
+<p>The goal of the basic compact is for every participants to relax their short-time goal to achieve the common goal. For instance, a car will let a pedestrian cross the road to ensure safety at the cost of being on time for an appointment.</p>
+<p>Under the basic compact, parties are confident that others carry out their responsabilities of coordination tasks. Depending on the strength of coordination needed, the basic compact will adapt.</p>
+<h2>Common ground</h2>
+<p>Common ground is the mutual knowledge shared between parties. The basic compact includes an expectation that any faulty knowledge is repaired when detected. This knowledge spans from beliefs, assumptions, expertise, means of commmunication, etc.</p>
+<p>Common ground is a process of testing, tailoring and repairing. The paper lists what the author consider the most important types of knowledge:</p>
+<ul>
+<li>The role and functions of each participants</li>
+<li>The routines taht the team is capable of executing</li>
+<li>The skills and compeetencies of each participant</li>
+<li>The goals of the participants, including thir commitment to the success of the team activity</li>
+<li>The &quot;stance&quot; of each pariticpant (e.g., his or her perception of time pressure, level of fatigue, and competing priorities)</li>
+</ul>
+<p>This part is really similar to the tasks of a manager as described by Lara Hogan, that I <a href="https://sadraskol.com/posts/lara-hogan-s-resilient-management-reading-notes">reviewed before</a>.</p>
+<h2>Choreography of joint activity</h2>
+<p>The choreography of joint activity lays in 3 phases: an entry, a body of action and an exit. The transitions between and tasks in a phase require passing messages between phases. They form the signals of the joint activity. The signals only works if the others notice them.</p>
+<p>I didn't take note for this part, so I'm skipping to the next part.</p>
+<h2>Failures in joint activity</h2>
+<p>Failing to achieve the joint activity can have multiple reasons, but it all boils down to a failure in one of the three pillars of joint activity.</p>
+<p>You can have breakdown of common ground if the partial knowledge between parties is not mended. Failing to signal an abandonment of the joint activity can also mean a failure for the group.</p>
+<h2>Conclusion</h2>
+<p>The paper is quite long and I struggled to get to the end of it. It ends on reasons why automating tasks is difficult given machines can violate common ground without knowing it. The machine needs to be predictable to its operator. The cost of coordination needs to be taken into account.</p>
+<p>I did not enjoy the reading of this paper as I am quite ignorant in this discipline. As an ignorant I felt the paper using very specific to prove very general points. Since I don't understand the field, I could not get into it.</p>
+<p>It was really interesting to let my imagination weave concepts during the reading and extrapolating to my day to day tasks.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Modeling the train reservation kata - Part 2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Modeling the train reservation kata - Part 2</h2>
+<time>30 November 2020</time>
+<p>In our last article, we covered the basics of TLA+. This article is about the last rule left to implement: we want <em>ideally</em> 70% of coach occupation. Before implementing the rule, let's refine the implementation of our algorithm.</p>
+<h2>Refining implementation</h2>
+<p>So far our specification describes an abstract algorithm. We choose seats randomly in the train which would certainly not be the case of a real world implementation. Let's refine the Reserve action to a more realistic approach.</p>
+<p>We need to choose between a lot of alternatives. Let's say that our database imposes us to reserve seats in a numerical order order, A1 first then A2 and so forth. For instance:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/sequence.png"/>
+<figcaption>Reserving in order</figcaption>
+</figure>
+<p>To order seats, we need to compare them. We implement an <code>\prec</code> operator to do so:</p>
+<pre><code class="language-tla">a \prec b == \/ a[1] < b[1]
+             \/ a[1] = b[1] /\ a[2] < b[2]
+</code></pre>
+<p>In the formula, <code>a</code> and <code>b</code> are two different seats. Remember they are something like <code>&lt;&lt;&quot;A&quot;, 1&gt;&gt;</code> or <code>&lt;&lt;&quot;B&quot;, 5&gt;&gt;</code>. The issue is that TLA+ does not implement comparison for strings. We can easily alleviate this issue by replacing coach labels with numbers. So:</p>
+<pre><code class="language-tla">Coaches = 1..2
+</code></pre>
+<p>We now have to express the idea of reserving in order. If you were to implement it in a regular language, you'd use something like:</p>
+<pre><code class="language-javascript">seats.sort(SeatOrdering).take(n);
+</code></pre>
+<p>This javascript expression is descriptive of the how: we first order the list of seats, and then take the n first items. It tells how the n first seats are selected, but now what it means to be the n first seats. For TLA+ we need to change our mindset: what does it mean to reserve the first free seats. First we know that it is a subset of n seats. So we can still write:</p>
+<pre><code class="language-tla">SequenceSeatsStrategy(seats, count) ==
+    /\ Cardinality(seats) = count
+    /\ SameCoach(seats)
+    /\ reservations' = reservations <span class="h-keyword">\union</span> {seats}
+</code></pre>
+<p>What does it mean to have successive seats reservation in set theory? You could start by stating that every seats in the current reservation needs to be below the new reservation. But this condition does not guarantee to have holes in your reservation. So we can refine this definition by not allowing holes in the reservation: there is no remaining free seat within the reserved seats.</p>
+<pre><code class="language-tla">SequenceSeatsStrategy(seats, count) ==
+    /\ Cardinality(seats) = count
+    /\ SameCoach(seats)
+    /\ ~(<span class="h-keyword">\E</span> s <span class="h-keyword">\in</span> FreeSeats \ seats: <span class="h-keyword">\E</span> t <span class="h-keyword">\in</span> seats: s \prec t)
+    /\ reservations' = reservations <span class="h-keyword">\union</span> {seats}
+</code></pre>
+<p>The <code>~</code> operator is the proposition negation. We read the expression &quot;There is no seat such as...&quot;. Why don't we write <code>FreeSeats'</code> using the ' operator instead of <code>FreeSeats \ seats</code>? We just cannot write that. The <code>'</code> next state operator only works for describing the next state, not querying it.</p>
+<p>You verify that the <a href="https://gist.github.com/sadraskol/03340ab0cc1b0f5f0c329dccba8ac377">specification</a> is still valid with our previous invariants.</p>
+<h2>Expressing the last rule</h2>
+<p>Instead of trying to explain the ideal 70% rule, let's study the ambiguous case for which this rule isn't clear. Let's say two coaches have respectively 5 seats reserved and 6. How should we place a reservation of 3 seats:</p>
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/ambiguous.png"/>
+<figcaption>Reserving 3 seats in different configurations.</figcaption>
+</figure>
+<p>We know that our current implementation does not respect these scenarios. Do both respect the third rule &quot;<em>Ideally</em>, all coaches have 70% occupation&quot;? &quot;Ideally&quot; is relative to your experience. The rule is more interesting with more ambiguity, so we allow both cases to occur.</p>
+<p>Let's first try to understand the rule in our interpretation: for any reservation, either the coach respects its 70% occupation, or there is no other coach which has enough free seats to handle the reservation. We want the 70% rule to be violated in last resort.</p>
+<p>There is a little problem: so far we stated reservations to be a set, an unordered collection. There is no way to get to the &quot;last&quot; reservation since the order of reservations is not maintained. We need to refactor our whole spec to use the ordered collection: sequences.</p>
+<p>We already used sequences as tuples, but this time we want to have variable length collection. The easiest change is the Init action:</p>
+<pre><code class="language-tla">Init == reservations = <<>>
+</code></pre>
+<p>We then replace the reservation state change with the Append operation of sequences:</p>
+<pre><code class="language-tla">reservations' = Append(reservations, seats)
+</code></pre>
+<p>Changing the type of the variable means we need to change the type checking we set at the start:</p>
+<pre><code class="language-tla">TypeCheck == <span class="h-keyword">\A</span> i <span class="h-keyword">\in</span> <span class="h-keyword">DOMAIN</span> reservations: reservations[i] <span class="h-keyword">\in</span> <span class="h-keyword">SUBSET</span> Seats
+</code></pre>
+<p>Sets have a native way of exploring the values with the <code>\in</code> operator. Unfortunately TLA+ does not have the equivalent syntax for sequences. We use instead the <code>DOMAIN</code> keyword that provides all keys of a structure, in the case of sequences, the set of indexes. Be aware that since the return of <code>DOMAIN</code> is a set, it is not ordered and there are no guarantees on the order in which the indexes are iterated over.</p>
+<p>Now we run our refactored specification. We check that even though we have changed the state of reservations, from an unordered set to a sequence, there's no violation of our previous invariants. TLA+ is pretty solid. Time to implement the invariant for the last rule. First we need to find the number of seats reserved by coach:</p>
+<pre><code class="language-tla">ReservationCountFor(coach) == Cardinality({<<c, _i>> <span class="h-keyword">\in</span> ReservedSeats: c = coach})
+</code></pre>
+<p>We have already met this syntax when trying to count the occurence of the same seat in reservations in the <strong>SeatsCanBeReservedOnce</strong> invariant. As the name suggest, this time we count the number of seat reserved in a given coach.</p>
+<p>Next we want to find the coach of a given reservation. We are going to use our friend <code>CHOOSE</code>:</p>
+<pre><code class="language-tla">ReservationCoach(reservation) == (CHOOSE seat <span class="h-keyword">\in</span> reservation: TRUE)[1]
+</code></pre>
+<p><code>CHOOSE</code> provides a way of selecting an element of a set respecting a predicate. <code>CHOOSE x \in {1, 2, 3}: x % 2 = 1</code> returns either 1 or 3, the two odd numbers of the set. Note that TLA+ does not guarantee to be fair in the selection. In our case, the predicate is TRUE, meaning we select any seat in the reservation. We  Finally we need to select the latest reservation made:</p>
+<pre><code class="language-tla">LatestReservation == reservations[Len(reservations)]
+</code></pre>
+<p><code>Len</code> yield the same result for sequences as <code>Cardinality</code> for sets. Sequences are 1-indexed. They start at index 1, not index 0 as most programming languages. We have all we need to check the third rule:</p>
+<pre><code class="language-tla">LatestReservationShouldNotHaveBeenMadeIfAnotherCoachCanReceiveItWhileKeepingUnder70PercentOccupation ==
+    \/ reservations = <<>>
+    \/ ReservationCountFor(ReservationCoach(LatestReservation)) <= 70PercentCoachOccupation
+    \/ ~(<span class="h-keyword">\E</span> other <span class="h-keyword">\in</span> Coaches: ReservationCountFor(other) + Cardinality(LatestReservation) <= 70PercentCoachOccupation)
+</code></pre>
+<p>The name of this invariant is over the top. I love it and hate it at the same time. We have three possibilities:</p>
+<ul>
+<li>Or there is no reservation to check</li>
+<li>Or the latest reservation in a coach does not make the coach go over 70%</li>
+<li>Or there is no other coach which could have the reservation and still be under 70%</li>
+</ul>
+<p>The first predicate allows the Init state to check the invariant. Other state contains at least a reservation and one of the two other predicate has to be true.</p>
+<p>Our current <a href="https://gist.github.com/sadraskol/141cc44be5c27eb9361927d6a6fd928d">specification</a> violates this final rule, and the first found example shows why.</p>
+<h2>Final implementation</h2>
+<p>Now that we finally expressed the three rules and checked that our current algorithm does not respect them, let's choose a better algorithm. There are many options and we advise you to take some time to think about it. Even try implementing it in TLA+! We choose to reserve this way: reservations will be made in the least occupied coach.</p>
+<pre><code class="language-tla">LeastOccupiedCoach == CHOOSE c <span class="h-keyword">\in</span> Coaches: <span class="h-keyword">\A</span> x <span class="h-keyword">\in</span> Coaches:
+    ReservationCountFor(c) <= ReservationCountFor(x)
+
+LeastOccupiedCoachStrategy(seats, count) ==
+    /\ <span class="h-keyword">\A</span> <&ltc, _i>> <span class="h-keyword">\in</span> seats: c = LeastOccupiedCoach
+    /\ Cardinality(seats) = count
+    /\ count <= Cardinality(SeatNumbers)
+    /\ reservations' = Append(reservations, seats) 
+</code></pre>
+<p>We already covered all the operators used here. CHOOSE is used to select the least occupied coach, if two coaches are candidate, any of them would do. The rest is familiar.</p>
+<h2>Conclusion</h2>
+<p>Implementing the <a href="https://gist.github.com/sadraskol/da2f746da4f9f1c1f8e5be5105b73f43">final specification</a> takes me between 1 and 2 hours of work. TLA+ has this incredible power of letting logic drive the algorithm design, and not language features or implementation details. It yields a much clearer mental model of the problem at hand.</p>
+<p>You might think that this specification is useless: you could have made it in your head. We did not try to convince you otherwise. These articles are an introduction to TLA+ syntax, and a discovery of the train reservation kata. If you want to challenge TLA+ you could:</p>
+<ul>
+<li>Add the possibility to cancel reservation or part of the reservation</li>
+<li>Have a job replacing single reservation to optimize the 70% occupation of coach</li>
+<li>Keep reservations grouped together (pair in neighboring seats)</li>
+<li>Model a distributed system: reservations and place choice is done by different processes</li>
+</ul>
+<p>If you have to think of all the possible scenarios of such systems in your head, you need a lot of time and end up with an headache and no clear call on the correctness of your design. TLA+ and formal methods allow to explore tons of scenarios while learning a lot from your system.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

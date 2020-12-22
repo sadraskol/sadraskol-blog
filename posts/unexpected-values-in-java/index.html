@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Unexpected values in Java</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="Sadraskol's blog" href="https://sadraskol.com/feed">
+    <style>
+        fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: hsl(345.52, 100.0%, 77.25%);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            margin: 0 0 0 0;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+            background-color: hsl(22.11, 65.52%, 94.31%);
+            color: hsl(344.0, 9.2%, 31.96%)
+        }
+
+        strong {
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            color: hsl(345.0, 13.33%, 17.65%)
+        }
+
+        header nav {
+            padding-top: 1.0em;
+            padding-bottom: 1.0em
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 0 auto;
+            padding: 0 1em 0 1em;
+        }
+
+        figure img {
+            display: block;
+            margin: 0 auto 0.5em auto;
+        }
+
+        figure figcaption {
+            text-align: center;
+        }
+
+        code {
+            background-color: #fffffe;
+        }
+
+        pre code {
+            background-color: #fffffe;
+            overflow-x: auto;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            display: block;
+        }
+
+        blockquote {
+            margin: 0 0 0 0;
+            padding: 0.5em 1.5em 0.5em 3em;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: "\201C";
+            color: hsl(345.52, 100.0%, 77.25%);
+            position: absolute;
+            left: 0;
+            font-size: 100px;
+            line-height: 1;
+        }
+
+        .post-item {
+            margin: 1.0em 0 0 0
+        }
+
+        .post-item:last-child {
+            margin-bottom: 1.0em
+        }
+
+        .post-item__actions {
+            display: flex;
+            flex-direction: row;
+            margin: 0 0 0 0;
+            padding: 3.0px 0 0 0;
+            list-style-type: none
+        }
+
+        .post-item__actions__item {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0
+        }
+
+        .index-item {
+            display: flex;
+            margin: 1.0em 0 0 0;
+        }
+        .index-item:last-child {
+            margin-bottom: 1.0em
+        }
+        .index-item_datetime {
+            position: relative;
+            display: block;
+            padding: 0 30.0px 0 0;
+            flex-basis: 8em;
+            flex-shrink: 0;
+        }
+
+        .post-item__actions__item form button {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            text-decoration: none;
+            font: inherit;
+            color: hsl(345.52, 100.0%, 77.25%);
+        }
+
+        .post-item__actions__item form button:hover {
+            text-decoration: underline;
+            cursor: pointer
+        }
+
+        #editor-content__textarea {
+            width: 100%;
+            height: 400px;
+            padding: 1em;
+            margin-bottom: 1em;
+            display: block;
+            resize: vertical;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        table th {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table td {
+          text-align: center;
+          padding: 8px 8px;
+        }
+        
+        table tr {
+          border-bottom: solid 1px #aaa;
+        }
+
+        table {
+          border-collapse: collapse;
+        }
+
+        /* Github gist style from highlight js */
+        .h-comment,
+        .h-meta {
+            color: #969896
+        }
+
+        .h-variable,
+        .h-template-variable,
+        .h-strong,
+        .h-emphasis,
+        .h-quote {
+            color: #df5000
+        }
+
+        .h-keyword,
+        .h-selector-tag,
+        .h-type {
+            color: #d73a49
+        }
+
+        .h-literal,
+        .h-symbol,
+        .h-bullet,
+        .h-attribute {
+            color: #0086b3
+        }
+
+        .h-section,
+        .h-name {
+            color: #63a35c
+        }
+
+        .h-tag {
+            color: #333333
+        }
+
+        .h-title,
+        .h-attr,
+        .h-selector-id,
+        .h-selector-class,
+        .h-selector-attr,
+        .h-selector-pseudo {
+            color: #6f42c1
+        }
+
+        .h-addition {
+            color: #55a532;
+            background-color: #eaffea
+        }
+
+        .h-deletion {
+            color: #bd2c00;
+            background-color: #ffecec
+        }
+
+        .h-number {
+            color: #005cc5
+        }
+
+        .h-string {
+            color: #032f62
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header class="container">
+        <h1><a href="/">Sadraskol</a></h1>
+    </header>
+    <div class="container">
+        
+<h2>Unexpected values in Java</h2>
+<time>21 June 2018</time>
+<p>You read the documentation of Java and you find the method you were looking for. What are the possible scenarios when running this method?</p>
+<pre><code class="language-java"><span class="h-keyword">public</span> <span class="h-keyword">static</span> LocalDate parse(CharSequence text);
+</code></pre>
+<h2>Documented execution results</h2>
+<p>The <a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html#parse-java.lang.CharSequence-">documentation</a> gives 2 explicit answers and an implicit one :</p>
+<ul>
+<li>The <code>CharSequence</code> represent an actual date, and it returns a non null <code>LocalDate</code>.</li>
+<li>The <code>CharSequence</code> do not represent a date, the method throws a <code>DateTimeParseException</code></li>
+<li>The <code>CharSequence</code> is null. The documentation implicitly says that it would throw a <code>NullPointerException</code></li>
+</ul>
+<p>To be sure to workout all those case, you would have to write something like this:</p>
+<pre><code class="language-java"><span class="h-keyword">public</span> <span class="h-keyword">void</span> hell(CharSequence str) {
+  <span class="h-keyword">if</span> (str != <span class="h-keyword">null</span>) {
+    <span class="h-keyword">try</span> {
+      LocalDate result = parse(str);
+    } <span class="h-keyword">catch</span> (DateTimeParseException e) {
+      <span class="h-comment">// Exception management</span>
+    }
+  } <span class="h-keyword">else</span> {
+    LocalDate result = <span class="h-comment">// ..?</span>
+  }
+}
+</code></pre>
+<p>Did you find them all ? If not, it's probably that you don't know Java as much as you think. We provided yet the answer if the documentation was trustworthy. But we all know that documentation can be wrong ! What else could the method do ?</p>
+<p>It could throw a runtime exception that is not documented. This case is not that problematic, because this unexpected behavior would stop your thread execution. Hopefully you already implement a mecanism to cope with runtime exception in your program.</p>
+<p>The documentation says that the method would <em>never</em> return a <code>null</code>. But who believes in documentation. You could very well have to deal with a <code>NullPointerException</code>:</p>
+<pre><code class="language-java">LocalDate date = parse(<span class="h-string">"String That Is Parsed As null"</span>);
+<span class="h-comment">// some other code</span>
+date.isBefore(otherDate.plusDays(3)); <span class="h-comment">// throws a Null Pointer Exception</span>
+</code></pre>
+<p>The issue is double here. Firstly, the stack trace will indicate the line of the <code>NullPointerException</code> but not the expression it evaluated. You cannot determine if <code>date</code> or <code>otherDate</code> is the cause of the exception without debugging. The other issue is that the date can be propagated to other methods and create a time bomb in your code. The further the value is propagated the more difficult the root cause analysis.</p>
+<p>Mitigating code would be something like:</p>
+<pre><code class="language-java"><span class="h-keyword">public</span> <span class="h-keyword">void</span> hell(CharSequence str) {
+  <span class="h-keyword">if</span> (str != <span class="h-keyword">null</span>) {
+    <span class="h-keyword">try</span> {
+      LocalDate result = parse(str);
+      <span class="h-keyword">if</span> (result == <span class="h-keyword">null</span>) {
+        result = <span class="h-comment">// ..?</span>
+      }
+    } <span class="h-keyword">catch</span> (DateTimeParseException e) {
+      <span class="h-comment">// Exception management</span>
+    }
+  } <span class="h-keyword">else</span> {
+    LocalDate result = <span class="h-comment">// ..?</span>
+  }
+}
+</code></pre>
+<p>There are no real long term solution to this. When developing in Java, any expression can be null. You can use tools to analyze your code, but if your program depends on reflection, you will never be sure. You need to accept this, and prepare for long and difficult analysis.</p>
+<p>The last unexpected value is not a value: what if the method does never return? This case doesn't have a name in Java, so I'll use the Haskell vocabulary: the Bottom or <em><em>|</em></em>. What can we do against that? Nothing, definitely nothing. You would usually mitigate such problems by limiting the time tasks can take in your program.</p>
+<p>There's no escape for software hell. Other more strict languages might help you by getting rid of worst cases, but in the end, only one thing count: how clearly you've expressed your needs through the code.</p>
+
+<div>
+    <ul class="post-item__actions">
+        <li class="post-item__actions__item"><a class="back-link" href="&#x2f;">All posts</a></li>
+        <li class="post-item__actions__item"><a href="https://twitter.com/sadraskol">Twitter</a></li>
+    </ul>
+</div>
+
+    </div>
+</div>
+</body>
+</html>
