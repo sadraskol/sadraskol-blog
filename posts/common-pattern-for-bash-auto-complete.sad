@@ -1,0 +1,79 @@
+title = "Common pattern for bash auto complete"
+language = "en"
+publication_date = "2017-08-24T14:34:55+00:00"
+---- sadraskol ----
+After reading [my last article](https://sadraskol.com/posts/how-to-create-a-bash-auto-complete), I was disappointed. I could have shown you how to deal with the point 1:
+
+> \[You can\] Suggest based on subcommands and options available to the user. This means you need to create a tree of possibilities: goat push supports --force option but goat pull does not, etc.
+
+The first thing to discuss is the `COMP_WORDS` variable. `COMP_WORDS[0]` is always the name of the command, `goat` in our case. Also the current word to be completed `${COMP_WORDS[COMP_CWORD]}` represent at least an empty string. You can be sure that you have at least 2 string in your `COMP_WORDS` array. We'll use that at our avantage and use a `case` to complete subcommands:
+
+``` bash
+_goat() {
+  prev=${COMP_WORDS[COMP_CWORD - 1]}
+  cur=${COMP_WORDS[COMP_CWORD]}
+
+  COMPREPLY=()
+  case "$prev" in
+  	goat)
+    	COMPREPLY=( $( compgen -W "log commit push pull clone add" -- ${cur} ) )
+      return
+      ;;
+    commit)
+      case "$cur" in
+        -*)
+          COMPREPLY=( $( compgen -W "--author= --edit --no-edit --amend --include --only --allow-empty" -- ${cur} ) )
+          return
+          ;;
+      esac
+      break
+      ;;
+  esac
+  COMPREPLY=( $( compgen -f "${cur}" ) )
+}
+
+complete -F _goat goat
+```
+
+We declared `$prev` and we are sure it equals either `goat`, a subcommand or some other string. Note that we use `compgen -f` to suggest files in current directory, like the default behavior of bash auto complete. This code would grow in complexity pretty fast if we were to add some more subcommands. Let's first gather each behavior in a function:
+
+``` bash
+__goat_commit() {
+  case "$cur" in
+    -*)
+      COMPREPLY=( $( compgen -W "--author= --edit --no-edit --amend --include --only --allow-empty" -- ${cur} ) )
+      return
+      ;;
+  esac
+  COMPREPLY=( $( compgen -f "${cur}" ) )
+}
+
+# Somewhere in _goat()
+case "$prev" in
+  # ...
+  commit)
+  	__goat_commit
+    return
+    ;;
+esac
+```
+
+Now the main function consist only of a giant `case`, and could be pretty good as such. But after reading the `git` usage of Bash, i've crossed a pretty smart way to make the code less brittled by the verbosity of `case` statement, the trick is a simple two-liner:
+
+``` bash
+# declaring _goat() with $prev and $cur globals
+local completion_func="__goat_${prev}"
+declare -f $completion_func >/dev/null 2>/dev/null && $completion_func && return
+# default completion here
+```
+
+The first line allow to declare the name of the function the code is going to execute. We use the same pattern that we presented in the last example: `__goat_commit`, etc. The second line can be explained in steps:
+
+1. `declare -f $completion_fun` will display the content of function `$completion_fun`
+	* if the function exists, we forward the standard and error output in `/dev/null`
+  * otherwise, it interrupts the evaluation of the line (more info on [declare](https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html))
+
+2. the function is evaluated
+3. we exit from the current function
+
+Although the technique seems like a hack, it's really nice because it allows you to add a new subcommand without modifying the main or dealing with a very verbose `case`. You have to make sure that people contributing know the convention, because it's not obvious for people not proficient in Bash.

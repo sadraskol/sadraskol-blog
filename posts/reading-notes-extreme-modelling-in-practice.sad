@@ -1,0 +1,68 @@
+title = "Reading notes: eXtreme Modelling in Practice"
+language = "en"
+publication_date = "2020-06-04T22:17:48.208637+00:00"
+---- sadraskol ----
+This is the first time I read a full paper. This is the [eXtreme Modelling in Practice](https://arxiv.org/pdf/2006.00915.pdf) paper written by a team of engineer at MongoDB. The paper's insight on eXtreme modelling is really interesting and I was not disappointed reading the paper. Here are my notes:
+
+MongoDB already used TLA+ to check some high level specifications. TLA+ is already used in the industry by Amazon, Microsoft, Intel, etc. It successfully helped teams identify bugs. But the authors note a reluctancy in using TLA+ in fear of the "transcription bug": when the implementation and the model do not match.
+
+eXtreme Modelling was introduced by this [paper](https://arxiv.org/pdf/1111.2826.pdf), and explored the possibility of implementing and modelling at the same time. The specification would evolve with the implementation and the system is tested directly with the model. Two techniques are presented:
+
+- Model-based trace-checking (MBTC): it consists of running the system, capturing traces then checking them with the model
+- Model-based test-case generation (MBTCG): we run the model, capture the states and implement the corresponding tests in the implementation language.
+
+There are alternatives to these two methods (specifications and implementation in the same language, generating code from specs, refinement, direct check on existing implementation, etc.) but they are not applicable to MongoDB's use cases. The author has doubts in refinement: it implies maintaining mutliple models and their implementation. It is costly and conflicts with the eXtreme Modelling that suggests to maintain a single model.
+
+They tested two systems that already run randomized testing: MongoDB and Mongo Realm Sync.
+
+## MBTC applied to MongoDB
+
+MBTCG is hard to apply to MongoDB because it requires to introduce hooks in the code to stop processes. It is expensive and could change the system's behavior. Note: The last claim is not proved or explained a lot. Once you know all the issues they had, maybe this approach could have worked.
+
+The database has 423 hand-written integration tests and 23 randomized tests. First they implemented a `MongoRaft.tla` specification to match high level specs of MongoDB consensus protocol. They changed the implementation from the original Raft protocol, since MongoDB has some implementation differences.
+
+The specification had 3 nodes having their own state (4 variables) and 7 labelled operations (It is weird because they list 9 operations but the paper states only 7 throughout, I don't where the discrepancy comes from). This leads to a state space of around 371k states.
+
+The author then describes the protocol used to analyse traces within the system. They basically introduced logs after each operation.
+
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/mbtc-pipeline.png" alt="each Node logs to files, then a python script turns them into TLA+ which is then checked"/></figure>
+
+### Analysis
+
+The analysis on this case is really insightful, I would say it's the most interesting part of the paper.
+
+They invested 10 weeks of work to validate one specification. Due to discrepancies between the code and the model, there was a lot of effort to fix the model and the lack of tooling did not help. The problems they faced:
+
+- The traces need to be written before the action of a node is visible to other nodes, otherwise the traces are wrongly ordered. They had to lock the code when writing the traces which is quite expensive
+- Each nodes of MongoDB are multi-threaded. Each thread shares locking mechanisms, latches, use futures, etc. All of this makes snapshoting the state of each node very difficult
+
+Note: I'm surprised the author did not anticipate this problem. Lamport is known for consensus algorithm, but he planned their usage for both distributed systems and multi-threaded environments. I think they secretly hoped not to encounter such issues.
+
+- The specification did not model arbiters in the protocol (oversimplification)
+- Initial synchronisation of nodes needed extra work
+- MongoDB can have 2 leaders for a short amount of time (!!!)
+- Copying the oplog did not work has specified
+
+All these problems could be solved by changing the specification, but the authors feared it would implode the state space. The spec had already a runtime of 15 minutes, finer specification would mean a lot more time to wait for results.
+
+The final cost for the MBTC method is really high and the authors dropped this experimentation when they see the amount of work to put in it.
+
+## MBTCG applied to Mongo Realm Sync
+
+The system is under migration from the C++ implementation to a Golang implementation. The authors used MBTCG to check both implementations. They checked 6 operations that represented 21 rules of merge implemented in approximately 1000 lines of C++.
+
+They used the C++ implementation directly and slowly converted it into TLA+ in 40 hours. They met 2 challenges: C++ relied heavily on the mutation of arguments of methods which is not possible in TLA+. Operation are unordered in and could lead to a state space explosion.
+
+To constrain the state space, instead of modelling a lot of state transitions, they used only one operation applied to a lot of initial states.
+
+TLC (TLA+ main checker) helped finding a non terminating bug in the translation that was also present in the C++ implementation but not catched by the existing tests. They decided to deprecate the operation and to focus on the tests.
+
+The pipeline in this case is simpler: TLC generated a graphiz DOT file for every states. They translated theses files into C++ code corresponding to the implementation. It results in 4913 tests.
+
+The existing hand-written tests had a 21% branch coverage. The fuzzy tests had a 92% branch coverage. The MBTCG tests had a wooping 100% branch coverage. The author are therefore very confident the specification matches the implementation and that MBTCG proved itself useful. The overall process was 4 weeks long.
+
+## Personal notes
+
+This paper is really interesting. I feel like eXtreme Modelling has a lot to offer. The comparison in the paper seems unfair: MBTC failed because of the complexity of the system they were testing. If they had applied MBTC to the second case, would they have failed the same? I am seduced by the MBTCG approach, but the paper is not sufficient to decide.
+
+I think that both approaches require tools to more accessible to most software engineers. But I'm sure that there is a place for this kind of approaches in a lot of cases. I hope you enjoyed reading me as I enjoyed reading the paper.

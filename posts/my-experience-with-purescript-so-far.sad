@@ -1,0 +1,48 @@
+title = "My experience with Purescript so far"
+language = "en"
+publication_date = "2017-12-12T00:08:50+00:00"
+---- sadraskol ----
+Purescript is a pure functional language. It is highly inspired by Haskell and compiles to javascript. I learned it on a side project (not a very serious one) and to write scripts to query our mongodb instances at [malt](https://www.malt.com). I will simply present my point of vue on the current state of the language.
+
+## Environment tools
+
+First off, the install and setup of the environment is straight forward. [Pulp](https://github.com/purescript-contrib/pulp) works like a charm! It is intuitive and it never went in my way. The incremental build is super fast on my machine so you can have a quick feedback on your test while you code with a simple `pulp --watch test`.
+
+The second thing purescript excels at is documentation browsing. If you look for the documentation of the `map` function, just look up on [pursuit](https://pursuit.purescript.org/search?q=map). It's a shame that the results are weidly ordered. I would have preferred to have the `Data.Functor (map)` at the top, since it's the most common. But this is only a detail, I'm sure maintainers are aware of these sort of things and are working towards a better browsing experience.
+
+Another nice surprise is the [Atom Ide](https://atom.io/packages/ide-purescript). If you use Atom, it offers a nice ide that take care of autocomplete or source browsing. I need to restart the plugin from time to time to synchronise it with the current state of the build. Even with this minor problem, it's impressive that such a young language has such a nice completion features. static types FTW!
+
+## Language features
+
+Speaking of type system, Purescript is so pure that it won't allow you to use partial functions without special treatments. This pushes you to a [type driven development](http://blog.ploeh.dk/2015/08/10/type-driven-development/), which allowed me to learn a lot about the problems I was trying to solve.
+
+Purescript does not come "batteries included", you need to import every dependencies, even the `+` operator! I don't know why, since the static typing system allows to prune useless code easily, and tree shaking is done by default when packaging the javascript. Anyways it's a surprising feature, that isn't clearly indicated. You will have weird error messages when not importing  Prelude. Which brings us to the core pain point of Purescript: its user experience.
+
+## Purescript user experience
+
+Let's say you mistype the function `traverse` to `traversee`. In Elixir, the compiler will warn you that there's a more natural option: it will suggest methods in the context that look like your mistyping using the [jaro distance](https://hexdocs.pm/elixir/String.html#jaro_distance/2). It's a shame that the Purescript compiler does not do such things, even more because the type system would allow to suggest some very smart and elegant choices. No such explanation is given by purescript compiler.
+
+As I mentioned earlier, forgetting to import Prelude at the start will award you some very weird messages like `(+) does not exist`. I feel like it's a pain for nothing for many reasons:
+	
+* I don't see a case where a program won't need to use operations like `(+)`, `(<>)`, etc.
+* Even if they did not use `Prelude`, the tree shaking would make sure their package is not impacted
+* Finally, even if there would be a good reason not to import `Prelude`, why not creating specific messages to help newcomers to follow steps to understand it.
+
+Purescript leaves you alone in the jungle of its methods and functional gibberish. If you don't know what a `Monoid`, a `Foldable` or a `<$>` is, you better learn the language with tutorial first! It feels like the language wasn't build for programmers first, but for Haskell programmers with strong theorical background. Could you easily guess what's the difference between a `Semi-groupoid` and a `Monoid`?
+
+The most representative to me is the `purescript-assert` library, when the assertion work, everything is fine. But once you get an error, here's the result:
+
+<figure>
+  <img src="https://s3.eu-central-1.amazonaws.com/sadraskol/purescsript-asser-error.png"/>
+  <figcaption><i>What happened?!</i></figcaption>
+</figure>
+
+As you can see, there's no comprehensible error message, not even the line of the error in the `.purs` test file. If you have more than one assertion in your tests, which is quite the norm, you can't know which assertion fails. Fortunately, other libraries allow to perform testing with better output. I deeply regret that basic libraries don't go in a spirit of helping the programmers. As this [tweet](https://twitter.com/chrisamaphone/status/936966525810028546) says:
+
+> Programming languages should help programmers becoming better
+
+Purescript only provides half the tools for the statement to be true.
+
+## Purescript could change
+
+Purescript is not in its stable stage yet, and most of the work is still to be provided. I have great hopes in Purescript. It offers a super nice way of doing Javascript in a safe and productive way. It's a shame it is not designed for newcomers or in an [ethic of care](https://en.wikipedia.org/wiki/Ethics_of_care).

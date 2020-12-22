@@ -1,0 +1,35 @@
+title = "Press review #8"
+language = "en"
+publication_date = "2020-05-11T13:26:51.873156+00:00"
+---- sadraskol ----
+I am currently working on a long articles on different models. Since I don't find the inspiration in those dire times, I forced myself into writing a press review.
+
+### [Retries in distributed systems: good and bad parts](https://shubheksha.com/posts/2020/05/retries-in-distributed-systems-good-and-bad-parts/)
+
+Before reading this article, I was reluctant to add retries in a distributed system. Retry storm is a way of DDoS yourself. Plus, retries don't usually help solving the issue that the first request ran into.
+
+I might now consider retries with two conditions: exponential backoff and jittering.
+
+### [The hard parts about making it look easy](https://surfingcomplexity.blog/2020/05/05/the-hard-parts-about-making-it-look-easy/)
+
+The **law of fluency** is really nice:
+
+> “Well”-adapted work occurs with a facility that belies the difficulty of the demands resolved and the dilemmas balanced.
+
+This quote inspires me a myriad of unorganized thoughts, it would be egoistic to keep it for me. The facility of a presentation on story mapping during an hour belies the dozen of hours not meeting expectations with a reluctant client...
+
+### [Python tutor - Visualize your code](http://www.pythontutor.com/)
+
+The more I think of models, the more I regret the lack of visual aids when designing software. Python tutor is nice for language that do not have a nice debugger. For Java I'll still use my IDE debugger.
+
+I am still in quest of an even more powerful tool to develop visually, but I can't find any that seem accessible.
+
+### [I hate configuring JSON serializers](https://einarwh.wordpress.com/2020/05/08/on-the-complexity-of-json-serialization/)
+
+I disagree with this article, but I think it's interesting to talk on this subject.
+
+Firstly, it does not mention the reason JSON is widespread in the first place: APIs are built for the most common device, the browser. Therefor you need to agree on a representation that is easy for Javascript. JSON is the easiest solution as browser provide a free mapping.
+
+Secondly, the fact that you decide to use a client-server architecture makes the communication between them an essential part of the system.
+
+Finally, if you put your server in charge of the core of your application, then I find natural to have a communication as a separate component. I agree with the conclusion of the article: you have to separate your API objects (to treat retro-compatibility, etc.) and your domain objects. The way it arrives there is not my favorite.

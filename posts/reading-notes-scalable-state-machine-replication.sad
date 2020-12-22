@@ -1,0 +1,126 @@
+title = "Reading notes: scalable state-machine replication"
+language = "en"
+publication_date = "2020-09-22T19:33:55.771739+00:00"
+---- sadraskol ----
+This article is about my second paper reading. I really enjoyed my [first one](https://sadraskol.com/posts/reading-notes-extreme-modelling-in-practice), and I was excited to read another one. I couldn't make my mind up until I spotted Murat Demirbas' [reading list](https://muratbuffalo.blogspot.com/2020/08/my-distributed-systems-seminars-reading.html). Since an expert on distributed systems will make his own review, I'll be able to compare and check for improvement in my own reading. Let's go!
+
+### Background and challenges
+
+[Scalable State-Machine Replication (S-SMR)](https://www.inf.usi.ch/faculty/pedone/Paper/2014/2014DSNa.pdf) is a paper showing a generic way of providing SMR while partitionning the application state. Why would you do that? SMR algorithms offer a reliable way of building fault-tolerant systems. Unfortunately they suffer from scalability issues. To mitigate those issues, you can partition the state, which improve the systems throughput. The goal of the paper is to show that both SMR and partitionning can be used to improve the throughput of a system compared to a single node solution like Zookeeper.
+
+They are 2 challenges to overcome:
+
+1. Keeping the linear order of commands accross and within partitions. SMR offer linearizability (more on this later) and S-SMR should as well
+2. Optimizing requests through cache, fine tuning of parameters, etc. to mitigate impacts on latency
+
+### Definitions
+
+The paper goes on defining the assumptions of the systems and definitions. It considers asynchronous systems (see Asynchrony in the [work of Leslie Lamport](https://sadraskol.com/posts/reading-notes-concurrency-the-works-of-leslie-lamport)) which does not suffer Byzantine failures, and communications offer **atomic multicast**.
+
+Say server s sends a message to a group of server R (receivers). We consider the two primitives `multicast(R, m)` and `deliver(m)` where **R** is the server or group of server and **m** is the message. **Atomic multicast** means:
+
+1. if r delivers m, then all correct servers in R deliver m (agreement)
+2. if s is correct and multicasts m to R, all correct r in R deliver m (validity)
+3. if r delivers m then m', r' in R delivers m then m'
+
+I had some problems understanding difference between agreement and validity. I already read it somewhere but my mind just skipped it. To be honest the [wikipedia entry](https://en.wikipedia.org/wiki/Atomic_broadcast) did not help me here, I hope I find another reading to understand the definitions better.
+
+The paper goes on defining linearizability. Fortunately I knew this one before. The definition of the paper is okay but, I could not understand it without prior knowledge. To make it short, a system is linearizable if it behaves like a single thread (you can find a coherent order for command execution to stand) and the order of execution of commands is respected. It's like a real time single thread.
+
+[Kyle Kingsbury explains it much better](https://www.youtube.com/watch?v=tRc0O9VgzB0).
+
+### The S-SMR
+
+Although the paper starts with a general idea of how the algorithm works, i'll start introducing the detailed algorithm:
+
+```
+// Client side of code here: before command C is submitted, clients asks the oracle
+dests <- oracle(C)
+multicasts(dests, C)
+wait for response of from one server
+
+// for each server of partition P, 3 processes run
+upon deliver(C)
+  others = dests \ {P}
+  multicasts(others, signal(C))
+  for each operation op in C do
+    if op is read(v) then
+      if v belongs to P then
+        multicasts(others, {v, C.id})
+      else
+        wait_until v belongs to received_variables(C)
+        update v with value in received_variables(C)
+    execute op
+  wait until received_signals(C) == others
+  send reply to client
+
+upon deliver(signal(C)) from partition P'
+  received_signals(C) <- received_signals(C) \union {P'}
+
+upon deliver({v, C.id}) from partition P'
+  received_variables(C) <- received_variables(C) \union {v}
+```
+
+Let's break down every primitives of the algorithm.
+
+Batgirl... I mean the oracle can tell which partitions have to be queried to fulfill command C. A naive approach is to return all partitions. It would be costly, so you need to take time to implement a query analyser for that purpose. Unfortunately, the paper does not go in details on the ways to achieve that.
+
+To answer the query, the server executes every operation of the command sequentially. If the operation is a reading of a value belonging to the partition, the server sends the value to other partitions. If the value is not from the current partition, the server waits for other partition to send the value. Then the server executes the operation.
+
+Note that the server can execute a write operation without any need from other partitions. This property is an interesting property that will be discussed in the optimization part.
+
+There is one part still unexplained in this algorithm: what is the use of the `signal(C)` and `received_signals`? The short answer is: provide linearizability. The paper shines at explaining this part. It uses this schema:
+
+<figure><img src="https://sadraskol.s3.eu-central-1.amazonaws.com/linearizability.png"/><figcaption>Example showing how <code>signal(C)</code> ensures linearizability</figcaption></figure>
+
+In the example on the left, Cy happens before Cxy because of causation: `x = 10` so Cy < Cxy. In real time, Cy happens after Cx so Cx < Cy < Cxy. But Cx happens after Cxy because of causation: `y = 20` so Cxy < Cx. The only sequential execution of commands available is Cy < Cxy < Cx. Since it breaks real time order of execution of requests, the system would not be linearizable (although it would be serializable, since a sequence exists).
+
+To fix this problem, signal(C) is shared between partitions allowing to "pause" a partition until other partitions receives the command. This behavior introduces latency, as later discussed.
+
+### Optimizations
+
+The primitives of the algorithm are set. As mentioned, with a naïve oracle the scalability cannot be achieved. The authors are very aware of this problem and suggest a couple of optimizations.
+
+The first possible optimization is in writing the oracle. Unfortunately, the paper only assumes an optimal oracle is possible, there is no discussion regarding the assumption made. I guess they used an optimal oracle for Zookeeper, who knows ¯\\_(ツ)\_/¯
+
+The second optimization is rather easy given an oracle: since the server receiving C already know which variables are read during the command and the partitions it should send values to, it can multicast to every partitions each values it has ownership on. Each partitions have less waiting for values it does not have ownership.
+
+Also since write operations are executed on every partitions, there is no need to query servers for subsequent reads on a value.
+
+Moreover the requests of format `multicasts(others, {v, C.id})` can be used as `signal(C)` instead of using a dedicated request.
+
+A single answer from a server is sufficient to finish a command for the client. I haven't wrapped my head around the correctness of such claim. The author seem confident it is, I trust them only because I don't have time to find a failure scenario.
+
+Finally, servers can make extensive use of two types of caching: conservative caching and speculative caching. Speculative caching assumes the existence of rollback on operation execution. Also it's unclear whether each algorithm were implemented in Eyrie (the implementation of S-SMR of the authors in Java).
+
+All optimization techniques are food for thoughts and show case a lot of opportunities to optimize the general approach. It's a shame there is no evaluation on the impact of each optimizations.
+
+The paper goes on to prove that the algorithm is correct. I won't go in details on how they do it. As a non academic, I do not have the courage to decypher it again. 
+
+### Implementation & Performance evaluation
+
+The two last parts span most of the content of the paper. The first thing that I noted is that they use a Multi Ring Paxos as base for the SMR. There is no explanation why this implementation and not another one, say [raft](https://raft.github.io/). It has some implication since performance depends heavily on the tuning of Multi Ring Paxos. 
+
+They benchmarked performances for two types of mesurement: Throughput and Latency. The benchmarks run against an instance of Zookeeper, ZKsmr, and Volery (implementation of S-SMR for Zookeeper) of 1, 2, 4 and 8 partitions.
+
+The weird parameter for me in this benchmark is the dimension choosen for the messages: they compared the mesurements for messages of 100 bytes, 1000 bytes and 10000 bytes. It seems odd since it does not compare the number of variables of the requests. How can we be sure that the linear scale they observe is not due to variables queried simply being dispatch to a single partition for each messages?
+
+Also when comparing memory configurations, the weird latency for 4 partitions is not explained. Since there is no discussion around this, it's very suspicious.
+
+### Conclusion
+
+This paper has been a lot of fun for me to read and understand. I really enjoyed the optimization part and understanding how linearizability is guaranteed. The great thing about the paper is that it goes from a general algorithm that works in any case and they open the door for a lot of optimization. Also they introduce a lot of related works that tackled the same problem with different perspectives.
+
+3 questions remains for me:
+
+1. Where could the algorithm serve in the industry? Most replication use a specialized algorithm, thing like geo-partionning. How could a general purpose algorithm compete against them?
+2. Is the latency worth the throughput?
+3. The author mention that the algorithm is write optimized but zookeeper is read optimized. Is there a place for such algorithm in the industry?
+
+I do not have sufficient knowledge in this area to answer these questions. I really enjoyed reading this paper and I really want to keep reading academic papers. They open my mind on difficult subject that I would not realize in my day to day engineering.
+
+---
+
+Update: Murat Demirbas wrote a [quick article on this paper](https://muratbuffalo.blogspot.com/2020/10/scalable-state-machine-replication.html). For him, there is no doubt: the algorithm have limited applications. It clears out things that were out of my knowledge. First, multiring paxos is used to respect the atomic multicast. Since it's already a difficult problem to solve on its own, you cannot use any regular SMR. Also this means that comparing to a single Zookeeper cluster is not enough. Secondly, the graphs are pretty bad case for this solution.
+
+It answers my questions, and I think my intuitions were correct: the paper will remain a research subject and won't have industry applications.

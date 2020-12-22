@@ -1,0 +1,15 @@
+title = "Press review #5"
+language = "en"
+publication_date = "2017-07-22T09:45:32+00:00"
+---- sadraskol ----
+It's been a long time i haven't written a blog post, even a press review. This is fixed now and the rate of publishing should accelerate next weeks. I gave myself some holidays, and it gave me even more ideas on things to learn. Anyway, enough with boring news on the blog, let me share my best reading lately!
+
+[100 days of algorithm](https://medium.com/100-days-of-algorithms): I've got lately into algorithm. It's an interesting field of software I have forgotten for too much time, the more I read about it, the more fascinating it is. The small subset I had time to read are really mind blowing, I hope it does help!
+
+[Project package organization](http://dolszewski.com/architecture/project-package-organization/): This article is about package organization in Java. I'm a fan of organizing package by features (as presented in the article). Even if you don't use [hexagonal architecture](http://alistair.cockburn.us/Hexagonal+architecture) or CQRS, it forces you to think within your knowledge of the domain.
+
+[Deploy Elixir app to a vps](https://www.amberbit.com/blog/2017/7/17/deploy-elixir-app-to-a-vps/): Most tutorial on deploying an Elixir application are unclear or too specific, this one is perfect. It covers the basics of the tools without sacrificing the productivity they offer.
+
+[Splitting APIs, servers, and implementations in Elixir](https://pragdave.me/blog/2017/07/13/decoupling-interface-and-implementation-in-elixir.html): This article was a revelation to me. It describes what I've been trying to put my finger on for a long time. It shows how to decouple the immutable logic of the code and the mutable code in GenServers elegantly. It's nothing super extraordinary but a really nice pattern.
+
+[Node.JS production best practices](http://goldbergyoni.com/checklist-best-practice-of-node-js-in-production/): This list is really complete and does not apply only to NodeJS. It's interesting to see the ecosystem of NodeJS growing to maturity. Security, monitoring, error management, asset management, correlation identifiers or zero downtime deployments are all subjects to consider when deploying an application, whatever technology it uses!

@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
 
     let addr = SyncArbiter::start(1, move || PgActor(pool.clone()));
 
-    let exported_as_str = std::fs::read_to_string("./clean-backup.json").unwrap();
+    let exported_as_str = std::fs::read_to_string("./backup.json").unwrap();
     let exported_posts: Vec<ExportedPost> = serde_json::from_str(&exported_as_str).unwrap();
 
     let commands: Vec<UpsertCommand> = exported_posts

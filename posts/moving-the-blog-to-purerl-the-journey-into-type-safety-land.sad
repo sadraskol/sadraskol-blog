@@ -1,0 +1,112 @@
+title = "Moving the blog to Purerl, the journey into type safety land"
+language = "en"
+publication_date = "2018-07-27T00:05:02.379743+00:00"
+---- sadraskol ----
+I started implementing my own blog more than a year and a half ago. Since I was working with Ruby on Rails at the time, I wanted to experiment [Phoenix](https://phoenixframework.org/). It was an introduction to functional programming and I really enjoyed it. I wrote a [small guide for beginners](https://sadraskol.com/posts/the-survival-kit-for-functional-language-beginner) and later learned [Purescript](http://www.purescript.org/). I consider myself as an intermediate haskeller (my understanding goes as far as `ReaderT`). I used to enjoy dynamically typed languages, but my experience with [sum types](https://sadraskol.com/posts/les-types-algbriques-pour-les-langages-orients-objet) really changed my perspective. I cheer on the static side now!
+
+I implemented my blog with a full event driven approach. It allowed me to fix issues more safely than ever. At least that was what I thought. A year after the first lines, it had become very difficult to fix bugs. The problem is really about refactoring the code. Not declaring types had become a pain. In the following code, focus on the `publication.publication_date` variable:
+
+``` elixir
+def execute({state, new_events}, %PublishDraft{} = publication) do
+  cond do
+    state == nil ->	{state, {:error, "Does not exist yet"}}
+    draft_should_not_be_published?(state) -> {state, {:error, "Draft non conform to publication"}}
+    true ->
+      {state, new_events}
+      |> apply_event(%PostPublished{
+        aggregate_id: publication.aggregate_id,
+        publication_date: publication.publication_date,
+        slug: slugify(state.title)
+      })
+  end
+end
+```
+
+What is its type? Is it type that my database driver expects, `NaiveDateTime`? Or is it a string that I need to format? What does the `apply_event` function expect as an argument, a string or a `NaiveDateTime`? If I want to answer those questions, I need to dig in two directions in my code and I might not even find a satisfying answer, since some library might hide the details of implementation. I really enjoy Elixir as a language, but refactoring can be really problematic, especially when you don't actively maintain the code base.
+
+## Purerl: the miracle solution
+
+[Purerl](https://github.com/purerl) is a fork of Purescript. The core language is the same, but it compiles to Erlang instead of Javascript. Do you see it coming? Yes, the blog still runs with Elixir, but it also uses Purerl to compile to Erlang and run alongside with the Elixir components. How did I do it? First, a Makefile that fetches Purerl dependencies, and compile the sources to Erlang.
+
+```
+all:
+	psc-package install
+	psc-package sources | xargs purerl compile 'purerl/**/*.purs'
+```
+
+Then in my `mix.exs` configuration for Elixir, I specify the path where my Erlang sources are:
+
+``` elixir
+def project do
+  [app: :sadraskol,
+  # ... other confs
+  erlc_paths: ["output"], # Path where purerl will generate the erlang
+  # rest as usual
+  ]
+end
+```
+
+And *voilà*! The code is ready to use the Purerl within Elixir.
+
+## Switching to a statically typed language
+
+The first major difference from Elixir, was that I was able to define types much more expressively and to gather them together. For instance, every domain event had a file for itself, with only the keys defined:
+
+``` elixir
+defmodule Sadraskol.Blog.Events.LegacyPostImported do
+  defstruct [:title, :pub_date, :html_content, :slug, :status, :description, :language]
+end
+```
+
+The equivalent in Purerl was much easier to read, see for yourself:
+
+``` haskell
+type Title = String
+data Status = Published | Draft
+data PostEvent
+  = DraftEdited Title HtmlContent Language Description (Maybe MarkdownContent)
+  | PostPublished PublicationDate
+  | LegacyPostImported Title HtmlContent Status Description Language Slug PublicationDate
+  | DraftDeleted
+  | PostEdited EditDate HtmlContent Language Description (Maybe MarkdownContent)
+  | PostTitleChanged Title
+```
+
+Here every value is either a type synonym or has its proper data type. It gives me a lot of flexibility when it comes to replacing changing them with more complex logic. My decision aggregate is also much more specific:
+
+``` haskell
+data BlogPost
+  = Draft Title HtmlContent Language Description (Maybe MarkdownContent)
+  | Published Title HtmlContent Language Description (Maybe MarkdownContent)
+  | Deleted
+  | NoPost
+```
+
+When implementing a method, the compiler will complain if a case was not taken into account. It makes my refactoring much easier and painless.
+
+## Cheating for foreign communication
+
+Purerl does not provide the [purescript-foreign](https://github.com/purescript/purescript-foreign) library which allow to safely use foreign bindings. Most bugs I ran into during the implementation were caused by using badly the Erlang data in the Purerl code. So such a library would have been of a wonderful help.
+
+The real problem is passing data back to Elixir code: since there's no real easy way of asserting the data representation, I limited myself to using very simple data structure, mostly maps with `Atoms` as keys.
+
+Talking of `Atoms`, They were in the heart of the reason I couldn't unit test my code (I tired of fighting against myself and libraries). I'm using [Ecto](https://github.com/elixir-ecto/ecto) to save the events. It takes maps with strings as keys, but returns structured maps with atoms. The way I binded the Purerl and Ecto was a complete failure in that regard, and I already regret it.
+
+## Introducing a new aggregate
+
+For a long time I didn't let myself change titles on my blog, The code just didn't implement the logic behind it. You would think changing a blog post title is a benign operation, but it's not. One thing that needs to be kept is the slug of the post. The [slug](https://en.wikipedia.org/wiki/Clean_URL#Slug) is the human readable section of an url. When I publish an article, a slug is automatically generated from the title of the article. But since my article can be referenced from Twitter or other media, the old slugs should redirect to the updated slug.
+
+This refactoring with a type safe language allowed me to implement this feature without the fear of breaking anything. I admit I also felt the pleasure of doing something that would not be allowed in an industrial environment! Using less maintained languages are a real pleasure! And pain! But just as Marcel Proust would say:
+
+> *J’en conclus plus tard qu’il y a une chose aussi bruyante que la souffrance, c’est le plaisir.*
+>
+> I concluded later that there is something as noisy as suffering, it is pleasure.
+>
+> *Marcel Proust, [Sodome et Gomorrhe](https://marcelproustrecherche.wordpress.com/2015/05/04/chez-proust-il-ny-a-pas-de-bien-sans-que-lon-sente-le-souffle-du-mal/)*
+
+## You should introduce Purerl in your Erlang code?
+
+Only if you don't fear diving deep into weird problems, having to support basing utilities for yourself, building your own `package-set.json` file, and have fun! I guess Javaist can use [eta](https://eta-lang.org/), javascripters Purescript and Csharper [F#](https://fsharp.org/). Since most of those languages have tricks to be easily integrated, test them for simple modules, so you can easily come back from them.
+
+
+*A special thanks to [Nicolas Wolverson](https://twitter.com/nwolverson) who did an awesome job at implementing Purerl!*

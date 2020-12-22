@@ -1,0 +1,122 @@
+title = "Reading notes: Highly Available Transactions: Virtues and Limitations"
+language = "en"
+publication_date = "2020-10-30T08:35:26.898445+00:00"
+---- sadraskol ----
+For a long time I wanted to learn more about consistency models. There is a nice recap on [Jepsen's website](https://jepsen.io/consistency). Aphyr mostly references back to 2 papers, this reading note is about the one from [Bailis, Davidson, Fekete et al](http://www.vldb.org/pvldb/vol7/p181-bailis.pdf). The paper does more than only describing consistency levels, it shows that the theoretical limits of high availability and consistency levels is not yet reach.
+
+## High availability
+
+Why does the paper focus on high availability? Since high levels of consistency require communication between nodes, applications depending on it have two limits:
+
+1. Large disruption of popular services like Reddit or Heroku originated in network partitions
+2. Application latency is limited by the regions where nodes are deployed
+
+Many databases offer default isolation that are relatively weak. For instance Postgres defaults to Read Committed (RC) within transactions and MySQL to Repeatable Read (RR). Since applications do not require higher levels of isolation like Serializability, one can wonder: what is the highest level of isolation we can achieve without paying the price of consensus?
+
+A system provides high availability when users contacting non-failing server eventually receives a response from that server under any network partition. Under this definition, users can contact multiple correct server during a transaction. The paper adds the definition of sticky availability: users always contact the same replica. Authors note that this is pretty much always the case for databases. So it's a low cost constraint under which systems can achieve higher consistency models.
+
+The paper also defines some liveness properties and transactions, but I think it goes too much in details to be explained here.
+
+## Achievable ACID Isolation for high available systems
+
+This part is really the crux of the paper, what got me to read it in the first place. It explains isolations and the anomalies they avoid.
+
+### Read Uncommitted
+
+Read uncommitted (RU) is the lowest isolation defined in [Generalized Isolation Level Definitions](http://bnrg.cs.berkeley.edu/~adj/cs262/papers/icde00.pdf). Let's consider two transactions:
+
+- T1: w_x(1) w_y(1)
+- T2: w_x(2) w_y(2)
+
+The RU isolation forces all writes from transaction T1 to be applied before or after transaction T2.
+
+The reason of this constraint is that if both transaction gets aborted, the recovery would not restore overwritten data. Let's imagine this non RU compliant application of writes with T1 being aborted then T2:
+
+w_x(1) w_x(2) T1_abort(w_x(null)) T2_abort(w_x(1))
+
+When T1 aborts first, it restores `null` original value of `x`. Then T2 aborts and restore the preceding value it snapshots: `1`. The resulting history would result in a "Dirty write": write was performed without any transactions!
+
+This isolation level does not have any restrictions on reads. It means that transactions can read data from aborted transaction, infamous "Dirty Reads".
+
+### Read Committed
+
+Read Committed (RC) is the default isolation of many databases. In addition to forbid dirty writes, it ensures no dirty reads are allowed. Let's consider the following transactions running at the same time:
+
+- T1: w_x(1) w_x(2)
+- T2: w_x(3)
+- T3: r_x(a)
+
+The possible values possible to read for the last transactions cannot be uncommitted writes. Therefor `a ∈ { null, 2, 3 }`, either no transaction is committed, it reads the last write of T1 or last write from T2.
+
+This level of isolation is usually provided through locks, but the paper note that it could be done otherwise. Unfortunately, ANSI SQL RC also requires recency and monotonicity, which are harder to achieve in a high-level setup (especially recency).
+
+### Repeatable Read
+
+RC can still permit serializability anomalies like fuzzy reads, Repeatable Reads (RR) prevents them. Consider this example:
+
+- T1: w_x(1)
+- T2: w_x(2)
+- T3: r_x(1) r_x(a)
+
+Under RC, `a ∈ { 1, 2 }` depending on whether T2 transaction committed. To avoid that situation, RR isolation requires that transactions are isolated from other transactions. This level of isolation is also achieveable in theory using sticky highly available transactions. It doesn't require replicas to talk to one another.
+
+*Note*: This definition of RR is not coherent for SQL standard, so the author use Item Cut Isolation (ICI) instead.
+
+### Monotonic Atomic View
+
+Isolations are not the only guarantees provided by ACID models. Monotonic Atomic View (MAV) is the atomic allows guarantees in session. If a transaction is visible to another, all writes should also be visible. Given:
+
+- T1: w_x(1) w_y(1) w_z(1)
+- T2: r_x(a) r_y(1) r_x(b) w_z(c)
+
+Under RC, `a, b, c  ∈ { null, 1 }` but MAV inforces that `b = c = 1`. This is required by the atomicity: either all operations in a transaction occured or none. Note that Postgres respects MAV under at RC level.
+
+This level of guarantee is trivial to achieve in a single node database like Postgres, but is much more difficult to achieve in distributed conditions. The paper suggests an implementation that does not require a blocking coordination.
+
+### Session Guarantees
+
+A session corresponds to the view of a single client. High available transaction can guarantee:
+
+- Monotonic reads: You can't read values back in the past
+- Monotonic writes: writes are visible in the order they are submitted
+- Writes follow reads: if a session observes T1, commits T2 and another session observes T2, it should also observe T1. It means that sessions cannot rewrite their past
+- Read your writes: clients should see the last version of a value they updated or a overriden value by another client
+- Pipelined random access memory (PRAM): combination of monotonic reads, writes and read your writes
+- Causal consistency: All the above
+
+The sessions guarantees can be achieved for sticky high available transactions.
+
+## Other ACID Isolation
+
+We did not tackle two serial anomaly yet: Lost Update and Write Skew. First let's look at a lost update case:
+
+- T1: r_x(a) w_x(a + 2)
+- T2: w_x(2)
+
+If T1 read `a = 1` before T2 but T2's write is applied before T1's, the database ends up with `x = 3`. We lost the write of T2. It is a serial anomaly because if you apply T1 then T2 or T2 then T1 you should not have this result. This anomaly is quite common when you use 'Read Then Update' pattern, as I illustrated in one of my [latest post](https://sadraskol.com/posts/when-business-rules-become-technical-problems).
+
+Snapshot Isolation (SI) or RR (for Postgresql) prevent Lost updates.
+
+Write skew are a generalization of lost update when multiple keys are involved. Consider the following:
+
+- T1: r_y(0) w_x(1)
+- T2: r_x(0) w_y(1)
+
+If both transactions commit, no update are lost. But you can't find an order under which T1 and T2 can be applied serially. Only Serializable isolation can prevent such cases.
+
+These two isolation cannot be achieved by distributed systems without sacrificing availability at some point. We are limited here by the [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem).
+
+## Conclusion
+
+The paper summarizes the consistency models with the following graph:
+
+<figure>
+<img src="https://sadraskol.s3.eu-central-1.amazonaws.com/consistency.png"/>
+<figcaption>Graph of consistency levels, in order of constraints for the system</figcaption>
+</figure>
+
+Black and white models are achievable by highly available systems. Blue one can also be achieved by sticky clients. Red models require some coordination: they are unavailable consistency models.
+
+This paper is a must read for anyone who wants to get into distributed systems and understand the tradeoffs from a theoratical point of view but also gives practical implementations. I didn't cover the part of the paper talking about the performance of an implementation of a high available transaction system, but it's also worth a look.
+
+This was a blast, and I can't wait to read the more on the theory of consistency levels. This paper uplifts my soul and I confinced me to go deeper in the theory of consistency in distributed systems.

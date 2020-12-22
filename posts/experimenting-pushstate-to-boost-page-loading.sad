@@ -1,0 +1,79 @@
+title = "Experimenting pushstate to boost page loading"
+language = "en"
+publication_date = "2016-12-21T14:52:18+00:00"
+---- sadraskol ----
+After some nice surfing on [dev.to](https://dev.to), i realized the loading of articles was blazing fast. After a little investigation, i found out they're using [instantClick](http://instantclick.io), a javascript library that speeds page display by loading content on `mouseover` event, once the user clicks on the link the content is displayed in a flash since it's already downloaded! Although i could have simply used the library, i wanted to experiment with the underlining concept: `pjax`, the contraction of `pushState` and `Ajax`.
+
+I don't need to explain `Ajax`, but `pushState` needs a little explanation. It is the DOM api that allows you to manipulate the browser history. Simply put, you can change the url without page reloading. Most frontend frameworks like angular, vuejs or react provide router library using this api under the hood. As usual, the best documentation you can get is available at [MDN](https://developer.mozilla.org/en-US/docs/Web/API/History_API).
+
+## pushState: a naive approach
+
+When i first read the documentation, my first thought was *"great! it is as simple as the `location` api"*, and i tried without any further information. The code ended up like that:
+
+``` javascript
+const link = document.getElementById('some_link');
+link.addEventListener('click', (e) => {
+  e.preventDefault();
+  fetch(link.href)
+  .then((response) => {
+    // modify the dom accordingly
+    history.pushState(null, null, link.href);
+  });
+});
+```
+
+Proud of my new toy like a child, i tested it right away and it seemed to work properly. Okay the code isn't that clean, but if it is that easy, it would not be a problem to clean it, would it? How naive was I! The problem here is if you hit the back button or run `history.back()`. The content the page will not be restored as expected, only the url...
+
+What happens here? As you might have noticed, the method is not called `setNewUrlWithSomeModification`. The browser has no information on what the page content was before the url changed, `pushState` segregates content loading from url changes. In order to let us manage it, the browser will trigger a `popstate` event. In our current example with a single link, we could simply do that:
+
+``` javascript
+window.addEventListener('popstate', () => {
+  // recover original content
+});
+```
+
+With this, we covered a very simplified use case of `pjax`.
+
+## A less naive approach
+
+The case of having a single link in your web application is highly unrealistic. Let's imagine the user would browse from `/blog` to `/blog/first-article` and finally `/blog/last-article` with the current implementation. By hitting back, the user would get to the content of `/blog`, pretty embarassing.
+
+Fortunately, there's a solution to that. As you might have noticed, <code>pushState</code> takes 3 arguments. I've already showed the usage of the third one: changing the url. The first argument will save our problem. MDN defines it as follows:
+
+> **state object —** The state object is a JavaScript object which is associated with the new history entry created by pushState(). Whenever the user navigates to the new state, a popstate event is fired, and the state property of the event contains a copy of the history entry's state object.
+
+You can put whatever information is enough for you to recover the corresponding state. The following code could make it:
+
+``` javascript
+const links = document.querySelectorAll('a');
+for (let link of links) {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    fetch(link.href)
+    .then((response) => {
+      // modify the dom accordingly
+      history.pushState({href: link.href}, null, link.href);
+    });
+  });
+}
+window.addEventListener('popstate', (e) => {
+  if (e.state === null) {
+    // recover original content
+  } else {
+    fetch(e.state.href)
+    .then((response) => {
+      // modify the dom accordingly
+    });
+  }
+});
+```
+
+The state saved as `{href: link.href}` is recovered whenever the history comes back and `popstate` event is triggered. The code will cover the basic of history manipulation, making sure that content and history are always coherent.
+
+## Why not using pushState explicitly
+
+I strongly recommend you to use `pjax` library or the routing functionalities of your framework. If you tried the above code, you will have experienced how imperfect it is: we don't save scroll in page navigation, the listener for `click` event intercept links opened in a new tab, if the content download takes time, there is no proper loading indication... However i do recommend you to try the api as it is fun and a small reminder of how frameworks make our lifes way easier!
+
+---
+
+*ps: if you want to go further, you can also implement a history cache instead of fetching the content at every changes.*

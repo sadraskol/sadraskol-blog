@@ -1,0 +1,13 @@
+title = "Press review #3"
+language = "en"
+publication_date = "2017-04-18T21:34:09+00:00"
+---- sadraskol ----
+Today's press review is about mostly Linux and system toolkit. It's a rather short and technical review, so without further a do, let's go into it.
+
+[Shell scripts matter](https://dev.to/thiht/shell-scripts-matter): Bash is almost always unconsidered, this blog post learns you how to create better ones. I've been working with git hooks lately and this guide has been a great help!
+
+[ssh_config](http://man.openbsd.org/ssh_config): This one is not really a press review, it's more a discovery i made while searching the way to bookmark ssh connection. For long I used the `CTRL + R` history functionnality of the terminal, but this time is over!
+
+[Manually Throttle the Bandwidth of a Linux Network Interface](http://mark.koli.ch/slowdown-throttle-bandwidth-linux-network-interface), [Slow down your internet with tc](https://jvns.ca/blog/2017/04/01/slow-down-your-internet-with-tc), [tc: Adding simulated network latency to your Linux server](http://bencane.com/2012/07/16/tc-adding-simulated-network-latency-to-your-linux-server): not one, not two, but three article at once! They all cover the same subject: the utility `tc` for linux.
+
+[Elixir and IO Lists, Part 2: IO Lists in Phoenix](https://www.bignerdranch.com/blog/elixir-and-io-lists-part-2-io-lists-in-phoenix): A very nice explanation of why Elixir is way faster than ruby with template rendering. You might want to read the part 1 if you don't know what IO lists are in Elixir.

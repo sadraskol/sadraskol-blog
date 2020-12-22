@@ -1,0 +1,146 @@
+title = "Simple take on monadic types : the List"
+language = "en"
+publication_date = "2018-04-03T22:59:58.572690+00:00"
+---- sadraskol ----
+Monads are often introduced as an abstract mathematical concept or as an abstract design pattern. In this series, humbly called "Simple take on monadic types", we're going to manipulate the objects which have monadic instances. We'll extrapolate their properties and gradually discover their power. If the concept of monads is not familiar to you, you only need some knowledge of Java or Javascript and some attention. For the first article of the series, let's play with the type `List<T>` or `List a`.
+
+The goal of our program is to harvest trees (🌳) to get apples (🍎) and bake them into pies (🥧)! In order to store them, we'll use the abstract (but familiar) concept of `List`, everything is much easier when stored in a list.
+
+## Bake the piece of pie
+
+Let's consider this function:
+
+``` haskell
+bake :: 🍎 -> 🥧
+bake apple = -- details the recipe
+```
+
+It takes an apple, a value of type 🍎, and returns a piece of pie, a value of type 🥧. Emojis represent types, which are a set of value. All the apples, that my computer can deal with, are values of type 🍎. The function signature reads as simply as : I take one apple and I give one piece of pie.
+
+An apple tree does not grow an apple at a time. It provides you with a large quantity of apples, you can organize them in a list, a `List 🍎`. If the tree does not give any apple, then it's an empty list, so you're all covered. An efficient way of providing pies to your customers would be to deliver a bunch of pies at the same time. You would provide a `List 🥧`. Snap! You only have a `bake` routine which does not deal with `List`. With Java, you would normally mitigate this by implementing `bakeAll`:
+
+``` java
+List<🥧> bakeAll(List<🍎> apples) {
+  List<🥧> result = new ArrayList<>();
+  while (iterator.hasNext()) {
+    result.add(cook(iterator.get()));
+  }
+  return result;
+}
+```
+
+That's cool but wouldn't there be a more comfortable way of writing this? After all, it's all boiler plate to extend the capability of `bake` from the signature `🍎 -> 🥧` to the list equivalent `bakeAll` of signature `List 🍎 -> List 🥧`. There could be a boilerplate-free method of signature `(🍎 -> 🥧) -> (List 🍎 -> List 🥧)`, that would take `bake` function and return the `bakeAll` equivalent. Could you write it in your language of preference? You may have already used it, it's the `map` method. It is implemented in [most languages](https://en.wikipedia.org/wiki/Map_(higher-order_function)) for lists or arrays. In Haskell, you would write it as follows:
+
+``` haskell
+bakeAll :: List 🍎 -> List 🥧
+bakeAll apples = map bake apples
+```
+
+It's not idiomatic Haskell yet (more to come later), but it reads nicely:
+
+> _To_ Bake all apples, _apply_ bake _to every_ apple.
+
+Now that, we baked all apples, we need to deal with the upstream providing apples. In other words, let's harvest apple trees!
+
+## Harvesting a tree
+
+Let's consider the following function:
+
+``` haskell
+harvest :: 🌳 -> List 🍎
+harvest tree = -- details the harvesting
+```
+
+Harvesting takes a single tree (🌳) and returns a lot of apples (🍎). One tree can produce up to 1000 apples, which can be baked into a 1000s of pies. We can directly have the list of pies as a result, some signature that resemble `🌳 -> List 🥧`. We have both functions `harvest :: 🌳 -> List 🍎` and `bakeAll :: List 🍎 -> List 🥧`, how hard could it be to compose them?! The output of `harvest` can be the input of `bakeAll`. We can "plug" them to create the equivalent: `harvestAndBake :: 🌳 -> List 🥧`. Let's use Haskell again:
+
+``` haskell
+harvestAndBake :: 🌳 -> List 🥧
+harvestAndBake tree = bakeAll (harvest tree)
+```
+
+Substituting `bakeAll` by its implementation, we can get rid of the `bakeAll` intermediary step:
+
+``` haskell
+harvestAndBake :: 🌳 -> List 🥧
+harvestAndBake tree = map bake (harvest tree)
+```
+
+## Harvesting a field of trees
+
+We do not own just a single tree, but hundreds of apple trees blooming happily in our field. Let's call that a `List 🌳`. Since we already know of the `map`, we could use it to compose a `harvestAndBakeAll` for our field:
+
+``` haskell
+harvestAndBakeAll :: List 🌳 -> List (List 🥧)
+harvestAndBakeAll trees = map harvestAndBake trees
+```
+
+The problem comes with the type `List (List 🥧)`. It's not a convenient type to deal with for our consumers. It's like nested packages, a wasteful way of wrapping goods. Fortunately, there's an easy way of unwrapping `List (List 🥧)` into `List 🥧`: `join`. Let's look at its signature: `join :: List (List 🥧) -> List 🥧`. It removes a layer of `List`, returning a less intricate  Can you implement this method in your favorite language? Let's use it to simplify `harvestAndBakeAll`:
+
+``` haskell
+harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = join (map harvestAndBake trees)
+```
+
+## Assembling into simple bricks
+
+Let's assemble every small pieces we've covered until now:
+
+``` haskell
+-- given
+harvest :: 🌳 -> List 🍎
+bake    :: 🍎 -> 🥧
+
+-- we compose
+harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = join (map (\tree -> map bake (harvest tree)) trees)
+```
+
+We are here inlining the previous `harvestAndBake` function into the `\tree -> map bake (harvest tree)` anonymous function, or lambda. This is the way of writing anonymous functions in Haskell. The two expression are equivalent.
+
+There's a problem of readability with this one liner `harvestAndBakeAll` function, right? We are using composition glue functions, like `join`, `map` and the lambda. It would be elegant to make the expression less noisy, since the core functions are `harvest` and `bake`, our domain functions.
+
+## Reduce the noise of composition
+
+In order to reduce noisy functions, we will use the union of `map` and `join`: `bind`, sometimes called `flatMap`. Let's first look at the signature of it: `bind :: List 🌳 -> (🌳 -> List 🍎) -> List 🍎`. Read the signature out loud to help yourself understand it: it takes a list of trees, takes a function which can harvest a tree into a list of apples and returns a list of apples. Could you implement this method using `map` and `join`? Signatures are helping a lot to answer this problem.
+
+Now that we have the `bind`, we can reduce the `harvestAndBakeAll` method a little:
+
+``` haskell
+harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = bind trees (\tree -> map bake (harvest tree))
+```
+
+We didn't do anything fancy here, but notice that we didn't use the `bind` with the same signature and it works the same. Can you spot the difference from what we saw before and explain how we didn't change the behavior of `bind`?
+
+## Introducing Haskell operators
+
+Those operations (`bind`, `map`) are so common in Haskell that they have dedicated operators which reduce the amount of noise. First there is the map operator: `<$>`. Then there is the bind operator: `>>=`. They are written with arguments the same way the `+` applies to numbers in place of the `add` function:
+
+``` haskell
+           add 1 2 == 1 + 2
+   map bake apples == bake <$> apples
+bind trees harvest == trees >>= harvest
+```
+
+Some might say that it makes the code less readable with obscure symbols, but haskellers would tell you that it's only a glue operation, it does not carry any meaningful value. If we were to write `harvestAndBakeAll` again, it would become:
+
+``` haskell
+harvestAndBakeAll :: List 🌳 -> List 🥧
+harvestAndBakeAll trees = trees >>= (\tree -> bake <$> (harvest tree))
+```
+
+Try to focus on the above expression and try to understand how each symbol works. A haskeller would not find this the best writing. arguably, the optimal way of writing it would be something like `harvestAndBakeAll trees = bake <$> harvest <.> trees`, but we'll cover this is later articles. 
+
+## Monadic operations
+
+Let's recap the three monadic operations we've seen so far:
+
+* `map :: (🍎 -> 🥧) -> (List 🍎 -> List 🥧)` or `<$>`: it takes a function of simple types and returns a function of list of types
+* `join :: List (List 🥧) -> List 🥧`: it takes a nested list and returns a flat list
+* `bind :: List 🌳 -> (🌳 -> List 🍎) -> List 🍎`: it takes a list of stuff, a function of a single element returning a list and returns a flat list. It's the composition of the two last functions
+
+There's two important things to note: monadic functions always return a monad, here `List a`. Once you are dealing with a list, monadic function won't allow you to get an element of the list. You could have an element of a list with a function like `get`, or `pop`, or something else, but those are not monadic anymore.
+
+The second thing to note is that monadic functions compose well because they keep the integrity of the data and functions they apply on. The `map` is only a nice commodity to avoid boilerplate code. To be so, map keeps all the properties of the function `(🍎 -> 🥧)` in the "realm" of lists. You can easily check that by replacing emojis by any other type you want to work with: `String`, `Date`, `Int`, etc. `map` and `bind` only translate functions to be used with a type `List`.
+
+That's all for `List` and `Monad` for now. There are many more properties that we haven't covered here. In my next article, I'll use the `Maybe` monad, and we'll verify the laws a monad abide to.

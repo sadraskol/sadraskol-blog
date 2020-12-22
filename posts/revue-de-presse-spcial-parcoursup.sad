@@ -1,0 +1,25 @@
+title = "Revue de presse : spécial parcoursup"
+language = "fr"
+publication_date = "2018-06-03T00:55:35.051918+00:00"
+---- sadraskol ----
+Les motivations pour changer de système de sélection sont diverse. L'ancien système APB, pour admission post bac, n'était pas sans reproche mais avait derrière lui la solidité reconnue de l'algorithme qu'il utilisait : le fameux Gale-Shapley. La solidité n'était pas seulement liée à ses propriétés mathématiques, il a été utilisé dans l'attribution des élèves à la sortie des classes préparatoires aux grandes écoles (CPGE).
+
+Plus d'information sur le fonctionnement de l'algorithme ici : [https://www.youtube.com/watch?v=oHYcOXi06uY](https://www.youtube.com/watch?v=oHYcOXi06uY)
+
+En septembre 2017, la CNIL émet une [mise en demeure](https://www.cnil.fr/fr/admission-post-bac-apb-cloture-de-la-mise-en-demeure) à l'encontre du ministère de l'éducation nationale pour manquement à la loi Informatique et Libertés pour l'APB. En cause : différents manquements à la loi concernant l'information des étudiants sur les finalités de traitement de leur données. L'algorithme utilisé est lui aussi remis en cause. L'utilisation de l'aléatoire lorsque candidats et candidates ne peuvent être descriminés par ailleurs.
+
+Deux mathématiciens sont alors diligentés pour trouver un algorithme qui puisse convenir aux requètes de la CNIL, tout en ayant les mêmes performances que l'APB. Ils ont expliqué leur travail dans cet [article](https://www.sciencesetavenir.fr/high-tech/informatique/bac-2018-l-algorithme-de-parcoursup-explique-par-les-deux-chercheurs-qui-l-ont-concu_124407). Pourtant ce ne sont souvent pas les algorithmes qui sont problématiques, comme le faisait remarquer Hubert Guillaud sur twitter :
+
+<blockquote>
+  <p dir="ltr">A sa leçon inaugurale au Collège de France, Claire Mathieu concluait : &quot;Les algorithmes ne sont pas responsables des dysfonctionnements&quot; :(  <a href="https://t.co/2VDXBrRxZA">https://t.co/2VDXBrRxZA</a> - Elle est l&#39;une des conceptrice de <a href="https://twitter.com/hashtag/parcoursup?src=hash&amp;ref_src=twsrc%5Etfw">#parcoursup</a> : <a href="https://t.co/K4ljrKh7km">https://t.co/K4ljrKh7km</a>
+  </p>
+  &mdash; hubert guillaud (@hubertguillaud) <a href="https://twitter.com/hubertguillaud/status/1002581707474788352?ref_src=twsrc%5Etfw">1 juin 2018</a>
+</blockquote>
+
+Pour le coup, Parcousup est loin d'être parfait. Au coeur des critiques, la reproduction sociale serait largement favorisée par la sélection des candidats décidée par les institutions formatrices. Comme le raconte [Le Monde](https://www.lemonde.fr/societe/article/2018/06/02/les-lyceens-de-banlieue-et-les-embuches-de-parcoursup_5308639_3224.html) ou comme le montre cette [carte](https://swaggcocos.wordpress.com/2018/05/27/cartographie-lexclusion-avec-parcoursup/), les étudiants peuvent payer cher leur implentation territoriale ou leur choix de filiaire.
+
+La critique la plus documentée vient du magazine du Collège de France : [Le Parcoursup des filles](http://www.laviedesidees.fr/Le-Parcoursup-des-filles.html). Les deux sociologues montrent comment le dispositif va exclure encore plus les filles des milieux populaires particulièrement. L'algorithme de sélection n'est pas le seul en cause, l'[amendement du sénateur Jacques Grosperrin](http://www.senat.fr/amendements/commissions/2017-2018/193/Amdt_COM-37.html) aura un effet pervers. Il poussera les filles à ne pas poursuivre dans l'enseignement supérieur.
+
+## Synthèse
+
+Comme on l'a vu, l'algorithme de sélection n'était pas facile à mettre en place, surtout dans des délais aussi cours. Le résultat n'est pas une catastrophe par rapport à APB. Pourtant les majeures différences et les directions choisies par les législateurs sont à l'origine des frustrations et des problèmes que nous avons évoqués. On peut alors se demander ce qu'entend Jean-Michel Blanquer lorsqu'il affirme à l'[Ouest France](https://www.ouest-france.fr/education/entretien-blanquer-parcoursup-c-est-une-amelioration-5792452) que le système est "plus rationnel". S'il parle du rationnel, il semble que c'est la raison au profit du plus fort.

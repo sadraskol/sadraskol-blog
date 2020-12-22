@@ -1,0 +1,168 @@
+title = "The survival kit for functional language beginner"
+language = "en"
+publication_date = "2017-07-04T20:40:19+00:00"
+---- sadraskol ----
+Functional languages like [Haskell](https://www.haskell.org), OCaml or Erlang based [Elixir](https://elixir-lang.org) are difficult to learn when you come from an imperative or object oriented languages. Concepts like immutability, high order functions or monads are very difficult to implement in classical languages (let's call them that way). Thankfully, those functional languages share a lot in common and i'll try to introduce to the most important concepts behind them.
+
+This kit is not a learning guide, and knowing those patterns will not teach you the specifics of each langugages. The road to mastering functional languages remains a hard path to take!
+
+## Pattern Matching
+
+Let's start with the most important syntax helper from functional programming: pattern matching. Did the ruby syntax of `a b = b a` mixed your head up? Prepare some aspirin because... no, I'm joking! Pattern matching is very straight forward if you start practicing it. It allows to assign variable similarly to arithmetic equations. For instance: *(Note: example are written in Elixir or Haskell)*
+
+``` elixir
+"hello " <> x = "hello world" # x == "world" !!!
+```
+
+*Simple pattern matching on a string in Elixir. `<>` is the string concatenation operator*
+
+The compiler solves the equation for you! Beware though, the comparison with maths falls short if you start writing simple "equations" like:
+
+``` elixir
+x + 1 = 34 # oups!
+** (CompileError) iex:3: illegal pattern
+```
+
+But then, you might ask why is it so powerful if it cannot solve such simple equations. Patience, you'll learn how pattern matching can reveal itself very powerful along the way. The reason is that it matches the representation of the variable, it doesn't "solve" anything. Let's talk about the simplest pattern matching construct: `case` (`match` in some languages). It allows you to return a value based on pattern matching. Look how simple it reads:
+
+``` haskell
+case age of
+  12  -> "Hey! that's young!"
+  118 -> "No kidding?!"
+  21  -> "You can vote in the UK!"
+  _   -> "Hmm that's boring"
+```
+
+Notice the `_` underscore notation which matches any value, you're going to see it a lot if you start learning functional languages.
+
+But it's not over, you can also use pattern matching when declaring function arguments. As the following example:
+
+``` haskell
+stupidRemark :: Int -> String
+stupidRemark 12  = "Hey! that's young!"
+stupidRemark 118 = "No kidding?!"
+stupidRemark 21  = "You can vote in the UK!"
+stupidRemark _   = "Hmm that's boring"
+
+--later
+stupidRemark 12 -- returns "Hey! that's sweet"
+```
+
+This bit of code is the exact equivalent of the following:
+
+``` haskell
+stupidRemark :: Int -> String
+stupidRemark age = case age of
+  12  -> "Hey! that's young!"
+  118 -> "No kidding?!"
+  21  -> "You can vote in the UK!"
+  _   -> "Hmm that's boring"
+```
+
+You will see pattern matching everywhere in functional programming. It's a simple way of writing how you want to manipulate the data, but we'll come back to it later.
+
+## Guards
+
+Let's say we want to go further on those stupid remarks. We could group the remarks by age. You would have to compare the age with arbritary thresholds. Guards are the utility to do that:
+
+``` haskell
+stupidRemark :: Int -> String
+stupidRemark age
+  | age < 13            = "Hey! that's young!"
+  | age < 117           = "No kidding?!"
+  | age > 20 && odd age = "You can vote in the UK!"
+  | otherwise           = "Hmm that's boring"
+
+--later
+stupidRemark 110 -- "Hmm that's boring"
+stupidRemark 119 -- "No kidding?!"
+stupidRemark 71  -- "You can vote in the UK!"
+```
+
+As you can see, guards allow to create much more complex conditions without a lot of boilerplate code. Beware though as they allow a limited number of operations, especially in Elixir. The reason you won't see guards as often as pattern matching is that they do not assign variables, they are very practical as `if` replacement.
+
+## Lists
+
+Lists are a very perticular construct in functional languages. They are the opening gates to high order functions, the introduction to recursion and so on. They are very simple objects though: an ordered list of elements. We would write for instance: `[1, 2, 3, 4]`. Lists support two operations:
+
+- `head` (`hd` in Elixir) returns the first element of a non empty list, `1` in our case
+- `tail` (`tl` in Elixir) returns a list of all elements except for the first one, `[2, 3, 4]` in our case
+
+As mentioned in their description, `head` and `tail` do not work on empty list. Why would you do that then? As such those methods are not much used. They will allow you to understand something much more useful: pattern matching on lists. A list can be constructed from its `head` (a single element) and its `tail` (the rest of the elements). In Haskell you write it:
+
+``` haskell
+(head:tail)
+```
+
+In Elixir:
+
+``` elixir
+[head|tail]
+```
+
+And guess what?! You can pattern match with this syntax on lists!
+
+``` elixir
+[head|tail] = [1, 2, 3, 4]
+head == 1
+tail == [2, 3, 4]
+```
+
+How can we iterate on a list from what we know as far? Let's try to upper case a list of names:
+
+``` elixir
+def uppercaseAll [], do: []
+def uppercaseAll [head|tail], do: [String.uppercase(head) | uppercaseAll(tail)]
+
+# Here we shortcut "String.uppercase" to "up" for readability issue
+uppercaseAll ["Fanny", "Eric", "Maïté", "Charles"]
+#<=> [up("Fanny") | uppercaseAll(["Eric", "Maïté", "Charles"])]
+#<=> [up("Fanny") | [up("Eric") | uppercaseAll(["Maïté", "Charles"])]]
+#<=> [up("Fanny") | [up("Eric") | [up("Maïté") | uppercaseAll(["Charles"])]]]
+#<=> [up("Fanny") | [up("Eric") | [up("Maïté") | [up("Charles") | uppercaseAll([])]]]]
+#<=> [up("Fanny"), up("Eric"), up("Maïté"), up("Charles")]
+```
+
+As you can see, we can use the `head`/`tail` to match non empty lists and an empty list for the special case. This type of coding, recursingly call the function until you have the right result is a very common pattern in functional languages. Let's see another one. This time we'll generate the length of the list:
+
+``` elixir
+def lengthAcc(acc, []), do: acc
+def lengthAcc(acc, [head:tail]), do: lengthAcc (acc + 1) tail
+def length list, do: lengthAcc 0 list
+```
+
+I hope you understand better recursion in functional languages. Those pattern are so common they have utilities to write them quickly. It's out of the scope of this article, but you'll cross them when you'll learn one of those language (you might even already know `map` or `reduce` as they are now available in other languages).
+
+## Side note on immutability
+
+*This chapter is pretty low level, you don't need to read it if you trust functional languages.*
+
+I often hear that immutability will plummet performances, that it means copy on change. The reality is more complex. Immutability in the language does not mean unoptimized code: it let the compiler optimize the code. lets consider this "mutable" code
+
+``` elixir
+x = 127
+# somewhere in memory: (x = 127 | ...)
+x += 7 # mutate x
+# in memory (x = 134 | ...)
+```
+
+The equivalent "immutable" code:
+``` elixir
+x = 127
+# (x = 127 | ...)
+y = x + 7
+# (x = 127 | y = 134 | ...) OR (y = 134 | ...) the compiler decides
+```
+
+This is not a very representative example of course, but it introduces to the type of optimisations the compiler can perform on an immutable language. Virtually, you could even optimise concurrent computation with a full immutable and pure language (apart from obscure concurrent languages like [ANI](https://code.google.com/archive/p/anic/wikis/Tutorial.wiki)). If you thought immutability would hit your performances, it's not the case. Ocaml has very similar performance benchmark to Java in the [CLBG](http://benchmarksgame.alioth.debian.org/u64q/compare.php?lang=ocaml&lang2=java).
+
+## Conclusion
+
+I write this article while I'm learning Haskell, and I gather here every similarities and concepts I was happy to have discovered in Elixir first. Like you i've started on introduction pages of functional languages and felt lost, like this one:
+
+<figure>
+  <img alt="screen shot of introduction code on ocaml website" src="https://s3.eu-central-1.amazonaws.com/sadraskol/really-not-simple-ocaml.png" />
+  <figcaption><i>Really OCaml? It's the simplest example you could pull out?!</i></figcaption>
+</figure>
+
+Concepts in functional languages are very weird and different from object oriented languages. But they should not be fear you out! I hope that with this kit you'll get yourself up and learning some functional niceties!

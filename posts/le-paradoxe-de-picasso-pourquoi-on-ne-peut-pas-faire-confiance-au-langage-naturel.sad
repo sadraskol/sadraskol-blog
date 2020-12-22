@@ -1,0 +1,63 @@
+title = "Le paradoxe de Picasso : pourquoi on ne peut pas faire confiance au langage naturel"
+language = "fr"
+publication_date = "2020-03-30T21:05:24.983119+00:00"
+---- sadraskol ----
+Au fondement de la logique, il y a les [syllogismes](https://fr.wikipedia.org/wiki/Syllogisme). 
+Aristote les formula en premier comme cela : 3 propositions s'enchaînent, 2 prémisses et une conclusion.
+La conclusion est une idée nouvelle qui permet d'être déduit des 2 prémisses. Par exemple :
+
+1. Socrate est un Homme
+2. *Mais* Tous les Hommes sont mortels
+3. *Donc* Socrate est mortel
+
+Les propositions possibles dans ces syllogismes sont séparés en 4 catégories :
+
+- *A* Les affirmatives universelles : Tous les hommes sont mortels
+- *E* Les négations universelles : Aucun homme n'est mortel
+- *I* Les affirmations particulières : Au moins un homme est mortel
+- *O* Les négations particulières : Au moins un homme n'est pas mortel
+
+Comme la sémantique est limitée, il n'y a qu'un nombre restreint de raisonnements qui font sens, tous présentés avec leur petit nom dans l'[article wikipedia](https://fr.wikipedia.org/wiki/Syllogisme#Les_modes_concluants). Avant d'aller plus loin, comprenons ce que "valide" veut dire en logique.
+
+## Validité et vérité
+
+On distingue ces deux concepts dans la logique. La vérité est une valeur que l'on donne aux prémisses. On dit qu'une prémisse est soit juste, soit fausse. C'est au lecteur de décider de la vérité d'une prémisse, car s'il est facile d'admettre que "Socrate est un Homme" est une prémisses vraie, dire que la prémisse "Le bonheur est bleu" est vraie est totalement arbitraire. La logique n'est pas un outil qui permet de déterminer le vrai du faux, il s'applique à savoir si les raisonnements sont *valides*.
+
+La validité est une propriété d'un syllogisme. Elle n'indique que si les prémisses et la conclusion sont cohérents. Grâce à un syllogisme valide, on peut dire : si les prémisses sont vraies, alors la conclusion est vraie. Ainsi La validité permet de transférer la vérité à des propriétés. La vérité serait de l'électricité, la validité serait la conductivité.
+
+## Le paradoxe de Picasso
+
+Prenons cet exemple de syllogisme :
+
+- Un Picasso bleu est rare
+- *Mais* tout ce qui est rare est cher
+- *Donc* un Picasso bleu est cher
+
+À priori le raisonnement est toujours valide. Ainsi on peut dire que si on utilise des adjectifs, les règles des syllogismes tiennent toujours. Pourtant, il est facile de trouver un contre-exemple à cela :
+
+- Un Picasso bon marché est rare
+- Mais tout ce qui est rare est cher
+- Donc un Picasso bon marché est cher
+
+Et c'est là que le langage naturel trouve ses limites. En utilisant un adjectif inoffensif on voit bien qu'on arrive à un raisonnement invalide. En effet, le langage naturel n'a pas pour objectif la validité de ses formulations mais d'être un équilibre entre le débit d'information et la vitesse d'assimilation.
+
+## Corriger le paradoxe
+
+Pour comprendre ce qui ne colle pas, on va enlever la possibilité d'avoir des adjectifs :
+
+- Un Picasso bon marché : Il existe un Picasso bon marché (*I* affirmation particulière)
+- *Mais* Tout ce qui est rare est cher (*A* affirmation universelle)
+
+Ça ne suffit pas, il faut que l'enchaînement des propriétés colle. Donc on va renverser pour toujours traiter de l'ensemble de ce qui est bon marché. On peut utiliser pour cela la contraposée de l'affirmation universelle : tout P est Q est équivalent à tout "non Q" est "non P". Ce qui nous donne :
+
+- Un Picasso bon marché : Il existe un Picasso bon marché (*I* affirmation particulière)
+- *Mais* Tout ce qui est bon marché est commun (*A* affirmation universelle, contraposée)
+- *Donc* il existe un Picasso commun (*[Modus Dimatis](https://commons.wikimedia.org/wiki/File:Modus_Dimatis.svg?uselang=fr)*)
+
+Un joli _Modus Dimatis_ (je suis ravi d'apprendre ce nom en écrivant cet article), donc qui ne nous apprend pas grand chose, mais qui ne nous permet certainement pas de dire qu'un Picasso est bon marché et cher à la fois.
+
+## Langage naturel = danger
+
+Les langages naturels sont un danger pour la validité de nos raisonnements et sont souvent la raison de nos pensées magiques : l'impression d'avoir compris un problème pour découvrir plus tard que notre modèle mental est trompeuse.
+
+La pensée magique a des antidotes, commencez par des [tableaux de vérité](https://sadraskol.com/post/methodes-formelles) pour vous soigner !

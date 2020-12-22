@@ -1,0 +1,239 @@
+title = "Learning Alloy the hard way"
+language = "en"
+publication_date = "2020-04-15T10:30:07.262855+00:00"
+---- sadraskol ----
+Reading [Software Abstractions](http://softwareabstractions.org/) was a blast. It is complete, very insightful in first order logic, and makes Alloy an intuitive tool. That was until page 171 and the chapter "Leader Election In A Ring". This chapter gave me a serious headache, and I needed to write about it here so I can clear my head out.
+
+This article is not meant to be a tutorial on Alloy and I won't explain the logic or syntax of the language here. Sorry if you're not familiar to the language, this post won't be very easy on you. 
+
+## How the book states the problem
+
+Let's imagine you have a ring of processes, the goal is to elect the leader of the group of processes. Each process will be given a unique identifier (say a MAC ID, or something) and the leader will be the process with the largest identifier. To achieve that, we'll use the [Chang and Roberts algorithm](https://en.wikipedia.org/wiki/Chang_and_Roberts_algorithm), a well known approach to solve the problem. The given Alloy code is explained first:
+
+``` alloy
+open util/ordering[Time]
+open util/ordering[Process]
+
+sig Time {}
+sig Process {
+  succ: Process,
+  toSend: Process -> Time,
+  elected: set Time
+}
+
+fact Ring { all p: Process | Process in p.^succ }
+```
+
+As a complete stranger to this kind of algorithm, it took me quite some time to understand the ordering of the processes: it simulates the unique identifiers of processes.
+
+I have to point out something that bothers me at this point. The book reads "[...] a **token** can be taken from the **pool** of one **process** and moved to the **pool** of its **successor** in the ring" (I put emphasis on the words myself). Out of 4 concepts, two of them are completely dropped from the Alloy specification, **token** and **pool** does never appear, and it seems is replaced by **toSend**, which kind of feel an arbitrary name.
+
+Then the core of the algorithm is presented:
+
+``` alloy
+pred step (t, t': Time, p: Process) {
+  let from = p.toSend, to = p.succ.toSend |
+    some id: from.t {
+      from.t' = from.t - id
+      to.t' = to.t + (id - p.succ.prevs)
+    }
+}
+
+fact DefineElected {
+  no elected.first
+  all t: Time - first |
+    elected.t = { p: Process | p in p.toSend.t - p.toSend.(t.prev) }
+}
+```
+
+And this is where I lost myself, not only are these steps explained in a paragraph or less, but there's no more explanation to relate the choices of writing this way compared to the original algorithm. Where are the pools, the tokens, and above all why toSend?!
+
+I was angry and I could not wrap my head around the problem. Plus it was the first time graphs presented by the examples did not help me. I did not understand the distance between the original algorithm and the solution in Alloy. I doubted Alloy for the first time.
+
+## Revamping the specifications
+
+My hubris took place: I'm smarter than Daniel Jackson, am I not? I will revamp his example into a more faithful example. Let's look at the description of the algorithm in Wikipedia: 
+
+> 1. Initially each process in the ring is marked as non-participant.
+>  2. A process that notices a lack of leader starts an election. It creates an election message containing its UID. It then sends this message clockwise to its neighbour.
+>  3. Every time a process sends or forwards an election message, the process also marks itself as a participant.
+>  4. When a process receives an election message it compares the UID in the message with its own UID.
+>       1. If the UID in the election message is larger, the process unconditionally forwards the election message in a clockwise direction.
+>       2. If the UID in the election message is smaller, and the process is not yet a participant, the process replaces the UID in the message with its own UID, sends the updated election message in a clockwise direction.
+>       3. If the UID in the election message is smaller, and the process is already a participant (i.e., the process has already sent out an election message with a UID at least as large as its own UID), the process discards the election message.
+>       4. If the UID in the incoming election message is the same as the UID of the process, that process starts acting as the leader.
+
+This is the part the specification treats, the second phase of the algorithm is not modeled here.
+
+What do we read? Firstly, there is a notion of `participant` that is not in the specification of the book. Secondly, the message being carried out is not present in the original specification. So here is the new `Process` definition:
+
+``` alloy
+sig Time {}
+sig Process {
+  neighbor: Process,
+  token: Process -> Time,
+  inbox: Process -> Time,
+  participant: set Time,
+  elected: set Time
+}
+```
+
+Our goals are:
+
+- make the message passing more obvious, so we name an `inbox`
+- the `succ` being too close from `next`, we rename it `neighbor`
+- instead of having a `sendTo`, rename it `token` just as the description says
+- introduce the concept of `participant` that is in the description as well
+
+Since we renamed all of these concepts, I feel more confident in refactoring the `step` method:
+
+``` alloy
+pred startsElection (t, t': Time, p: Process) {
+  p not in participant.t implies // (1)
+    p in participant.t' // (2)
+    and p.neighbor.inbox.t' = p.token.t // (3)
+    and messageReception [t', p.neighbor] // (4)
+}
+```
+
+Whenever a process `p` is not a participant (1), it becomes one (2) and sends a message in it's neighbor's inbox (3), and the neighbor will act the message reception as it should (4). The message reception logic follows the one from the description:
+
+``` alloy
+pred messageReception (t: Time, p: Process) {
+  p.inbox.t = p implies p in elected.t and p not in participant.t // (4.4)
+  p.inbox.t in p.^next implies messageReception [t.next, p.neighbor] // (4.1)
+  p.inbox.t in p.^prev and p not in participant.t implies // (4.2)
+    p in participant.t.next
+    and p.neighbor.inbox.t.next = p.token.t
+    and messageReception [t.next, p.neighbor]
+}
+```
+
+For each proposition, the comment links to the rule in the algorithm description above. Although this code is not perfect, I was confident it was an improvement compared to the example in the book.
+
+Let's run the code...
+
+<figure>
+  <img src="https://sadraskol.s3.eu-central-1.amazonaws.com/no-recursion-alloy.png" alt="pred this/messageReception cannot call itself recursively!"/>
+  <figcaption>This is what happens when you are not attentive enough</figcaption>
+</figure>
+
+## Hubris is not a good advisor
+
+Alright, this approach is uselessly aggressive and full of pride. I admit my anger blinded me and hubris brought me to think **I** could do better! First, I don't know a penny about concurrent algorithms (apart from distant lessons during my studies). Two, I am still a beginner in Alloy. I only used the language for its boosted graphs drawing capabilities and not for its formal logic powers. I forgot the one and only rule the author has being repeating again and again in the book: Alloy is a [first order logic](https://en.wikipedia.org/wiki/First-order_logic) langage. It means that recursions, variables bindings, etc. are not part of the tools available to express ideas.
+
+Therefore, Alloy is definitely not the intuitive approach to specifications like a typical language would be. One must bind their mind to the first order logic (pun intended).
+
+## What now?
+
+I want to try two things: first rename variables in the algorithm from the book to understand it better, then fix my own implementation to check my understanding of the approach and to formulate the limitations of the algorithm. Alright, so let's rename the variables and understand how an election can be generated by the algorithm:
+
+<figure>
+  <img src="https://sadraskol.s3.eu-central-1.amazonaws.com/ring-trace.png" alt="traces of the original specification when renaming methods"/>
+  <figcaption>Let's analyse the traces carefully</figcaption>
+</figure>
+
+We'll try to understand this example of an election.
+
+0. At the initial state, no process is elected. We know Process2 should become elected, as it has the higher id. Each process has a token to itself. This is the initial state of every simulation
+1. Process0 has lost its token while others have their own token. This can be explained for a call of `step [Time0, Time1, Process0]`. Let's see how by replacing the terms in the predicate:
+
+``` alloy
+step [Time0, Time1, Process0] iff {
+  let from = Process0.token, to = Process0.neighbor.token |
+    some id: from.Time0 {
+      from.Time1 = from.Time0 - id
+      to.Time1 = to.Time0 + (id - Process0.neighbor.prevs)
+    }
+}
+```
+
+This substitution unravels the following predicate:
+
+``` alloy
+some id: Process0.token.Time0 {
+  Process0.token.Time1 = Process0.token.Time0 - id
+  Process2.token.Time1 = Process2.token.Time0 + (id - Process2.prevs)
+}
+```
+
+Since we know that `Process0.token.Time0` is a scalar, `id` must be `Process0.token.Time0` and since we know `Process0.token.Time0 = Process0` and `Process2.token.Time0 = Process2` we can keep on reducing:
+
+``` alloy
+Process0.token.Time1 = Process0 - Process0
+no Process0.token.Time1
+Process2.token.Time1 = Process2 + (Process0 - Process2.prevs)
+```
+
+We confirmed that the `Process0.token` is empty on the second step, but what about `Process2.token.Time1`? For that we need to explain `Process2.prevs`: it's all the processes with a smaller id than the current one. This term is the translation of the rule 4.3: the bigger process will discard messages of smaller ids. So:
+
+``` alloy
+Process2.token.Time1 = Process2 + (Process0 - (Process1 + Process0))
+Process2.token.Time1 = Process2
+```
+
+That's it, the reduction is valid, we proved the predicate `step[Time0, Time1, Process0]`. Let's be a bit quicker for other steps
+
+2. Here token points from Process0 to Process1, that would happen if Process1 passed its token to Process0, this is `step[Time1, Time2, Process1]`:
+
+``` alloy
+let from = Process1.token, to = Process1.neighbor.token |
+  some id: from.Time1 {
+    from.Time2 = from.Time1 - id
+    to.Time2 = to.Time1 + (id - Process1.neighbor.prevs)
+  }
+```
+
+Again `Process1.token.Time1 = Process1`, therefor `id = Process1`, `Process1.neighbor = Process0` and `Process1.neighbor.prevs = {}` the empty set. We have our final reduction:
+
+``` alloy
+no Process1.token.Time2
+Process0.token.Time2 = Process1
+```
+
+3. We can use the same proof: this time Process2 sent a message to Process1.
+4. This time, it seems that Process1 sent the message to Process0, since Process0 already had a token for Process1, it also has a token to Process2 now.
+5. Okay, we arrived at the crux of the algorithm, the two next step are the most important. This one is trickier, because so far, we only solved the `step` predicate with a single possible value for `id`. Since Process0 has two tokens now, there is a choice to make. We'll focus on the three options:
+
+``` alloy
+// id = Process1
+Process0.token.Time6 = Process2
+Process2.token.Time6 = Process1 - (Process0 + Process1)
+no Process.token.Time6
+
+// id = Process2
+Process0.token.Time6 = Process1
+Process2.token.Time6 = Process2
+
+// id = Process2 + Process1
+no Process0.token.Time6
+Process2.token.Time6 = Process2
+```
+
+Alright, so we can see clearly that this time, it's the last option that is right. We'll keep the second option in our mind, since we can wonder if it can imply the election of Process2 in the next step.
+
+6. Finally last step, this time, we need to understand the election predicate:
+
+``` alloy
+fact DefineElected {
+  all t: Time - first |
+    elected.t = { p: Process | p in p.token.t - p.token.(t.prev) }
+}
+
+// t = Time6 and p = Process2
+elected.Time6 = Process2.token.Time6 - Process.token.Time5
+```
+
+It means that the elected process will be the one having received his own token. The fact it just received it is garanteed by the fact that the system only evolves with the step predicate. The condition `- p.token.(t.prev)` also prevents processes that did not change to elect themselves. The process being elected is the process that has it's own token and received it from its left neighbor with the `step` predicate.
+
+## Conclusion
+
+Now that I've understood the version of the book, I'm confident that I won't be able to do better than renaming the variables. I understand now how Alloy can help in this kind of approach but I can't stop thinking that a temporal logic tool like TLA+ is a much better fit. As Hillel Wayne (yes him again!) puts it:
+
+> the more “timelike” the problem gets, the worse Alloy becomes at handling it
+>
+> [Hillel Wayne on HN](https://news.ycombinator.com/item?id=21226370)
+
+Don't be discouraged by this post to learn Alloy. I'm still convinced it is a very powerful tool to understand constraints in systems. I think that the first order logic means that you cannot use familiar techniques like recursion.
+
+Also traces can be misleading, the first read might make you feel confident, but you need to decypher and fully understand the underlying specification. And I think this is what Daniel Jackson meant at the beginning of his book when he says Alloy focuses on the deep concepts behind your design and not intricacies of transient technology.

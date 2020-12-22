@@ -1,0 +1,15 @@
+title = "Press review #4"
+language = "en"
+publication_date = "2017-06-29T13:47:31+00:00"
+---- sadraskol ----
+This week's review is so diverse! From SQL `WITH` syntax to a list of good books, you'll find everything, even a critic of "Corporate Agile"
+
+[arpinum/awesome](https://github.com/arpinum/awesome/wiki/Books): I think it's important to share shortlists of books and this one seem pretty good!
+
+[#NoTDD - by Eric Gunnerson](https://blogs.msdn.microsoft.com/ericgu/2017/06/22/notdd): many problems with TDD comes from the lack of design being done. This article tells how design needs to be emphasize when testing first.
+
+[Literate SQL](http://modern-sql.com/use-case/literate-sql): although I do not practice SQL daily, I find this syntax very interesting! Tell me if you use it in your requests.
+
+[Hacker News readers as Progressive Web Apps](https://hnpwa.com): This site gathers multiple version of progressive web apps. It's really an interesting starting point if you want to implement it for your own.
+
+[Why “Agile” and especially Scrum are terrible](https://michaelochurch.wordpress.com/2015/06/06/why-agile-and-especially-scrum-are-terrible): the author tends to mix up Agile and its implementation in some companies. The article is worth for it's demonstration lacking of technical excellence hurts software companies.

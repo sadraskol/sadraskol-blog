@@ -1,0 +1,17 @@
+title = "Press review #1"
+language = "en"
+publication_date = "2017-03-19T20:45:27+00:00"
+---- sadraskol ----
+Since I have a lot of time to spend and to read various articles, I thought it would be a nice exercise to review the nice articles i find here.
+
+[Want to blog? Read this](http://pablojuan.com/want-to-blog-read-this): i'll start with the article that inspired me to write down this article. It might also inspire you if you plan on writing in your blog but don't have any idea.
+
+[Architecting Continuously Testable Systems](http://blog.mccormack.net.au/architecting-testable-systems): Managing large systems is not the most common task for developpers, but delivery management reminds us with the complexity that goes on outside of code. This article goes deep down in the architecture of one system with an emphasis on testability.
+
+[Names that Make Computers Go Crazy](https://agiletestingdays.com/blog/exclusive-excerpt-from-gojko-adzics-new-book-computer-says-no-names-that-make-computers-go-crazy): how did you configure your database for names? `varchar(255)`? This article explains how this setup is a nightmare for people like James Dr No From Russia with Love Goldfinger Thunderball You Only Live Twice On Her Majesty's Secret Service Diamonds Are Forever Live and Let Die The Man with the Golden Gun The Spy Who Loved Me Moonraker For Your Eyes Only Octopussy A View to a Kill The Living Daylights Licence to Kill Golden Eye Tomorrow Never Dies The World Is Not Enough Die Another Day Casino Royale Bond, a UK citizen!
+
+[Virtual machine escape fetches $105,000 at Pwn2Own hacking contest](https://arstechnica.com/security/2017/03/hack-that-escapes-vm-by-exploiting-edge-browser-fetches-105000-at-pwn2own): This is a sweet reminder that VM can also be hacked from the web. Security will always be harder than we think.
+
+[La performance, une norme qui ne vous veut pas que du bien](http://www.internetactu.net/2017/03/13/la-performance-une-norme-qui-ne-vous-veut-pas-que-du-bien): a last article in French (sorry english people) that covers the ideology of self performance and calls for allowing ourself to be shitty sometimes.
+
+I hope you will enjoy those readings, Talk to you later!

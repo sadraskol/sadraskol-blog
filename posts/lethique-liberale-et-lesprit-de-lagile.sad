@@ -1,0 +1,48 @@
+title = "L'éthique libérale et l'esprit de l'Agile"
+language = "fr"
+publication_date = "2016-02-06T19:44:39+00:00"
+---- sadraskol ----
+Dans son livre *L'Éthique protestante et l'esprit du capitalisme*, Max Weber a montré l'influence des courants protestants sur le développement du capitalisme dans l'Europe du 18ème siècle. Cette démarche d'archéologie des idées est très inspirante (je vous conseille l'écoute de [ce podcast](http://www.franceculture.fr/emission-les-nouveaux-chemins-de-la-connaissance-max-weber-14-la-cage-d%E2%80%99acier-du-capitalisme-2014-03) sur le sujet), nous allons nous en inspirer pour comprendre la particularité de la méthode Agile dans l'écosystème des méthodes de l'entreprise et comprendre les risques de sa propagation au delà du monde de l'entreprise.
+
+## Agile, discipline et efficacité
+
+Les valeurs de l'Agile sont avant tout des valeurs d'entreprise, rien de surprenant dans cela, c'est le domaine dans lequel l'Agile a vocation de se déployer. Parmi les douze principes de son [manifeste](http://agilemanifesto.org/iso/fr/), le premier pourrai servir de définition du capitalisme :
+
+> *Notre plus haute priorité est de satisfaire le client
+  en livrant rapidement et régulièrement des fonctionnalités
+  à grande valeur ajoutée.*
+  
+La définition que Max Weber donne est "[le capitalisme] repose sur l'espoir d'un profit par l'exploitation des possibilités d'échange". Ici le client et l'entité échange de satisfaction pour de la valeur ajouté. L'Agile repose bien sur l'espoir des "chances pacifiques de profit". Les objets de ces concepts sont l'entreprise, son profit et celui de son client.
+
+Peu de principes parlent des individus engagés dans la production du logiciels. Seul le cinquième évoque le traitement des membres d'une équipe :
+
+> *Réalisez les projets avec des personnes motivées.
+  Fournissez-leur l’environnement et le soutien dont ils
+  ont besoin et faites-leur confiance pour atteindre les
+  objectifs fixés.*
+  
+Dans le reste des principes, les individus sont réduits à leur fonction. Or la première valeur privilégiée dans l'entreprise d'après le manifeste est "les individus et les interactions". Mais alors comment privilégier l'individu quand celui-ci est silencieusement rappelé au plus important : la satisfaction du client. Une qualité qui est omniprésente dans la littérature Agile qui n'apparaît pourtant pas dans le manifeste est la discipline. Kent Beck l'évoque le plus explicitement dans son livre *Extreme Programming Explained: Embrace Change* : pour lui la discipline est la première qualité qui l'a frappée quand il a rencontré l'équipe de Martin Fowler (tel Proust, je cite de mémoire, corrigez moi si je me trompe).
+
+Pourtant pour qu'un système s'accomplisse dans la discipline, il faut pouvoir faire régner une peur dans l'esprit des membres de l'équipe, ai-je besoin de vous rappeler le titre du blog ?! La discipline et l'ordre sont au cœur de l'objectif gouvernemental chez Machiavel, car il n'y saurait y avoir d'état dans le désordre et l'indiscipline.
+
+## Agile et le panoptique
+
+La notion de panoptique est assez riche pour mériter son détour dans ce billet. Utilisé par le philosophe Michel Foucault dans son livre *Surveiller et Punir* pour montrer l'évolution de la justice dans les sociétés occidentales modernes, le panoptique est un dispositif architectural permettant la surveillance des individus. [L'article wikipédia](https://fr.wikipedia.org/wiki/Panoptique) explique mieux que moi le dispositif. Ce dont il faut se souvenir c'est que c'est un dispositif qui permet de voir sans être vu, ainsi le prisonnier ne peut savoir s'il est surveillé et donc est dans un état de surveillance constante. La force de ce dispositif est d'être normatif, car la surveillance étant à la fois permanente et implicite, elle oblige le détenu à se surveiller son comportement à tout moment. C'est donc un outil de surveillance générale d'une efficacité sans égal.
+
+Il est intéressant que l'Agile ait épousé des dispositifs que l'on pourrait qualifier de panoptiques. Par exemple l'utilisation de l'aménagement en open space, qui est loin d'être spécifique à l'Agile, est typiquement un environnement de normalisation par la surveillance aveugle de tout un chacun. La diminution de l'espace intime permet de mieux réduire l'individu à sa fonction.
+
+De la même façon, l'utilisation des tableaux d'avancement Kanban est un dispositif qui, plus discrètement que l'open space, permet la normalisation des comportements par la simple possibilité que tout un chacun puisse observer l'avancement du travail de son voisin à tout moment.
+
+Notons que l'open space et le tableau Kanban ne sont pas des dispositifs panoptiques à proprement parlé, Oscar Gnouros décrit justement dans [son blog](http://www.morbleu.com/l-open-space-et-le-panoptique-le-pouvoir-et-le-travail/) que l'open space est un espace de contrôle et non un espace disciplinaire au sens où Foucault définissait le panoptique. Cette distinction a relativement peu d'importance pour l'entreprise, ce sont tout de même des espaces où peut s’exercer son pouvoir. Enfin, au crédit de l'entreprise, l'évolution vers ses outils ne lui est pas reprochable, ils servent son intérêt et s'ils sont quelque peu déshumanisants, leur objectif s'aligne avec celui de l'entreprise : l'efficacité.
+
+## Inefficacité philosophique
+
+Voici le paradoxe de l'Agile : il impose la primauté des intérêts de l'entreprise comme étant le cœur de l'activité de l'individu. Pourtant le manifeste affirme haut et fort que c'est l'auto-organisation des équipes, voire leur confort, qui permet l'émergence des "meilleures architectures". Il est bien clair que l'adjectif "meilleur" désigne ici la capacité de l'architecture à répondre aux besoins du client, pas de répondre aux besoins des individus engagés dans la réalisation de cette architecture. Une liberté de façade fait opposition à une surveillance silencieuse au nom d'une efficacité qui efface l'individu.
+
+En concentrant tout ses objectifs sur l'efficacité, la performance, l'amélioration continue, elle en devient un outil trop moderne et peu humain. Moderne car la recherche de la performance, de l'amélioration est propre d'un temps où il n'y a plus d'Histoire et où nous nous répétons sans cesse que nous n'avons qu'une vie. Inhumaine, car pauvre philosophiquement, elle ne propose aucun chemin pour une sagesse de l'individu.
+
+Force est de reconnaître que l'Agile a donné naissance à une myriade de pratiques (le [TDD](https://en.wikipedia.org/wiki/Test-driven_development)), de méthodes (Kanban, Lean, etc.), d'outils ([Ruby on Rails](https://pragprog.com/book/rails4/agile-web-development-with-rails-4), etc.) et à une littérature d'une étendue sans précédent dans l'informatique. Au point où l'Agile déborde du cadre de l'entreprise, comme en atteste cette présentation sur [l'Agile en famille](https://www.youtube.com/watch?v=EJv6TQWgclI) ou encore la [pédagogie Agile](http://pedagogieagile.com). Je ne me permettrai pas de critiquer ces pratiques, qui n'utilise pas tant le mot Agile pour référer au manifeste du même nom mais pour signifier leur modernité et leur anti-conformisme. Je pense néanmoins qu'il faut se méfier de la tentative de pénétration d'une éthique fortement capitaliste et normalisatrice en dehors des systèmes dans lesquels elle est destinée.
+
+*Post-scriptum : [l'article du slate.fr](http://www.slate.fr/story/113619/surveiller-punir-jouir), éclaire parfaitement sur le glissement de la punition vers une surveillance plus lente et insidieuse chez Foucault.*
+
+*ps: la publication de cet article est antérieur à la création de ce blog.*

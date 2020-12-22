@@ -1,0 +1,53 @@
+title = "Why null leads to bad implementations"
+language = "en"
+publication_date = "2017-05-04T14:00:19+00:00"
+---- sadraskol ----
+Bergson once said:
+
+> Le néant, c'est la traduction des données de notre perception dans le language de nos attentes. [source](http://sites.arte.tv/philosophie/fr/video/imaginez-le-neant)
+>
+> *The void is the translation of the data of our perception in the language of our expectations.*
+
+Expectations are wicked things to represent in a program, they are implicit, changing, immaterial and conceptual. We should instead talk about things that exist, that represent reality, and its continuous realm of possibilities.
+
+One could say that this issue has been solved in computing systems through the implementation of types. Types characterize systems without leaving any expectation implicit. This vision, however, fails to take into consideration the infamous `null` present in nearly [every language](https://www.lucidchart.com/techblog/2015/08/31/the-worst-mistake-of-computer-science).
+
+What is the problem of `null` references? Let's say you implement a virtual bag of sweets. You choose to implement it in this way:
+
+``` java
+class Bag {
+  private Sweets sweets = null;
+}
+```
+
+This code runs the risk of throwing a `NullPointerException` somewhere. And even with a perfect test coverage and no bugs induced in some production system, this code would still be problematic.
+
+To understand why, we need to get back to Bergson.
+
+Imagine you are offered a bag of sweets, let's say some Werther's, but the bag reveals to be empty! "There are no candies in this bag!" you mutter. Are you really pointing out the absence of candies in the bag? Strictly speaking, you could equally point out the absence of sweets everywhere: "There are no candies in this cup of tea!", "There are no candies in this Shakespeare play!", "There are no candies on this table!"... No, what you are expressing is merely a disappointed expectation.
+
+Translated in your "expectation language", this would read:
+
+``` java
+class Bag {
+  private Sweets sweets = null;
+}
+```
+
+But your perceptions did receive:
+
+``` java
+class EmptyBag extends Bag {}
+```
+
+Polymorphism, in the form of the [special case pattern](https://martinfowler.com/eaaCatalog/specialCase.html), is a stronger choice here. It allows to avoid any `NullPointerException` or undetected behavior, and also to leverage the power of the language's compilator. It is, arguably, the best solution.
+
+When Tony Hoare implemented object oriented language in 1965, he argued in its favour for one reason above all, that is:
+
+> The great thing about record handling is that you don't need to have a subscript error, because you cannot construct a pointer that points to something that doesn't exist, and a whole set of errors cannot occur and do not need to be [checked at run-time](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare).
+
+Note how he mentions the fact that objects forbids to construct something that *does not exist*. Most languages provide a easy way to do so: `null`. This is indeed a shame because it inevitably leads to bad design! Let's be affirmative in our way of describing the world as it is, and not representing our expectations of it.
+
+Let's not use `null` and assume reality.
+
+*ps: thanks to Irene for the proofreading and suggestions.*

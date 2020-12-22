@@ -1,0 +1,152 @@
+title = "If-less game of life"
+language = "en"
+publication_date = "2016-05-10T20:07:46+00:00"
+---- sadraskol ----
+Let's implement an if-less [game of life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life). I discovered this game during a [code retreat](http://coderetreat.org) and the simplicity of its rules make it the perfect field to experiment patterns.
+
+## The rules
+
+The game of life consists of a two dimension board filled with cells. Each cell can be either dead or alive. For simplicity sake, we'll only implement the behavior at the cell level. At each step, a cell behavior follows those 4 rules :
+
+1. Any live cell with fewer than two live neighbors dies.
+2. Any live cell with more than three live neighbors dies.
+3. Any live cell with two or three live neighbors lives on to the next generation.
+4. Any dead cell with exactly three live neighbors becomes a live cell.
+
+Applying those simple rules on every cell of the board and you can come up with surprising and intriguing self-generated structures.
+
+<figure><img src="https://s3.eu-central-1.amazonaws.com/sadraskol/2g3_fontaine.gif" width="148" height="121" /><figcaption> Game of life fontain pattern</figcaption></figure>
+
+During a code retreat session, you have 45 minutes to craft the most beautiful code that implements the Game of Life. At the end of the 45 minutes, you drop the code and restart from scratch with a new constraints. The constraint can be "use a different paradigm editor (vim/eclipse)", "only 4 lines of code per methods" or, you guessed it "no conditional statement". You can find a lot more activities [here](http://coderetreat.org/group/facilitators/forum/topics/what-are-some-exercises-and-constraints-that-people-use-during-se).
+
+Now, let's dig in the coding of an if-less Game of life!
+
+## First draft
+
+Let's say that, after a first round of test-implement-refactor on all the different states of the cell, we have the following class for the cell:
+
+``` java
+class Cell {
+ private final boolean isAlive;
+
+ Cell(final boolean isAlive) {
+   this.isAlive = isAlive;
+ }
+
+ public Cell mutate(int neighbors) {
+   if (neighbors &lt; 2 &amp;&amp; neighbors &gt; 3) {
+     return new Cell(false);
+   } else if (this.isAlive || (!this.isAlive &amp;&amp; neighbors == 3)) {
+     return new Cell(true);
+   } else {
+     return new Cell(false);
+   }
+ }
+}
+```
+
+Okay the code is ugly. But hey! it's your first time and we only wanted to get familiar with the game of life "business". We have plenty of space for improvement so let's get started and achieve this if-less game of life. We'll first remove the boolean member of the class.
+
+### Alive and dead cells
+
+The first concept that we can implement and that is explicit in the rules is the concept of living and dying cells. We will get rid of the boolean that hang some how in there and simplify the big *if-else if-else* conditional.
+
+``` java
+class LivingCell implements Cell {
+  public Cell mutate(int neighbors) {
+    if (neighbors &lt; 2 &amp;&amp; neighbors &gt; 3) {
+      return new DeadCell();
+    } else {
+      return new LivingCell();
+    }
+  }
+}
+```
+
+``` java
+class DeadCell implements Cell {
+  public Cell mutate(int neighbors) {
+    if (neighbors == 3) {
+      return new LivingCell();
+    } else {
+      return new DeadCell();
+  }
+}
+```
+
+By having more fine grained classes, we remove a level of ifs and clearly improved readability. I guess that a colleague, or the future you, would better understand what `new LivingCell()`is rather than `new Cell(true)` when reading those lines. To convince you, just read it out loud, you'll feel more natural to say that it "returns new living cell".
+
+But it's not enough to achieve if-less game of life. We need to find an alternative to `int` for the concept of neighbors.
+
+### Extract concept from the rules
+
+Depending on the population surrounding the cell, it is modified. But currently, the cell decides if the population is worth living or dying. It is too much responsibilities for a single cell. So instead of passing an `int` we'll pass a `Population` and let it decide when to switch the cell state.
+
+``` java
+class LivingCell implements Cell {
+  public Cell mutate(Population population) {
+    return population.mutateLivingCell();
+  }
+}
+```
+
+``` java
+class DeadCell implements Cell {
+  public Cell mutate(Population population) {
+    return population.mutateDeadCell();
+  }
+}
+```
+
+Okay, there's no ifs in there but we don't go really very far, do we ? What should we do with the populations ? First let's categories them. We have three type of population:
+
+- When there is not enough neighbors or too much any cell dies. Let's call that a `DeadlyPopulation`.
+- The opposite case: any cell with a perfect amount (3) of neighbors will come to live whatever state it had before. Let's call that a `PerfectPopulation`.
+- Finally, there's a population for which any dead cell remains dead and living cells remain alive. Let's call that a `FragilePopulation`.
+
+``` java
+class DeadlyPopulation implements Population {
+  public Cell mutateDeadCell() {
+    return new DeadCell();
+  }
+  public Cell mutateLivingCell() {
+    return new DeadCell();
+  }
+}
+```
+
+``` java
+class PerfectPopulation implements Population {
+  public Cell mutateDeadCell() {
+    return new LivingCell();
+  }
+  public Cell mutateLivingCell() {
+    return new LivingCell();
+  }
+}
+```
+
+``` java
+class FragilePopulation implements Population {
+  public Cell mutateDeadCell() {
+    return new DeadCell();
+  }
+  public Cell mutateLivingCell() {
+    return new LivingCell();
+  }
+}
+```
+
+And that's it! I skipped the test-refactor test to keep the code as readable as possible. But to explain quickly, I start with the `LivingCell` removing the *if* and introducing the concept of population. The tests should be red, saying that the `Population`, `DeadlyPopulation`, etc. don't exists and then implements their tests, adding their methods, implementing them. Once done it's pretty straight forward to add the `DeadCell` cases.
+
+And that's it, we've implemented an if-less game of life, or to be more precise the set of rules for the cell, since the board logic is nowhere to be seen.
+
+## Wrapping up
+
+What have we done really ? There is no conditional statement in the cells behavior now, but it does not mean that we really made them disappear from the implementation, we just *postponed* them to another class. For instance it could be the grid's responsibility to choose what kind of population is around the cell. The benefit of this postponement is that we don't have to stick with the rules, if we decide to change the *perfect* population to 6 neighbors, this piece of code would not change.
+
+One might argue that the use of a [strategy pattern](https://en.wikipedia.org/wiki/Strategy_pattern) is over zealous in this case, could impair readability. I will not discuss if it is good or bad to use this pattern, but to knowing it gives you another tool that you can think of when encountering a problem you can't sort out.
+
+The goal of retreat coding or other type of katas is not to make you program "better" but to broaden your skills. There is a nice word to describe the process of learning from constraints: *maieutics*. It comes from Socrates philosophy and means giving birth with the mind. Think of the birth of Athena: Zeus ate Metis, goddess of intelligence. After a while he felt some headaches. Hephaestus took an axe and opened the head of Zeus and so was Athena, goddess of wisdom, born. The process of eliminating conditional statements is as painful as Zeus headaches since we have to unlearn the way we are thinking to discover techniques that we already know. In our case, getting rid of booleans and conditional to implement a variation of the strategy pattern to obtain an if-less game of life.
+
+*I hoped you liked this quick and dirty presentation. I will continue writing on other patterns you can experiment implementing the game of life. If you have any questions or feedback to make, feel free to contact me on [twitter](https://twitter.com/sadraskol).*
