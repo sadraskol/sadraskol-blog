@@ -27,6 +27,10 @@ impl FileDiff {
             fs::create_dir_all(parent).unwrap();
         }
 
+        if p.is_dir() {
+            fs::remove_dir_all(p).unwrap();
+        }
+
         let w = fs::OpenOptions::new()
             .write(true)
             .create(true)
@@ -113,7 +117,7 @@ fn gen_feed(posts: &Vec<SadPost>) {
         posts: v,
     }.render().unwrap();
 
-    let mut file = FileDiff::new("dist/feed/index.xml");
+    let mut file = FileDiff::new("dist/feed");
     file.write_diff(xml);
 }
 
@@ -138,7 +142,7 @@ fn gen_post(post: &SadPost) {
 
     let html = page.render().unwrap();
 
-    let mut file = FileDiff::new(format!("dist/posts/{}/index.html", slugify(post.title.clone())));
+    let mut file = FileDiff::new(format!("dist/posts/{}", slugify(post.title.clone())));
     file.write_diff(html);
 }
 

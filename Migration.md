@@ -20,12 +20,9 @@ In a static layout, redirects and blogs should be present somewhere. A folder co
 ```
 root/
 ├── posts
-    └── first-post-current-slug
-        └── index.html
-    └── other-post-with-current-slug
-        └── index.html
-    └── any-post-with-current-slug
-        └── index.html
+    ├── first-post-current-slug
+    ├── other-post-with-current-slug
+    ├── any-post-with-current-slug
     └── img
         └── first-image.png
 ├── index.html
