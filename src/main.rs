@@ -2,6 +2,8 @@ extern crate askama;
 
 use std::fs;
 
+use std::io::Write;
+
 use askama::Template;
 
 use sadraskol::domain::slugify::slugify;
@@ -61,7 +63,7 @@ fn gen_redirects() {
     fs::copy("slugs.sad", "dist/redirects").unwrap();
 }
 
-fn main() {
+fn gen() {
     let posts_files = fs::read_dir("posts").unwrap();
     let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| post.map(|p| p.path()))
@@ -74,4 +76,24 @@ fn main() {
     gen_posts(&posts);
 
     gen_redirects();
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() == 1 {
+        gen();
+    } else {
+        if args[1] == "new" {
+            let mut f = fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(format!("posts/{}.sad", slugify(args[2].clone())))
+                .unwrap();
+
+            writeln!(f, "title=\"{}\"", args[2]).unwrap();
+            writeln!(f, "publication_date=\"{}\"", chrono::Utc::now().to_rfc3339()).unwrap();
+            writeln!(f, "language=\"en\"").unwrap();
+            writeln!(f, "---- sadraskol ----").unwrap();
+        }
+    }
 }

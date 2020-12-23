@@ -34,6 +34,7 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                     keyword("LAMBDA"),
                     keyword("SUBSET"),
                     keyword("UNION"),
+                    keyword("CHOOSE"),
                     inline_comment("\\*"),
                     string('"'),
                 ],
