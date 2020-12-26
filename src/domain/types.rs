@@ -1,7 +1,7 @@
+use chrono::{DateTime, Utc};
 use pulldown_cmark::{Options, Parser};
 
 use crate::custom_markdown::sad_push_html;
-use chrono::{DateTime, Utc};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Markdown {
@@ -36,4 +36,5 @@ pub struct SadPost {
     pub language: String,
     pub publication_date: DateTime<Utc>,
     pub saddown_content: Markdown,
+    pub image: Option<String>,
 }

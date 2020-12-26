@@ -34,11 +34,25 @@ impl PostSummaryView {
 #[template(path = "base.html")]
 pub struct BaseTemplate<'a> {
     pub title: &'a str,
+    pub has_image: bool,
+    pub image: &'a str,
 }
 
 impl<'a> BaseTemplate<'a> {
     pub fn default() -> BaseTemplate<'a> {
-        BaseTemplate { title: "Sadraskol" }
+        BaseTemplate {
+            title: "Sadraskol",
+            has_image: false,
+            image: "",
+        }
+    }
+
+    pub fn with_image(img: &'a str) -> BaseTemplate<'a> {
+        BaseTemplate {
+            title: "Sadraskol",
+            has_image: true,
+            image: img,
+        }
     }
 }
 

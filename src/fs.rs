@@ -58,6 +58,7 @@ struct SadHeader {
     title: String,
     language: String,
     publication_date: String,
+    image: Option<String>,
 }
 
 pub fn read_post(path: &Path) -> SadPost {
@@ -76,5 +77,6 @@ pub fn read_post(path: &Path) -> SadPost {
         language: header.language,
         publication_date: date_time,
         saddown_content: Markdown::new(content),
+        image: header.image,
     }
 }

@@ -1,6 +1,7 @@
 title="Distributed Systems: a review"
 publication_date="2020-12-26T09:35:18.120144144+00:00"
 language="en"
+image="/img/ddia.png"
 ---- sadraskol ----
 Let's review the two latest books I read: *[Designing Data-Intensive Application](https://dataintensive.net/)* by Martin Kleppmann (DDIA for short)
 and *[Distributed Systems](https://www.distributed-systems.net/index.php/books/ds3/)* by Maarteen van Steen and Andrew S. Tanenbaum.
