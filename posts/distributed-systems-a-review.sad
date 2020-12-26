@@ -1,0 +1,389 @@
+title="Distributed Systems: a review"
+publication_date="2020-12-26T09:35:18.120144144+00:00"
+language="en"
+---- sadraskol ----
+Let's review the two latest books I read: *[Designing Data-Intensive Application](https://dataintensive.net/)* by Martin Kleppmann (DDIA for short)
+and *[Distributed Systems](https://www.distributed-systems.net/index.php/books/ds3/)* by Maarteen van Steen and Andrew S. Tanenbaum.
+
+Both have a lot of similarities, they both make an academic description of the technologies, yet their content is
+very different. What do I mean by an academic description? The authors do not take position, or list the + and - of
+their subjects. They list the properties of their subjects: what happen when it fails? How many messages are exchanged?
+What kind of failures can we tolerate? etc. This approach is much more nuanced than the +/- approach.
+It gives a deep knowledge in what make all technologies unique.
+It provides the insights to make more informed decisions.
+
+**TLDR;**
+
+*Do read Designing Data-Intensive Application, and enjoy the deep knowledge and design of systems.*
+
+## DDIA
+
+This part is going to summarize the first 11 chapters of the book.
+It is going to be uselessly long, I advise you to skim through.
+If **any** part seems interesting to you, read the book, it's filled with many more details.
+
+### Chapter 1: Reliable, Scalable, and Maintainable Applications
+
+Reliability: every system is subject to failures. Deal with it!
+
+Scalability: how does Twitter scale the timeline.
+First solution: you can write every tweets in a table, and timelines are a joint of the tweet table with the follower table.
+But since writing and reading from the same table creates contention, you can design another approach. Each tweet is queued to be delivered to every follower.
+
+```
+                          [t3, t2, t1]<-------- follower 1
+                         /
+user --->[t4, t3, t2, t1]-[t4, t3, t2, t1]<---- follower 2
+                         \
+                          [t1, t2]<------------ follower 3
+```
+
+For instance, here where the user tweet, it is dispatched asynchronously to all its followers. The load, *i.e* the metric to quantify the
+performance of the system, is the speed at which a tweet is delivered to a follower. The problem of this approach is the write multiplication caused by the dispatch. The more follower you have, the more writes are dispatched to a lot of queues. If you have 1 million followers, 1 million writes are required to dispatch a single tweet.
+
+### Chapter 2: Data Models and Query Languages
+
+There are multiple data models. Each have its own purpose and limitations.
+
+The first model to exists, that almost disappear, is the hierarchical data.
+It was trumped by relationnal databases.
+
+The core concepts of relational database are:
+
+- Foreign keys
+- Normalized data
+- Declarative query language
+
+The core of a relational database is the query engine.
+It optimizes requests for you, and much effort has been put into it to make query fast.
+
+The issue with the relational model is that it mismatches the object model of applications.
+Thus the need for complex ORM (Object-Relational Mapping).
+
+The rise of document database allieviate this problem.
+Instead of normalizing data, you store JSON representation of your objects.
+
+The queries for such model are simpler for read/write operations.
+They usually lack the expressiveness of SQL queries for more complex operations.
+
+Finally the last data model is the graph-like data model.
+
+You could use recursive RTE along with vertices/edges tables to simulate graph in SQL.
+The complexity of SQL queries make it hard to maintain such code.
+
+This chapter covers a lot of details on graph languages, and shows their potency.
+
+### Chapter 3: Storage and Retrieval
+
+This chapter solves the question: how to store data efficiently?
+This question is not easy to answer, let's see why.
+
+First the quickest file operation is the append-only operation.
+Most database use this structure to store each version of an entry.
+Database use compaction to reduce the log. Say you have this log for instance:
+
+```
+mew: 1078
+purr: 2103
+purr: 2104
+mew: 1079
+mew: 1080
+mew: 1081
+purr: 2105
+purr: 2106
+purr: 2107
+yawn: 511
+purr: 2108
+mew: 1082
+```
+
+The compaction process reduces it to the equivalent following:
+
+```
+yawn: 511
+purr: 2108
+mew: 1082
+```
+
+But then how do you retrieve data from the log?
+The naïve approach it to scan the file to find the latest entry.
+You cannot scale this approach.
+
+Instead of scanning the file, you can maintain a hash index in memory containing the offset of each
+entry.
+This speeds up reads.
+You need to write to the log and to the index at the same time to guarantee consistency.
+
+Hash tables have their limitations:
+
+- They must fit in memory, because maintaining hash tables on disk is a difficult operation
+- Hash collision needs to be taken care of
+- They do not help for range queries
+
+SSTables (Sorted String Tables) store keys in order in a sparse index.
+The corresponding entries are stored in blocks of x keys.
+For instance if x = 3:
+
+```
+Sparse Index in memory
+
+hammer   -> 1049
+handbag  -> 1130
+handsome -> 1204
+hangout  -> 1295
+----
+Sorted segment file
+
+offset 1049: hammer:43, hammock: 123, hand: 321
+offset 1130: handbag: 1928, handcuffs: 432, handful: 345
+offset 1204: handsome: 24...
+```
+
+When looking for the entry for "handcuffs":
+
+- the databases first looks the block it belongs to: handbags
+- it scans the segment file from offset 1130 until it finds the key
+- returns the corresponding entry
+
+You can optimize this system to optimize reads. But how do you write in such structures?
+The solution is to use the append-only log as a buffer before writing in bulk.
+This is called LSMT (Log-Structured Merge-Tree) and widely used.
+Apache Cassandra, HBase, Google's BigTable, LevelDB engine in Riak all use this approach,
+as well as Elasticsearch and Lucene.
+
+B-trees are also widely used in databases and are very suited for modern SSD hardware.
+
+There are other type of index: multi-column index, storing entries in the index, etc.
+There are no clear winner and every index serve a purpose.
+
+The author then separate two kind of workload: data analytics and transactional operations.
+Data analytics is a way of analysing the data to make sense of it all.
+Transactionnal workloads require highly available and low latency databases.
+
+Relationnal databases use a row oriented storage: every entry is stored all together.
+On the other hand column oriented databases are very efficient for analytics workload.
+If you want to query the 90th percentile of the price of all products, in a row-oriented
+database you will have to scan every product.
+In a column-oriented database, every prices are stored at the same location, making retrieval trivial.
+
+This chapter is a gold mine of information to understand how database store and retrieve data.
+
+### Chapter 4: Encoding and Evolution
+
+This chapter lists and compare major encoding format:
+
+- language-specific formats: Java and Python have their own format
+- textual format: JSON or XML
+- static binary encoding: Thrift and Protocol Buffers
+- dynamic binary encoding: Avro
+
+Also it covers the problem of evolution of schemas. To evolve a schema, you need:
+
+- forward compatibility: new schema has to be decypher by the old code
+- backward compatibility: old schema had to be decypher by the new code
+
+Some operation on the schema are backward compatible, like adding a field.
+Removing a field on the other hand is not, so it need to be handled carefully.
+
+Format with schema offer an IDL (Interface Definition Language) that are useful for RPC (Remote Process Call).
+RPC has a lot of constraint, but have become necessary with service oriented architectures.
+
+This chapters covers a lot of format and discussions around schema evolution and RPC are enlightening.
+
+### Chapter 5: Replication
+
+Many reasons pushes data to be stored in a distributed manner:
+
+- Scalability
+- Fault tolerence/high availability
+- Latency
+- Keep geographically close to the users
+
+The chapter covers replication issues.
+
+There is synchronous replication: every write to the leader requires to be forwarded and acknowledged by the followers before being committed.
+Asynchronous replication is when only the leader confirms the write.
+
+Asynchronous replication draws lesser latency, at the cost of weaker consistency guarantees.
+On the other hand synchronous replication suffers from weaker fault tolerence.
+
+The chapter goes on explaining consistency levels you can expect from log replication.
+I already covered this in a [previous post](https://sadraskol.com/posts/reading-notes-highly-available-transactions-virtues-and-limitations),
+so I won't talk about it here.
+Just know that the author is much better than I for explaining the different models.
+
+### Chapter 6: Partitionning
+
+Usually partitionning is used along side with replication.
+Partitions have their own problems and they add up to replication problems.
+
+The goal of partitions is to spread the data and the load across nodes.
+You can devise 2 main strategies to devide data:
+
+- By key range: print encyclopedia are partitioned by key range
+- By hash key
+
+ How to deal with secondary indexes when partitionning data.
+ There are two approaches:
+
+- partitionning the index with the data
+- having a single partition carry the index
+
+Another problem is skewed load and hot spots.
+Say your data is partitioned evenly.
+If only keys from the same partition are queried and modified, there is a hotspot in the partition.
+Choosing the right partition strategy is key to avoid this misbehavior.
+
+Finally, when partitions are on different node, 3 strategies can be used to route requests.
+
+- Having the partition knowledge on every node, requests are forwarded transparently to other nodes
+- Having a routing tier that redirect transparently to nodes
+- The client can directly have the knowledge of which node to query
+
+The problem, known as service discovery, is solved differently by services.
+Kafka, HBase and SolrCloud use a routing tier, managed by ZooKeeper.
+Cassandra and Riak use a gossip protocol and let node manage the redirection to the correct node.
+
+### Chapter 7: Transactions
+
+Transactions are tighly linked to consistency models.
+The chapter presents the strong (Serializibility) and the weaker models (Repeatable Read, etc.).
+
+It also explain the different approach of Postgres for strong models.
+Postgres uses snapshot isolation for reads, and check that objects queried are not modified by another process
+when the transactions is commit.
+If it is the case, it roll backs the transaction, guaranteeing that there is no lost update.
+Stronger level of consistency are achieved by optimistically executing concurrent requests.
+
+On the other hand MySQL uses a stronger 2 phase locking to make sure no two process access data.
+
+Finally there is FoundationDB approach: make sure requests are treated by a single thread at any point.
+By partitionning data to every thread, this approach is easy to implement and quite efficient.
+
+Each paradigm has pros and cons, and it's up to your application to use the right solution.
+
+This chapter covers a lot more than that, but I don't have enough place to write about every goodness in this book.
+
+### Chapter 8: The Trouble with Distributed Systems
+
+Distributed systems are subjects to faults, failure and all sort of bad things.
+
+Network can fail.  
+Network can be slow.  
+Network can have unbounded latency.  
+
+Clocks in computers are based on quartz, which drift from other quartz.
+Google estimate that clocks drift up to 17 seconds per day between quartz.
+
+NTP is a protocol to correct the precision of clocks by comparing local time to a GPS clock or atomic clock.
+Even if NTP is useful, it can't be used to order the operation of distributed systems.
+Garbage collection in language environment or Virtual machine pauses make clocks even less reliable.
+
+Truth is difficult to achieve in distributed systems as well.
+Imagine: a lock is held by a process which craches.
+Another process claims the lock but receives no answer, what should it do?
+
+Even if a majority of process agree, Byzantine faults can make the agreement fail.
+Although not common they are things to think about.
+
+### Chapter 9: Consistency and Consensus
+
+Major problems in distributed systems: agreement, atomic broadcast, totally ordered dispatch, uniqueness, membership detectors
+can be reduced to a single problem: consensus.
+This is why consensus is so important to this field of computing.
+
+If a consensus is reach by processes in a distributed system, the system can act like it would be a single process.
+This is the graal of every distributed systems.
+Unfortunately consensus is very difficult to achieve by faulty processes and unreliable network.
+
+The first and most influencial solution to this problem is the Paxos protocol.
+
+The chapter also explains 2 phase commit and how failing coordinator is hard to recover from.
+XA protocol is not implemented by a lot of systems, therefor it's not really a killer feature.
+
+Consensus solution are very difficult and expensive to achieve, this is why developers should
+choose a weaker model, or rely on battle-prooved solutions: ZooKeeper.
+
+### Chapter 10: Batch Processing
+
+This chapter explains the approach of MapReduce, and how it sets the foundation of big data processing.
+
+Like the unix pipe operator, MapReduce approach is to offer a coherent way of pipelining operation on data.
+HDFS the Hadoop file system stores raw dataset as files.
+Each step on the pipeline transforms the data and save its result to HDFS.
+
+It's easy to replay tasks, since every step is saved on disks.
+Also since data is immutable, you can perform many steps in parallel on the same dataset.
+
+The chapter goes on to describe how MapReduce tasks are performed.
+It also describes strategies to join large datasets.
+
+The problem of storing all information of intermediary steps is not efficient when many steps are needed.
+To solve this issue, well known solutions like Spark, Flink or Tez exist.
+They are known as dataflow engines.
+
+They need special care.
+Since intermediary steps are not written to disk, a failure in the pipeline can have dramatic effect.
+
+This chapter is really enlightening if you've never met the large data warehouse of some companies.
+When dealing with petabytes of data, you cannot use relationnal model and MapReduce solves the
+problems quite elegantly.
+
+### Chapter 11: Stream Processing
+
+This last chapter is about stream processing: using Kafka as a messaging system.
+Kafka is an hybrid approach that can do the same workload has MapReduce thanks to storing event in log and offering replay.
+
+This chapter covers how to use Kafka to do CDC (Change Data Capture).
+Many solution exist that I'm not gonna cover.
+
+The author mentions here that CDC is the core concept of event sourcing, but on the application level.
+
+The word that I learn in this chapter is *derived data*.
+The source of truth can be an relationnal database, MapReduce, CDC or event sourcing allow to generate derived data.
+The derived data can be an index, an analytics dashboard, etc.
+CDC is a very powerful tool to solve problems like:
+
+- Fraud detection
+- Analytics in financial data
+- Quickly identify faults in a factory
+
+But then can also be used to maintain materialized view, either for MapReduce or application usage.
+
+To make stream processing reliable and resilient to faults, some solutions are possible.
+You can use checkpoints or use smaller batch that can be retried.
+You can also have idempotent jobs that can safely process duplicated messages.
+
+---
+
+This summary does not capture all details of the book.
+It is annotated by a lot of papers.
+You can dig sujects so deep that you'll find yourself in the heart of the earth.
+
+## Distributed systems
+
+Contrary to the last book, I won't cover every chapter because it did not capture all my attention.
+It goes in much more details.
+For instance there are a detailed description of the Paxos protocol.
+It explains in details the internals of CDN (Content Delivery Network).
+
+The take aways for me are:
+
+- RPC have to be carefully designed and accepted
+- Middleware is every tools used by application developer to transparently use the distributed system
+- Geographic replication is difficult problem with interesting solutions (K-means replications, etc)
+- Cache and replication protocol are very similar and can be treated the same
+- Pull+Push is the most performant solution, but not easy to implement
+- Replication can be bounded by: numerical deviation, staleness deviation or ordering deviation (different metrics count for each case)
+
+The book is available for free only, but i recommend you to read chapters 6-7-8 in priority.
+Because authors goes in much detail quickly, I felt lost when it concerned network disposition.
+Paradoxically, it tries to use simple description, but rarely mentions industry usage of the solutions.
+It makes it difficult to picture what problems we try to solve.
+
+## Conclusion
+
+Both book have an academic approach: they list a number of paradigm and try to compare them faithfully.
+Both achieve it with brillance although I would mostly recommend DDIA if you are an application developer.
+
+Happy new year everyone!

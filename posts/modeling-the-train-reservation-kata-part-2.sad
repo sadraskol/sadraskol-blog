@@ -95,7 +95,7 @@ Sets have a native way of exploring the values with the `\in` operator. Unfortun
 Now we run our refactored specification. We check that even though we have changed the state of reservations, from an unordered set to a sequence, there's no violation of our previous invariants. TLA+ is pretty solid. Time to implement the invariant for the last rule. First we need to find the number of seats reserved by coach:
 
 ``` tla
-ReservationCountFor(coach) == Cardinality({<<c, _i>> \in ReservedSeats: c = coach})
+ReservationCountFor(coach) == Cardinality({<&ltc, _i>> \in ReservedSeats: c = coach})
 ```
 
 We have already met this syntax when trying to count the occurence of the same seat in reservations in the **SeatsCanBeReservedOnce** invariant. As the name suggest, this time we count the number of seat reserved in a given coach.
