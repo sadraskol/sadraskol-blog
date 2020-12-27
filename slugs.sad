@@ -5,3 +5,4 @@ rewrite /posts/les-types-algbriques-pour-les-languages-orients-objets /posts/les
 rewrite /posts/developers-proust-questionnaire /posts/developer-s-proust-questionnaire permanent;
 rewrite /posts/ifless-game-life /posts/if-less-game-of-life permanent;
 rewrite /posts/largument-ontologique-de-lagilite /posts/l-argument-ontologique-de-l-agilite permanent;
+rewrite /posts/distributed-systems-a-review /posts/reading-review-distributed-systems permanent;
