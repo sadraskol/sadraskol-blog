@@ -1,0 +1,97 @@
+title="How my blog evolved in 5 years"
+publication_date="2021-01-04T03:02:18.532702847+00:00"
+language="en"
+---- sadraskol ----
+
+## Early times
+
+My first article dates back to May 2015.
+I was writing on Blogger at the time.
+I enjoyed the simplicity of themes, maintainance and writing in pure HTML.
+
+I write in french, and I still do it sometimes.
+But most of my posts are in english.
+It helps me practice technical writing.
+
+Yet I did not like the lack of extendability and control.
+I wrote only two posts there, it was easy to plan a migration.
+I hosted wordpress on an EC2 instance.
+
+Wordpress is an awesome tool.
+It is modern.
+The editor is great.
+Themes are very easy to extend.
+Plugins are legions and provide great insights.
+
+Wordpress has one drawback: I could not find code highlighting that is pretty.
+I find [WP-syntax](https://wordpress.org/plugins/wp-syntax/) ugly and alternatives were not configurable to my liking.
+
+It is mid-2016 and it's time for another migration: let's choose another hosting strategy.
+
+I already had an EC2 instance, nginx and HTTPS configured.
+So I figured I only needed to replace wordpress with my own application.
+What a good idea to code an CMS by myself! (no)
+
+## The overengineering
+
+The stack consisted of the language I was learning at the time: Elixir.
+Erlang runtime is awesome and Phoenix framework is incredibly powerful.
+I used a CQRS approach, a pJax for loading speed and a React application for the backoffice.
+The migration was done by querying the api of wordpress for the articles.
+
+I enjoyed a lot having to create for the ground up my own website.
+I registered the current domain and removed the original blog title.
+I was not "Machiavel and Software" anymore, welcome to "Sadraskol".
+
+There was a lot of enthusiasm for all the technologies I used on the blog.
+I was proud of the over-engineering mess.
+I still am.
+But gosh, it was such a hurdle to maintain all these components to generate html pages and redirects.
+
+With time, I start to change the goal of stack make it simpler to maintain.
+Goodbye the search powered by elasticsearch.
+Goodbye combined HTML and Markdown support, every post is migrated to markdown only.
+Goodbye the React application, welcome to a simpler textarea to write markdown.
+Goodbye pjax, return simple Html instead.
+Goodbye event-sourced backend, welcome to states saved in postgres.
+
+## Maturing
+
+The goal of my blog becomes clearer.
+It used to be a playground to learn new technologies.
+From now on, it's a backbone for an highlight of my content.
+
+The refactor of the blog is inline with the new goal: simple list of articles, clear and sober pink.
+I switch to rust (couldn't resist it, shame on me).
+I introduce syntax highlighting generated on the server side to get rid of any javascript.
+Last but not least, I drop event-sourcing in favor of a state-centric data structure of the articles.
+
+There is a single thing left to do: drop databases, and serve html directly.
+It would be the final step for my blog.
+My inspiration was the simplicity of Hugo.
+We used it to publish the minutes of software crafter Lyon and convinced me it was the right approach.
+
+From now on the blog does not serve any javascript.
+CSS is embedded in every page.
+It is faster than the overengineering mess and maintainable.
+
+I don't think this approach is great for dynamic web applications.
+Rendering every interaction on the server means that you sacrifice some flexibility.
+If you don't think so, look at my syntax highlighter.
+Blogs usually embed a javascript snippet that highlights &ltpre>&ltcode> blocks in the page.
+If you want no javascript on the frontend, good luck implementing a highlighter in your markdown engine...
+Unless you use nodejs on the backend, but this is quite a constraint if you started with another language.
+
+## Final words
+
+I hope you enjoy the experience navigating on my blog.
+It was a long trip, just to reinvent the wheel: I am running a badly written Hugo.
+Yes, but it's my blog and I am really happy with how it is now.
+
+If I have a single advice for anyone who wants to get into a blog it's this:  
+Use the technology you are comfortable with and that is aligned with your goals.
+At the begining this blog was a playground for me.
+The overengineering was made *on purpose*.
+Now that the content and the writing is my goal, the platform serve that purpose only.
+
+Happy writing, and I hope you take as much fun as I do running this blog.
