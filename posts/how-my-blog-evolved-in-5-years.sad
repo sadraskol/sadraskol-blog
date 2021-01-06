@@ -77,7 +77,7 @@ It is faster than the overengineering mess and maintainable.
 I don't think this approach is great for dynamic web applications.
 Rendering every interaction on the server means that you sacrifice some flexibility.
 If you don't think so, look at my syntax highlighter.
-Blogs usually embed a javascript snippet that highlights &ltpre>&ltcode> blocks in the page.
+Blogs usually embed a javascript snippet that highlights `<pre><code>` blocks in the page.
 If you want no javascript on the frontend, good luck implementing a highlighter in your markdown engine...
 Unless you use nodejs on the backend, but this is quite a constraint if you started with another language.
 
