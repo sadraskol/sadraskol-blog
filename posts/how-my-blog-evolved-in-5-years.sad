@@ -1,5 +1,5 @@
 title="How my blog evolved in 5 years"
-publication_date="2021-01-04T03:02:18.532702847+00:00"
+publication_date="2021-01-06T03:02:18.532702847+00:00"
 language="en"
 ---- sadraskol ----
 
@@ -7,15 +7,15 @@ language="en"
 
 My first article dates back to May 2015.
 I was writing on Blogger at the time.
-I enjoyed the simplicity of themes, maintainance and writing in pure HTML.
+I enjoyed the simplicity of themes, maintainance and writing in pure Html.
 
 I write in french, and I still do it sometimes.
 But most of my posts are in english.
 It helps me practice technical writing.
 
 Yet I did not like the lack of extendability and control.
-I wrote only two posts there, it was easy to plan a migration.
-I hosted wordpress on an EC2 instance.
+I only wrote two posts there, it was easy to plan a migration.
+I decided to host wordpress on an EC2 instance.
 
 Wordpress is an awesome tool.
 It is modern.
@@ -24,52 +24,51 @@ Themes are very easy to extend.
 Plugins are legions and provide great insights.
 
 Wordpress has one drawback: I could not find code highlighting that is pretty.
-I find [WP-syntax](https://wordpress.org/plugins/wp-syntax/) ugly and alternatives were not configurable to my liking.
+I find [WP-syntax](https://wordpress.org/plugins/wp-syntax/) ugly and alternatives are not configurable to my liking.
 
 It is mid-2016 and it's time for another migration: let's choose another hosting strategy.
 
-I already had an EC2 instance, nginx and HTTPS configured.
-So I figured I only needed to replace wordpress with my own application.
+I already have an EC2 instance, nginx and HTTPS configured.
+So I figure I only need to replace wordpress with my own application.
 What a good idea to code an CMS by myself! (no)
 
 ## The overengineering
 
-The stack consisted of the language I was learning at the time: Elixir.
+The stack consists of the language I was learning at the time: Elixir.
 Erlang runtime is awesome and Phoenix framework is incredibly powerful.
-I used a CQRS approach, a pJax for loading speed and a React application for the backoffice.
-The migration was done by querying the api of wordpress for the articles.
+I use a CQRS approach, a pJax for loading speed and a React application for the backoffice.
+The migration is done by querying the api of wordpress for the articles.
 
-I enjoyed a lot having to create for the ground up my own website.
-I registered the current domain and removed the original blog title.
-I was not "Machiavel and Software" anymore, welcome to "Sadraskol".
+I enjoy a lot the idea of creating my own website from the ground up.
+I register the current domain (sadraskol.com) and remove the original blog title.
+I is not "Machiavel and Software" anymore, welcome to "Sadraskol".
 
-There was a lot of enthusiasm for all the technologies I used on the blog.
-I was proud of the over-engineering mess.
-I still am.
-But gosh, it was such a hurdle to maintain all these components to generate html pages and redirects.
+I have a lot of joy for all the technologies I use on the blog.
+I am proud of the over-engineering mess.
+But gosh, it is such a hurdle to maintain all these components to generate Html pages and redirects.
 
-With time, I start to change the goal of stack make it simpler to maintain.
+With time, I start to change the goal of stack to make it simpler to maintain.
 Goodbye the search powered by elasticsearch.
-Goodbye combined HTML and Markdown support, every post is migrated to markdown only.
-Goodbye the React application, welcome to a simpler textarea to write markdown.
-Goodbye pjax, return simple Html instead.
-Goodbye event-sourced backend, welcome to states saved in postgres.
+Goodbye combined Html and Markdown support, every post is migrated to markdown only.
+Goodbye the React backoffice, welcome to a simpler textarea to write markdown.
+Goodbye pjax, the application returns simple Html instead.
 
 ## Maturing
 
 The goal of my blog becomes clearer.
 It used to be a playground to learn new technologies.
-From now on, it's a backbone for an highlight of my content.
+From now on, it's the backbone to highlight my content.
 
 The refactor of the blog is inline with the new goal: simple list of articles, clear and sober pink.
 I switch to rust (couldn't resist it, shame on me).
 I introduce syntax highlighting generated on the server side to get rid of any javascript.
 Last but not least, I drop event-sourcing in favor of a state-centric data structure of the articles.
 
-There is a single thing left to do: drop databases, and serve html directly.
+There is a single thing left to do: drop databases, and serve Html directly.
 It would be the final step for my blog.
 My inspiration was the simplicity of Hugo.
-We used it to publish the minutes of software crafter Lyon and convinced me it was the right approach.
+We used it to publish the minutes of Lyon's software crafter community.
+It convinced me it was the right approach.
 
 From now on the blog does not serve any javascript.
 CSS is embedded in every page.
@@ -85,7 +84,8 @@ Unless you use nodejs on the backend, but this is quite a constraint if you star
 ## Final words
 
 I hope you enjoy the experience navigating on my blog.
-It was a long trip, just to reinvent the wheel: I am running a badly written Hugo.
+It was a long trip.
+After reinventing the wheel a couple of times, it is running a badly copy of Hugo.
 Yes, but it's my blog and I am really happy with how it is now.
 
 If I have a single advice for anyone who wants to get into a blog it's this:  
