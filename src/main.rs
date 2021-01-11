@@ -92,9 +92,9 @@ fn gen() {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() == 1 {
+    if args.len() > 1 && args[1] == "gen" {
         gen();
-    } else if args[1] == "new" {
+    } else if args.len() > 1 && args[1] == "new" {
         let mut f = fs::OpenOptions::new()
             .create(true)
             .write(true)
@@ -105,5 +105,10 @@ fn main() {
         writeln!(f, "publication_date=\"{}\"", chrono::Utc::now().to_rfc3339()).unwrap();
         writeln!(f, "language=\"en\"").unwrap();
         writeln!(f, "---- sadraskol ----").unwrap();
+    } else {
+        println!("Help sadraskol blog cli");
+        println!("\thelp - print this help");
+        println!("\tgen - generate static site in dist/");
+        println!("\tnew [title] - new article with title [title]");
     }
 }
