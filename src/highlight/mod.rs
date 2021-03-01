@@ -11,13 +11,85 @@ pub enum SadLang {
     Haskell,
     Javascript,
     Tla,
+    Tex,
     Text,
 }
 
-type Span = (usize, usize, String);
+#[derive(Clone, Debug, PartialEq)]
+enum Span {
+    SurroundingSpan(usize, usize, String),
+    ReplacingSpan(usize, usize, String),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+enum SpanStrategy {
+    SurroundingSpanStrategy(String),
+    ReplacingSpanStrategy(String),
+}
+
+impl SpanStrategy {
+    fn span(&self, start: usize, end: usize) -> Span {
+        match self {
+            SpanStrategy::SurroundingSpanStrategy(tag) => {
+                Span::SurroundingSpan(start, end, tag.clone())
+            }
+            SpanStrategy::ReplacingSpanStrategy(replacement) => {
+                Span::ReplacingSpan(start, end, replacement.clone())
+            }
+        }
+    }
+}
+
+impl Span {
+    fn format<W: StrWrite>(self, w: &mut W, mark: usize, s: &&str) -> io::Result<usize> {
+        match self {
+            Span::SurroundingSpan(start, end, tag) => {
+                w.write_str(&s[mark..start])?;
+                w.write_str(format!("<span class=\"h-{}\">", tag).as_str())?;
+                w.write_str(&s[start..end])?;
+                w.write_str("</span>")?;
+                Ok(end)
+            }
+            Span::ReplacingSpan(start, end, replace) => {
+                w.write_str(&s[mark..start])?;
+                w.write_str(replace.as_str())?;
+                Ok(end)
+            }
+        }
+    }
+}
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
     match l {
+        SadLang::Tex => {
+            let cs = def_lang(
+                "tex",
+                vec![
+                    replacement("\\A", "∀"),
+                    replacement("\\E", "∃"),
+                    replacement("\\in", "∈"),
+                    replacement("\\X", "×"),
+                    replacement("\\union", "∪"),
+                    replacement("\\div", "÷"),
+                    replacement("==", "≜"),
+                    replacement("/\\", "⋀"),
+                    replacement("\\/", "⋁"),
+                    replacement("<<", "⟨"),
+                    replacement(">>", "⟩"),
+                    keyword("EXCEPT"),
+                    keyword("UNCHANGED"),
+                    keyword("DOMAIN"),
+                    keyword("LAMBDA"),
+                    keyword("SUBSET"),
+                    keyword("UNION"),
+                    keyword("CHOOSE"),
+                    keyword("VARIABLE"),
+                    inline_comment("\\*"),
+                    string('"'),
+                ],
+            );
+            highlight_structure(&mut w, &s, cs)
+        }
         SadLang::Tla => {
             let cs = def_lang(
                 "tla",
@@ -35,6 +107,7 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                     keyword("SUBSET"),
                     keyword("UNION"),
                     keyword("CHOOSE"),
+                    keyword("VARIABLE"),
                     inline_comment("\\*"),
                     string('"'),
                 ],
@@ -206,8 +279,20 @@ fn keyword(keyword: &str) -> Tokenizer {
     Tokenizer::Waiting {
         params: TokenParams {
             escape_pred: TokenDelimiter::Identifier,
+            span_strategy: SpanStrategy::SurroundingSpanStrategy("keyword".to_string()),
             token: keyword.to_string(),
-            class: "keyword".to_string(),
+            structure: None,
+            include: false,
+        },
+    }
+}
+
+fn replacement(keyword: &str, replacement: &str) -> Tokenizer {
+    Tokenizer::Waiting {
+        params: TokenParams {
+            escape_pred: TokenDelimiter::AnyChar,
+            span_strategy: SpanStrategy::ReplacingSpanStrategy(replacement.to_string()),
+            token: keyword.to_string(),
             structure: None,
             include: false,
         },
@@ -218,16 +303,16 @@ fn inline_comment(start_with: &str) -> Tokenizer {
     Tokenizer::Waiting {
         params: TokenParams {
             escape_pred: TokenDelimiter::Identifier,
+            span_strategy: SpanStrategy::SurroundingSpanStrategy(start_with.to_string()),
             token: start_with.to_string(),
-            class: start_with.to_string(),
             structure: Some(Structure {
                 start: 0,
                 inside_tokens: vec![],
                 final_tokens: vec![Tokenizer::Waiting {
                     params: TokenParams {
-                        escape_pred: TokenDelimiter::AnyChar,
+                        escape_pred: TokenDelimiter::StructChar,
+                        span_strategy: SpanStrategy::SurroundingSpanStrategy("end-comment".to_string()),
                         token: "\n".to_string(),
-                        class: "end-comment".to_string(),
                         structure: None,
                         include: false,
                     },
@@ -244,17 +329,17 @@ fn inline_comment(start_with: &str) -> Tokenizer {
 fn string(separator: char) -> Tokenizer {
     Tokenizer::Waiting {
         params: TokenParams {
-            escape_pred: TokenDelimiter::AnyChar,
+            escape_pred: TokenDelimiter::StructChar,
+            span_strategy: SpanStrategy::SurroundingSpanStrategy("string".to_string()),
             token: separator.to_string(),
-            class: "string".to_string(),
             structure: Some(Structure {
                 start: 0,
                 inside_tokens: vec![],
                 final_tokens: vec![Tokenizer::Waiting {
                     params: TokenParams {
-                        escape_pred: TokenDelimiter::AnyChar,
+                        escape_pred: TokenDelimiter::StructChar,
+                        span_strategy: SpanStrategy::SurroundingSpanStrategy("end-comment".to_string()),
                         token: separator.to_string(),
-                        class: "end-comment".to_string(),
                         structure: None,
                         include: true,
                     },
@@ -285,26 +370,26 @@ impl Structure {
 
         match self.final_tokens[0].clone() {
             Tokenizer::Waiting { .. } => {
-                p.add((self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
             }
             Tokenizer::Matching { .. } => {
-                p.add((self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
             }
             Tokenizer::Sleeping { .. } => {
-                p.add((self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
             }
             Tokenizer::Candidate { params, start, end } => {
                 if params.include {
-                    p.add((self.start, end, self.class.clone()));
+                    p.add(Span::SurroundingSpan(self.start, end, self.class.clone()));
                 } else {
-                    p.add((self.start, start, self.class.clone()));
+                    p.add(Span::SurroundingSpan(self.start, start, self.class.clone()));
                 }
             }
             Tokenizer::Completed { params, start, end } => {
                 if params.include {
-                    p.add((self.start, end, self.class.clone()));
+                    p.add(Span::SurroundingSpan(self.start, end, self.class.clone()));
                 } else {
-                    p.add((self.start, start, self.class.clone()));
+                    p.add(Span::SurroundingSpan(self.start, start, self.class.clone()));
                 }
             }
         }
@@ -327,6 +412,8 @@ impl Structure {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum TokenDelimiter {
+    // Special case for structure: they have no final token delimiter
+    StructChar,
     AnyChar,
     Identifier,
 }
@@ -334,6 +421,7 @@ enum TokenDelimiter {
 impl TokenDelimiter {
     fn outside_of_token(self, c: char) -> bool {
         match self {
+            TokenDelimiter::StructChar => true,
             TokenDelimiter::AnyChar => true,
             TokenDelimiter::Identifier => {
                 if c.is_ascii() {
@@ -353,9 +441,9 @@ impl TokenDelimiter {
 struct TokenParams {
     escape_pred: TokenDelimiter,
     token: String,
-    class: String,
     structure: Option<Structure>,
     include: bool,
+    span_strategy: SpanStrategy,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -429,7 +517,7 @@ impl Tokenizer {
                     valids.push(c);
                     missings.remove(0);
                     if missings.is_empty() {
-                        if params.escape_pred == TokenDelimiter::AnyChar {
+                        if params.escape_pred == TokenDelimiter::StructChar {
                             // TODO This is a special case for structure finalizing token (should be a special case indeed!)
                             Tokenizer::Waiting {
                                 params: params.clone(),
@@ -504,13 +592,13 @@ impl Tokenizer {
                 Tokenizer::Waiting {
                     params: params.clone(),
                 },
-                (*start, *end, params.class.clone()),
+                params.span_strategy.span(*start, *end),
             ),
             Tokenizer::Completed { params, start, end } => (
                 Tokenizer::Waiting {
                     params: params.clone(),
                 },
-                (*start, *end, params.class.clone()),
+                params.span_strategy.span(*start, *end),
             ),
         }
     }
@@ -598,11 +686,7 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
 
     let mut mark = 0;
     for span in spans {
-        w.write_str(&s[mark..span.0])?;
-        w.write_str(format!("<span class=\"h-{}\">", span.2).as_str())?;
-        w.write_str(&s[span.0..span.1])?;
-        w.write_str("</span>")?;
-        mark = span.1;
+        mark = span.format(w, mark, s)?;
     }
     w.write_str(&s[mark..])
 }
@@ -610,7 +694,7 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Alloy, Elixir, Java, Text};
+    use crate::highlight::SadLang::{Alloy, Elixir, Java, Text, Tex};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -664,7 +748,7 @@ mod test {
             "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n",
             Alloy,
         )
-        .unwrap();
+            .unwrap();
         assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 
@@ -683,7 +767,7 @@ mod test {
     }
 
     #[test]
-    fn highligh_strings() {
+    fn highlight_strings() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "\"classical\" wow", Java).unwrap();
         assert_eq!(
@@ -693,14 +777,26 @@ mod test {
     }
 
     #[test]
-    fn highligh_strings_within_the_rest_elixir() {
+    fn highlight_strings_within_the_rest_elixir() {
         let mut s = String::with_capacity(100);
         highlight(
             &mut s,
             "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend",
             Elixir,
         )
-        .unwrap();
+            .unwrap();
         assert_eq!("      <span class=\"h-keyword\">def</span> unquote(:<span class=\"h-string\">\"add_#{name}\"</span>)(addend), <span class=\"h-keyword\">do</span>: unquote(base_addend) + addend", s.as_str());
+    }
+
+    #[test]
+    fn highlight_replace_occurence_with_replacement() {
+        let mut s = String::with_capacity(100);
+        highlight(
+            &mut s,
+            "\\Ax \\in Set",
+            Tex,
+        )
+            .unwrap();
+        assert_eq!("∀x ∈ Set", s.as_str());
     }
 }

@@ -5,7 +5,7 @@ use std::str::from_utf8;
 
 use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
-use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Text, Tla};
+use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Text, Tla, Tex};
 use crate::highlight::{highlight, SadLang};
 
 enum TableState {
@@ -355,6 +355,7 @@ where
                                 "elixir" => self.within_code = Some(Elixir),
                                 "javascript" => self.within_code = Some(Javascript),
                                 "tla" => self.within_code = Some(Tla),
+                                "tex" => self.within_code = Some(Tex),
                                 _ => self.within_code = Some(Text),
                             }
                             self.write("<pre><code class=\"language-")?;
