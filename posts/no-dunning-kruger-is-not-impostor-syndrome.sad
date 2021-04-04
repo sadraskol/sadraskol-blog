@@ -1,0 +1,90 @@
+title="Dunning-Kruger effect is not impostor syndrome"
+publication_date="2021-03-30T13:57:15.416036+00:00"
+language="en"
+---- sadraskol ----
+
+It is really easy to get your hands on the original paper from the Dunning-Kruger effect.
+I displays the unfamous chart:
+
+![biases curve of dunning kruger](/img/dunning-kruger-agile.jpeg)
+
+Wow!
+It's not what I expected!
+I expected to see this chart:
+
+![actual curve of dunning kruger](/img/dunning-kruger.png)
+
+The curve is so deformed on the internet that even popularizers use a wrong interpretation.
+Let's figure out what's going on.
+
+## The study
+
+In 1995, McArthur Wheeler robs a bank with lemon juice on his face.
+Why so?
+He thought it would make him invisible to surveillance cameras.
+
+This event was the starting point of Dunning and Kruger's search into self-assessment. 
+They estimated the self-assessment of ~65 Cornell University undergraduates in humor, logic and grammar tests.
+
+The first test:
+
+- Professional comedians rate 20 jokes
+- Participants rate the same 20 jokes
+- Participants assess their competency of a 0 to 99 scale
+- Participants are ranked per quantile
+
+The result is displayed in the paper:
+
+![actual curve of dunning kruger](/img/dunning-kruger.png)
+
+There are three other tests in the paper.
+They follow a similar procedure, we won't get into their details.
+
+## Discussion
+
+There are some very questionnable biases with this experiment.
+
+First, we can question if the participant count is significant.
+This is a difficult question to answer.
+Later experiments were conduct with similar results with much larger cohorts.
+
+But do undergraduates evaluate themselves like a senior engineer or an old teacher?
+There is, supposedly, a large impact of the western culture.
+Some studies suggest that the experiment shows different results in other parts of the world.
+
+There is also [another experiment](https://scholarcommons.usf.edu/cgi/viewcontent.cgi?article=1188&context=numeracy)
+that question the procedure of scaling itself.
+Using probabilistic models, they show that representation is key to the interpretation of self-assessment data.
+They claim (I haven't read any meta-analysis on the subject) there is no Dunning-Kruger effect.
+
+## What can be said of this paper?
+
+Even if there are wise and smart way to discuss the Dunning-Kruger effect,
+the widespread chart is no where near an even good explanation.
+
+As [Tal Yarkoni](http://www.talyarkoni.org/blog/2010/07/07/What-the-Dunning-Kruger-effect-Is-and-Isnt/) puts it:
+
+> Rather, it’s that incompetent people think they’re much better than they actually are.
+> But they typically still don’t think they’re quite as good as people who, you know, actually are good.
+
+There is no "gap", like the one showed in the widespread chart.
+Note that Dunning and Kruger never told otherwise.
+The paper is just misinterpreted.
+
+## Conclusion
+
+I am not the first one to talk about this error of interpretation.
+Many articles already covers this, including the [Wikipedia page](https://en.wikipedia.org/wiki/Dunning%E2%80%93Kruger_effect#cite_ref-20).
+
+The wrong chart is famous and widespread.
+It's gonna take years before it is forgotten.
+Yet, its success is due to the appeal to use it to contempt beginners.
+It provides an easy "I have impostor syndrome", instead of taking a good introspective view on oneself.
+I think it's more rewarding to face your fears and find who you are than following the ideal you are not.
+
+Whenever someone mentions the Dunning-Kruger effect, remind the person
+that there is no such effect, or it's not exactly the appealing effect we think it is.
+Ask them instead:
+
+- What did you achieve to think of yourself unworthy?
+- Who do you think is worthy? How do you compare with them?
