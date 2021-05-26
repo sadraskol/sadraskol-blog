@@ -25,10 +25,6 @@ impl Markdown {
         sad_push_html(&mut html_output, &mut parser);
         html_output
     }
-
-    pub fn to_edit(&self) -> String {
-        self.raw.clone()
-    }
 }
 
 pub struct SadPost {
