@@ -31,42 +31,20 @@ impl PostSummaryView {
 }
 
 #[derive(Template)]
-#[template(path = "base.html")]
-pub struct BaseTemplate<'a> {
+#[template(path = "index.html")]
+pub struct IndexTemplate<'a> {
     pub title: &'a str,
     pub has_image: bool,
     pub image: &'a str,
-}
-
-impl<'a> BaseTemplate<'a> {
-    pub fn default() -> BaseTemplate<'a> {
-        BaseTemplate {
-            title: "Sadraskol",
-            has_image: false,
-            image: "",
-        }
-    }
-
-    pub fn with_image(img: &'a str) -> BaseTemplate<'a> {
-        BaseTemplate {
-            title: "Sadraskol",
-            has_image: true,
-            image: img,
-        }
-    }
-}
-
-#[derive(Template)]
-#[template(path = "index.html")]
-pub struct IndexTemplate<'a> {
-    _parent: BaseTemplate<'a>,
-    posts: Vec<PostSummaryView>,
+    pub posts: Vec<PostSummaryView>,
 }
 
 impl<'a> IndexTemplate<'a> {
     pub fn new(posts: Vec<PostSummaryView>) -> Self {
         IndexTemplate {
-            _parent: BaseTemplate::default(),
+            title: "Sadraskol",
+            has_image: false,
+            image: "",
             posts,
         }
     }
@@ -75,11 +53,12 @@ impl<'a> IndexTemplate<'a> {
 #[derive(Template)]
 #[template(path = "post.html")]
 pub struct PostTemplate<'a> {
-    pub _parent: BaseTemplate<'a>,
-    pub title: String,
-    pub publication_date: String,
-    pub back_link: String,
-    pub raw_content: String,
+    pub title: &'a str,
+    pub has_image: bool,
+    pub image: &'a str,
+    pub publication_date: &'a str,
+    pub back_link: &'a str,
+    pub raw_content: &'a str,
 }
 
 #[derive(Template)]

@@ -8,10 +8,8 @@ use askama::Template;
 
 use sadraskol::domain::slugify::slugify;
 use sadraskol::domain::types::SadPost;
-use sadraskol::fs::{FileDiff, read_post};
-use sadraskol::template::{
-    BaseTemplate, FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate,
-};
+use sadraskol::fs::{read_post, FileDiff};
+use sadraskol::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
 
 fn gen_home(posts: &[SadPost]) {
     let v: Vec<_> = posts
@@ -39,13 +37,12 @@ fn gen_feed(posts: &[SadPost]) {
 
 fn gen_post(post: &SadPost) {
     let page = PostTemplate {
-        _parent: post.image.as_ref().map(|i| {
-            BaseTemplate::with_image(i)
-        }).unwrap_or(BaseTemplate::default()),
-        title: post.title.clone(),
-        publication_date: post.publication_date.format("%d %B %Y").to_string(),
-        back_link: "/".to_string(),
-        raw_content: post.saddown_content.format(),
+        has_image: post.image.is_some(),
+        image: &post.image.as_deref().unwrap_or(""),
+        title: &post.title.clone(),
+        publication_date: &post.publication_date.format("%d %B %Y").to_string(),
+        back_link: "/",
+        raw_content: &post.saddown_content.format(),
     };
 
     let html = page.render().unwrap();
@@ -70,7 +67,11 @@ fn gen_assets() {
     for file in fs::read_dir("img").unwrap() {
         let origin_file = file.unwrap();
         let origin = origin_file.path();
-        fs::copy(origin.as_path(), PathBuf::from("dist/img").join(origin_file.file_name())).unwrap();
+        fs::copy(
+            origin.as_path(),
+            PathBuf::from("dist/img").join(origin_file.file_name()),
+        )
+        .unwrap();
     }
 }
 
@@ -102,7 +103,12 @@ fn main() {
             .unwrap();
 
         writeln!(f, "title=\"{}\"", args[2]).unwrap();
-        writeln!(f, "publication_date=\"{}\"", chrono::Utc::now().to_rfc3339()).unwrap();
+        writeln!(
+            f,
+            "publication_date=\"{}\"",
+            chrono::Utc::now().to_rfc3339()
+        )
+        .unwrap();
         writeln!(f, "language=\"en\"").unwrap();
         writeln!(f, "---- sadraskol ----").unwrap();
     } else {

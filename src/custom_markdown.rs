@@ -5,7 +5,7 @@ use std::str::from_utf8;
 
 use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
-use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Text, Tla, Tex};
+use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Tex, Text, Tla};
 use crate::highlight::{highlight, SadLang};
 
 enum TableState {

@@ -311,7 +311,9 @@ fn inline_comment(start_with: &str) -> Tokenizer {
                 final_tokens: vec![Tokenizer::Waiting {
                     params: TokenParams {
                         escape_pred: TokenDelimiter::StructChar,
-                        span_strategy: SpanStrategy::SurroundingSpanStrategy("end-comment".to_string()),
+                        span_strategy: SpanStrategy::SurroundingSpanStrategy(
+                            "end-comment".to_string(),
+                        ),
                         token: "\n".to_string(),
                         structure: None,
                         include: false,
@@ -338,7 +340,9 @@ fn string(separator: char) -> Tokenizer {
                 final_tokens: vec![Tokenizer::Waiting {
                     params: TokenParams {
                         escape_pred: TokenDelimiter::StructChar,
-                        span_strategy: SpanStrategy::SurroundingSpanStrategy("end-comment".to_string()),
+                        span_strategy: SpanStrategy::SurroundingSpanStrategy(
+                            "end-comment".to_string(),
+                        ),
                         token: separator.to_string(),
                         structure: None,
                         include: true,
@@ -370,13 +374,25 @@ impl Structure {
 
         match self.final_tokens[0].clone() {
             Tokenizer::Waiting { .. } => {
-                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(
+                    self.start,
+                    eof_size,
+                    self.class.clone(),
+                ));
             }
             Tokenizer::Matching { .. } => {
-                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(
+                    self.start,
+                    eof_size,
+                    self.class.clone(),
+                ));
             }
             Tokenizer::Sleeping { .. } => {
-                p.add(Span::SurroundingSpan(self.start, eof_size, self.class.clone()));
+                p.add(Span::SurroundingSpan(
+                    self.start,
+                    eof_size,
+                    self.class.clone(),
+                ));
             }
             Tokenizer::Candidate { params, start, end } => {
                 if params.include {
@@ -425,10 +441,7 @@ impl TokenDelimiter {
             TokenDelimiter::AnyChar => true,
             TokenDelimiter::Identifier => {
                 if c.is_ascii() {
-                    match c as u8 {
-                        b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_' => false,
-                        _ => true,
-                    }
+                    !matches!(c as u8, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_')
                 } else {
                     true
                 }
@@ -694,7 +707,7 @@ fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> i
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Alloy, Elixir, Java, Text, Tex};
+    use crate::highlight::SadLang::{Alloy, Elixir, Java, Tex, Text};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -748,7 +761,7 @@ mod test {
             "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n",
             Alloy,
         )
-            .unwrap();
+        .unwrap();
         assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 
@@ -784,19 +797,14 @@ mod test {
             "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend",
             Elixir,
         )
-            .unwrap();
+        .unwrap();
         assert_eq!("      <span class=\"h-keyword\">def</span> unquote(:<span class=\"h-string\">\"add_#{name}\"</span>)(addend), <span class=\"h-keyword\">do</span>: unquote(base_addend) + addend", s.as_str());
     }
 
     #[test]
     fn highlight_replace_occurence_with_replacement() {
         let mut s = String::with_capacity(100);
-        highlight(
-            &mut s,
-            "\\Ax \\in Set",
-            Tex,
-        )
-            .unwrap();
+        highlight(&mut s, "\\Ax \\in Set", Tex).unwrap();
         assert_eq!("∀x ∈ Set", s.as_str());
     }
 }
