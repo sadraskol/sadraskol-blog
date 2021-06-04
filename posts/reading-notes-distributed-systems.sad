@@ -10,7 +10,7 @@ Both have a lot of similarities, they both make an academic description of the t
 very different. What do I mean by an academic description? The authors do not take position, or list the + and - of
 their subjects. They list the properties of their subjects: what happen when it fails? How many messages are exchanged?
 What kind of failures can we tolerate? etc. This approach is much more nuanced than the +/- approach.
-It gives a deep knowledge in what make all technologies unique.
+It gives deep knowledge in what make every technology unique.
 It provides the insights to make more informed decisions.
 
 **TLDR;**
@@ -159,13 +159,13 @@ There are no clear winner and every index serve a purpose.
 
 The author then separate two kind of workload: data analytics and transactional operations.
 Data analytics is a way of analysing the data to make sense of it all.
-Transactionnal workloads require highly available and low latency databases.
+Transactional workloads require highly available and low latency databases.
 
-Relationnal databases use a row oriented storage: every entry is stored all together.
+Relational databases use a row oriented storage: every entry is stored all together.
 On the other hand column oriented databases are very efficient for analytics workload.
 If you want to query the 90th percentile of the price of all products, in a row-oriented
 database you will have to scan every product.
-In a column-oriented database, every prices are stored at the same location, making retrieval trivial.
+In a column-oriented database, every price is stored at the same location, making retrieval trivial.
 
 This chapter is a gold mine of information to understand how database store and retrieve data.
 
@@ -180,11 +180,11 @@ This chapter lists and compare major encoding format:
 
 Also it covers the problem of evolution of schemas. To evolve a schema, you need:
 
-- forward compatibility: new schema has to be decypher by the old code
-- backward compatibility: old schema had to be decypher by the new code
+- forward compatibility: new schema has to be decipher by the old code
+- backward compatibility: old schema had to be decipher by the new code
 
 Some operation on the schema are backward compatible, like adding a field.
-Removing a field on the other hand is not, so it need to be handled carefully.
+Removing a field on the other hand is not, so it needs to be handled carefully.
 
 Format with schema offer an IDL (Interface Definition Language) that are useful for RPC (Remote Process Call).
 RPC has a lot of constraint, but have become necessary with service oriented architectures.
@@ -196,7 +196,7 @@ This chapters covers a lot of format and discussions around schema evolution and
 Many reasons pushes data to be stored in a distributed manner:
 
 - Scalability
-- Fault tolerence/high availability
+- Fault tolerance/high availability
 - Latency
 - Keep geographically close to the users
 
@@ -219,7 +219,7 @@ Usually partitionning is used along side with replication.
 Partitions have their own problems and they add up to replication problems.
 
 The goal of partitions is to spread the data and the load across nodes.
-You can devise 2 main strategies to devide data:
+You can devise 2 main strategies to split data:
 
 - By key range: print encyclopedia are partitioned by key range
 - By hash key
@@ -247,13 +247,13 @@ Cassandra and Riak use a gossip protocol and let node manage the redirection to 
 
 ### Chapter 7: Transactions
 
-Transactions are tighly linked to consistency models.
+Transactions are tightly linked to consistency models.
 The chapter presents the strong (Serializibility) and the weaker models (Repeatable Read, etc.).
 
-It also explain the different approach of Postgres for strong models.
+It also explains the different approach of Postgres for strong models.
 Postgres uses snapshot isolation for reads, and check that objects queried are not modified by another process
-when the transactions is commit.
-If it is the case, it roll backs the transaction, guaranteeing that there is no lost update.
+when the transaction commits.
+If it is the case, it rollbacks the transaction, guaranteeing that there is no lost update.
 Stronger level of consistency are achieved by optimistically executing concurrent requests.
 
 On the other hand MySQL uses a stronger 2 phase locking to make sure no two process access data.
@@ -297,13 +297,13 @@ If a consensus is reach by processes in a distributed system, the system can act
 This is the graal of every distributed systems.
 Unfortunately consensus is very difficult to achieve by faulty processes and unreliable network.
 
-The first and most influencial solution to this problem is the Paxos protocol.
+The first and most influential solution to this problem is the Paxos protocol.
 
 The chapter also explains 2 phase commit and how failing coordinator is hard to recover from.
-XA protocol is not implemented by a lot of systems, therefor it's not really a killer feature.
+XA protocol is not implemented by a lot of systems, therefore it's not really a killer feature.
 
 Consensus solution are very difficult and expensive to achieve, this is why developers should
-choose a weaker model, or rely on battle-prooved solutions: ZooKeeper.
+choose a weaker model, or rely on battle-proofed solutions: ZooKeeper.
 
 ### Chapter 10: Batch Processing
 
@@ -333,10 +333,10 @@ problems quite elegantly.
 ### Chapter 11: Stream Processing
 
 This last chapter is about stream processing: using Kafka as a messaging system.
-Kafka is an hybrid approach that can do the same workload has MapReduce thanks to storing event in log and offering replay.
+Kafka is a hybrid approach that can do the same workload has MapReduce thanks to storing event in log and offering replay.
 
 This chapter covers how to use Kafka to do CDC (Change Data Capture).
-Many solution exist that I'm not gonna cover.
+Many solutions exist that I'm not gonna cover.
 
 The author mentions here that CDC is the core concept of event sourcing, but on the application level.
 
@@ -368,7 +368,7 @@ It goes in much more details.
 For instance there are a detailed description of the Paxos protocol.
 It explains in details the internals of CDN (Content Delivery Network).
 
-The take aways for me are:
+The takeaways for me are:
 
 - RPC have to be carefully designed and accepted
 - Middleware is every tools used by application developer to transparently use the distributed system
@@ -384,7 +384,7 @@ It makes it difficult to picture what problems we try to solve.
 
 ## Conclusion
 
-Both book have an academic approach: they list a number of paradigm and try to compare them faithfully.
+Both books have an academic approach: they list a number of paradigm and try to compare them faithfully.
 Both achieve it with brillance although I would mostly recommend DDIA if you are an application developer.
 
 Happy new year everyone!
