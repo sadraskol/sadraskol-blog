@@ -421,7 +421,7 @@ where
                 self.write("\">")
             }
             Tag::Image(_link_type, dest, title) => {
-                self.write("<img src=\"")?;
+                self.write("<figure><img src=\"")?;
                 escape_href(&mut self.writer, &dest)?;
                 self.write("\" alt=\"")?;
                 self.raw_text()?;
@@ -438,7 +438,7 @@ where
                     self.write("\" height=\"")?;
                     self.write(&h.to_string())?;
                 };
-                self.write("\" />")
+                self.write("\" /></figure>")
             }
             Tag::FootnoteDefinition(name) => {
                 if self.end_newline {
