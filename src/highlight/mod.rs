@@ -10,6 +10,7 @@ pub enum SadLang {
     Elixir,
     Haskell,
     Javascript,
+    Rust,
     Tla,
     Tex,
     Text,
@@ -61,6 +62,22 @@ impl Span {
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
     match l {
+        SadLang::Rust => {
+            let cs = def_lang(
+                "rust",
+                vec![
+                    keyword("struct"),
+                    keyword("impl"),
+                    keyword("mut"),
+                    keyword("self"),
+                    keyword("return"),
+                    keyword("fn"),
+                    inline_comment("//"),
+                    string('"'),
+                ],
+            );
+            highlight_structure(&mut w, &s, cs)
+        },
         SadLang::Tex => {
             let cs = def_lang(
                 "tex",

@@ -9,6 +9,7 @@ use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
 use crate::fs::{read_post, FileDiff};
 use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
+use chrono::Utc;
 
 mod custom_markdown;
 mod domain;
@@ -81,10 +82,12 @@ fn gen_assets() {
 }
 
 fn gen() {
+    let now = Utc::now();
     let posts_files = std::fs::read_dir("posts").unwrap();
     let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| post.map(|p| p.path()))
         .map(|path| read_post(path.as_path()))
+        .filter(|p| p.publication_date <= now)
         .collect();
     posts.sort_by(|l, r| l.publication_date.cmp(&r.publication_date).reverse());
 
