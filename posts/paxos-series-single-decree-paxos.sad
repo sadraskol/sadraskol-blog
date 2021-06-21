@@ -1,0 +1,320 @@
+title="Paxos series: single decree Paxos"
+publication_date="2021-07-05T13:31:54.297338195+00:00"
+language="en"
+---- sadraskol ----
+
+One year ago I wrote about Paxos in the [review of Leslie Lamport's work](https://sadraskol.com/posts/reading-notes-concurrency-the-works-of-leslie-lamport).
+I already read [Raft paper](https://raft.github.io/) and felt confident that I understood the single-decree Paxos...
+What a fool of me.
+
+The most difficult part for me was:
+
+> The tricky part to me is understanding when the leader does not respond, how the new leader is chosen
+
+I've been working a bit on [Hermes](https://github.com/sadraskol/olympus).
+I enjoyed the protocol and wanted to implement it.
+At some point, I needed to implement Paxos.
+As I said, I was pretty confident I could do that...
+
+I realise how little I understood Paxos, and this piece is an attempt to explain what I learned lately.
+
+## Revisiting single decree Paxos
+
+Single decree Paxos is paxos protocol applied to a single decision.
+Imagine 3 nodes having to agree on a single value.
+
+- Each node can send messages to others (no shared state)
+- One node can fail at any time but eventually comes back up (failure)
+- If a majority agrees on a value, the remaining node eventually agrees (consensus)
+
+Paxos has 2 phases that alternate infinitely.
+
+Phase 1 is a pre-vote phase.
+It is about finding a *safe* value.
+*Safe* means that the value does not break consensus.
+
+Phase 2 is the vote phase.
+It propapagates the *safe* value of phase 1.
+If it completes, the value is *decided* or *chosen*.
+
+Participants in Paxos have different roles:
+
+- **proposer**: it proposes a value to the participants. It is the initiator of phase 1 and 2.
+- **acceptor**: it answers to the proposer which values are *safe* in its point of view.
+- **learner**: it collects the *decided* value of the consensus to do stuff (apply to a database for instance)
+
+Even though roles are separated, a single node can be both a **proposer**, an **acceptor** or a **learner**.
+We are gonna work with a strong premise: every node takes on every role.
+
+## With a client
+
+In the context of a database, clients query a node of the cluster.
+
+If the proposer has already a current proposition, it can refuse the query from the client.
+It can also queue the query for a future decision, but let's not get ahead of ourselves...
+The goal of single decree Paxos is to decide for a single value.
+
+Otherwise the proposer has a value to propose.
+Paxos can start now that at least a proposer has a value to propose.
+
+## Node state
+
+Each node have the following state:
+
+```rust
+struct Node {
+    // current round of the node
+    // this state is shared between the proposer and the acceptor role
+    round: Round,
+
+    // Proposer state
+    proposed_value: Option<Value>,
+    prepares: HashMap<NodeId, Option<(Round, Value)>>,
+    accepts: HashSet<NodeId>,
+
+    // Acceptor state
+    accepted: Option<(Round, Value)>,
+
+    // Learner
+    decided: Option<Value>,
+}
+```
+
+The `round` is the last round of Paxos protocol the node ran.
+Remember that I said that the protocol repeats indefinitely.
+We call each repetition an round of Paxos.
+We only care about the last round of Paxos (we see why later),
+so the property is a singleton, not a collection.
+
+## Paxos round
+
+### Phase 2
+
+You would think we'd start with the phase 1. 
+On the contrary, we're gonna start with phase 2.
+
+Let's say that proposer `p` found a *safe* value `v` in phase 1.
+The role of phase 2 is to propagate this *safe* value to other nodes.
+To do that, `p` sends out messages p2a with the following information:
+
+- `p`'s current round
+- `v` the *safe* value
+
+Upon receiving the message, every acceptor `a` answer with a p2b message.
+P2b message is a confirmation of the p2a message.
+It only contains the `round` of the p2a message.
+Acceptor run the following pseudo rust code:
+
+```rust
+impl Acceptor {
+  fn on_msg(mut self, p2a: P2aMessage) -> Option<P2bMessage> {
+    if p2a.round >= self.round {
+        self.round = p2a.round;
+        self.accepted = Some((p2a.round, p2a.value));
+        return Some(P2bMessage(p2a.round));
+    } else {
+        return None;
+    }
+  }
+}
+```
+
+Let's go through the pseudo code:
+
+- If the message is in a higher round, simply ignore the message. We cover this in the failure scenarios
+- Otherwise, set the `round` of `a` to the message round, *accept* the value for said round, and answer
+
+For now saving *accepted* values can't be explained until we explain phase 1.
+
+Once the proposer received a majority of P2b messages, it knows the value is not only *safe*, it is *decided*.
+A value is *decided* when it is the only value that can be *safe* in phase 1.
+Paxos is finished for him, the node broadcasts a new message:
+
+```rust
+impl Proposer {
+  fn decided(value: Value) {
+    self.decided = Some(value);
+    self.broadcast(Learn { value: value })
+  }
+}
+```
+
+Whenever a node receives the `Learn` message, it can ignore all other messages.
+
+```rust
+impl Acceptor {
+  fn on_msg(mut self, learn: Learn) {
+    self.decided = Some(learn.value);
+  }
+}
+```
+
+### Failure scenario of phase 2
+
+We stated that one node at a time can fail.
+What happens in such a case?
+
+Say an acceptor node fails.
+The proposer keeps its majority, so the value is *decided*.
+The two live nodes have learned the value.
+When the failed node comes back online, it needs to learn the *decided* value.
+There's two options:
+
+- The original proposer keeps on sending the Learn message until it receives a confirmation from the node.
+- Since the value is the only *safe* value that can come out of phase 1, the node can safely start another round of Paxos.
+It will eventually learn that the value is *decided* on its own.
+
+There are no correct answer.
+Paxos only guarantees that a single value is *decided*, not how this decision is propagated.
+Depending on your needs, you can implement any solution.
+
+The other failure scenario is not as easy: what if the proposer fails after broadcasting the P2a message?
+Even worst, what if the node failed before the broadcast completes.
+In any case, the value is not *decided*.
+Until a proposer starts the Paxos protocol again, you end up in this situation for round `n`:
+
+| Values of `self.accepted` | Node 1 (proposer) | Node 2 | Node 3 |
+|--- | --- | --- | ---|
+| Case 1 | Some(`n`, `v`) | Some(`n`, `v`) | Some(`n`, `v`) |
+| Case 2 | Some(`n`, `v`) | Some(`n`, `v`) | None |
+| Case 3 | Some(`n`, `v`) | None | None |
+
+For each case, either nodes received the message or did not.
+In either case, the node that was the proposer always accepts its proposed value:
+remember that nodes are both proposer and acceptor.
+
+If the proposer comes back online, it can lauch a new round and succeeds to choose its value.
+If other nodes managed to decide on another value, the proposer will learn it through the `Learn` message.
+`Learn` message is the strongest message: it signals to proposers that a value is *decided*.
+
+### Phase 1
+
+As I explained in the previous paragraph, phase 1 is run first to check which value is *safe* to be submitted in phase 2.
+Proposer `p` wants to propose a value `v1`.
+It first set a `round` (we see how to choose `round` later).
+It broadcasts a P1a message to every node. P1a message only consists of the `round`.
+Acceptors answer to P1a message with their latest accepted value (remember phase 2).
+In pseudo-rust-code, that would be:
+
+```rust
+impl Acceptor {
+  fn on_msg(mut self, p1a: P1aMessage) -> Option<P1bMessage> {
+    if p1a.round > self.round {
+        self.round = p1a.round;
+        return Some(P1bMessage { round: p1a.round, value: self.accepted });
+    } else {
+        return None;
+    }
+  }
+}
+```
+
+Note that acceptors only answer to round that are above the current round.
+This guarantees progress.
+If a proposer fails and come back up later, it could think its round is still active.
+Acceptors ignoring its messages signal that its information is stale.
+
+On its side, the proposer waits for a majority of answers from acceptors.
+Every node is both a proposer and an acceptor, so the proposer already receives the p1b message from itself.
+Note that the acceptor of the same node can send another value than `v1` if it participated in a phase 2 of a previous round.
+Since there are 3 nodes, proposer only waits for a single response.
+
+But what does it do with the majority of reponse?
+3 cases arise:
+
+1. Every `p1b.value` is `None`: any value is *safe* to be proposed. 
+  No proposer submitted a single value.
+  `v1` is *safe* to be submitted in phase 2.
+2. Every `p1b.value` is `Some(v2)`: `v2` is the only *safe* value.
+  Proposer proceeds to phase 2 with `v2`.
+  Note that the proposer must drop its original requested value `v1`.
+3. Every `p1b.value` is different: this case is tricky.
+  The safe value to choose is the latest not `None` value.
+  If it was accepted, it was a *safe* value.
+  Besides, the only the latest value is *safe* because it might contradict previous round.
+
+In any case the proposer has a *safe* value to submit for phase 2!
+
+### Failure scenario of phase 1
+
+What happen if there's a failure in phase 1?
+
+If an acceptor fails, there's no problem: the 2 remaning node form a majority.
+It can *decide* a value without the failing node.
+
+If the proposer fails at this round, there's no real impact on the output of the protocol.
+The purpose of this round is to survey other nodes for a *safe* value.
+A failure of the proposer means that another proposer can start another round safely.
+It can even try this round if the failing proposer did not gather a majority of votes.
+
+## Failure scenarios
+
+Now that we covered the basics of Paxos, let's exercise our understanding with some 3 nodes scenarios.
+
+In our first case, a single node has a value to propose.
+It times out then comes back up before another proposer has a chance.
+
+The role of proposer and acceptor is separated to have a clearer view.
+Proposer 1 and acceptor 1 correspond to node 1.
+An **&times;** indicate a failing node.
+An **
+
+| Round | Proposer 1 | Acceptor 1 | Acceptor 2 | Acceptor 3 | Comment |
+|--- | --- | --- | --- | --- | ---|
+| 0 | P1a(round = 0) | P1b(round = 0, value = None) |  |  | P1a broadcast |
+| 0 | |  | P1b(round = 0, value = None) | | Acceptor 2 accepts |
+| 0 | **&times;** | **&times;** |  |  | Node fails |
+| 0 | **&times;** | **&times;** |  |  | No other node propose, the protocol stalls |
+| 0 | P2a(round = 0, value = v) | P1b(round = 0, value = v) |  |  | Node 1 comes back online, progress can resume |
+| 0 | |  | | P2b(round = 0, value = v) | | Acceptor 2 votes |
+| 0 | Learn(value = v) | | | | Proposer 1 learned that v is the consensus value |
+
+This sequence is quite easy: there is no competing proposer.
+The failure only blocks the proposing node.
+Note that node 3 did not participate.
+We don't show messages that are ignored, but in this case it also casts a vote.
+
+Let's get some competition in there to have a more exciting scenario.
+Consider that proposer 2 wants to get `v2` through.
+
+| Round | Proposer 1 | Acceptor 1 | Proposer 2 | Acceptor 2 | Acceptor 3 | Comment |
+|--- | --- | --- | --- | --- | --- | ---|
+| 0 | P1a(round = 0) | P1b(round = 0, value = None) |  |  | | P1a broadcast |
+| 0 | | | **&times;** | **&times;** | | Node 2 fails |
+| 0 | | | **&times;** | **&times;** | P1b(round = 0, value = None) | Acceptor 3 answers |
+| 0 | P2a(round = 0, value = `v1`) | P2b(round = 0, value = `v1`) | **&times;** | **&times;** | | Node 1 starts phase 2 |
+| 0 | | | **&times;** | **&times;** | P2b(round = 0, value = `v1`) | Acceptor 3 accepts `v1` |
+| 0 | **&times;** | **&times;** | | | | Node 2 recovers whilst node 1 fails while deciding for `v1` |
+| 0,1 | **&times;** | **&times;** | P1a(round = 1) | P1b(round = 1, value = None) | | Proposer 2 start round 1 because of a timeout |
+| 0,1 | **&times;** | **&times;** | | | P1b(round = 1, value = (0, `v1`)) | Acceptor 3 answer to round 1: it accepted `v1` in round 0 |
+| 0,1 | **&times;** | **&times;** | P2a(round = 1, value = `v1`) | P2b(round = 1, value = `v1`) | | Proposer 2 is forced to broadcast `v1` in phase 2 |
+| 0,1 | **&times;** | **&times;** | | | P2b(round = 1, value = `v1`) | Acceptor 3 answers |
+| 0,1 | Learn `v1` | | Learn `v1` | | | Node 1 comes back online, both nodes learn `v1` |
+
+This scenario is a bit more complex.
+Node 2 then node 1 fail one after the other.
+Note that they still come to the same value: consensus is reached!
+The key point is that proposer 2 proposed `v1` instead of its own proposition in phase 2.
+The role of phase 1 is key for that to happen.
+
+## Conclusion
+
+I hope this article helps you with single-decree Paxos.
+I didn't get into 5 nodes examples for clarity sake.
+But you can think for yourself of more complex example.
+Paxos is really hard so don't hesitate to ask questions about it.
+
+There's a lot to cover from there.
+Paxos was the first of his kind: first time an formal protocol to solve the consensus problem.
+It is also the first protocol proved to be safe.
+You can find more information on the [wikipedia page](https://en.wikipedia.org/wiki/Paxos_(computer_science)).
+
+Understanding basic Paxos allow understand many optimisations of the Paxos-family protocols.
+Yes! You read well.
+There are a lot protocol based on Paxos that try to optimize the original protocol.
+Multi-Paxos, Fast Paxos, Fast Flexible Paxos, Egalitarian Paxos, Vertical Paxos to name a few...
+
+In the next article, I'll try to explain what happens once a value is *decided*.
+How can this be applied to implement a database for instance.
+
+Take care!

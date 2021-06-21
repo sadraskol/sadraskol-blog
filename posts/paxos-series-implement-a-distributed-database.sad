@@ -1,0 +1,156 @@
+title="Paxos series: implement a distributed database"
+publication_date="2021-06-22T20:02:10.873616722+00:00"
+language="en"
+---- sadraskol ----
+
+In our last [post](), we covered single decree Paxos.
+You might now wonder: what is all of this useful for?!
+Paxos is abstract and hard to understand.
+Leslie Lamport focused on the formal description of a general solution of a formal problem.
+In this post we'll uncover the ways it can be used to implement a resilient system.
+
+## State Machine
+
+Before understanding Paxos applicability, let's talk about state machines.
+A state machine is a computation model.
+It allow to describe how system behave.
+Although not as powerful as Turing machines, they offer a simpler representation.
+
+A state machine, as its name implies, consist of a state `S` and a fcuntion `apply`.
+`apply` can be defined as the following in pseudo-code:
+
+```
+apply: State(current) + Input &larr; State(next) + Output
+```
+
+If State(current) = State(next) then input is a read operation.
+Otherwise it's an update or a write operation.
+
+Any system can be interpreted as state machine (SM).
+For instance, let's take a SQL database.
+The inputs are SQL queries.
+The output the answer of the database.
+The state is the collection of tuples persisted in an optimized filesystem representation.
+
+## State Machine Replication
+
+SMR stands for State Machine Replication.
+It begs the question: can multiple nodes act as a single SM?
+Even better: can a SMR still work while some nodes are failing?
+
+Intuitively, if Paxos can help nodes agree on a single decision, it could also help replicate many decision right?
+But first we need to cover ways to replicate a SM.
+
+As stated before a SM consist of a State `S` and the `apply` function.
+Since the `apply` function is static, replicating it is not an issue.
+For `S` it's more complex.
+It potentially changes for every input received.
+There are two ways:
+
+1. Replicate `S` entirely: it's inefficient, but the easy optimization is to replicate `S(next) - S(current)` which is lighter
+2. Replicate the log of inputs and use `apply` to rebuild the `S`
+
+The two options are possible, but the second options leads to a more intuitive solution.
+We're gonna replicate an ordered collection of inputs `I`.
+We call the log at step `n` the collection of inputs:
+
+```
+Log(n) = {I(0), I(1), ..., I(n)}
+```
+
+## Enters Paxos
+
+Let's figure an algorithm to use Paxos (or another consensus protocol) to replicate the log:
+
+```
+Client submits query "q" to Node "n"
+Log(n) = {I(0), I(1), ..., I(n)}
+"n" proposes I(n+1) = q
+    -> If decided, answer client
+    -> If competing proposition is decided, propose I(n+2) = q
+```
+
+This algorithm innherits Paxos properties: It offers progress guarantees and safetiness.
+It is relatively simple because Paxos covers answers the complex question of a value *decision*.
+Without Paxos, it wouldn't be possible to proove safetiness or progress.
+
+## From Single Decree To A Log
+
+On the surface, Paxos and the log algorithms are pretty orthogonal.
+No need to understand one to implement the other.
+You could replace Paxos with any consensus protocol (Fast Paxos, Multi Paxos, etc.) and you're good to go.
+
+Except that it is not as easy.
+The way you implement Paxos and the log interacts at some corner cases.
+The closer you get to a realistic implementation, the more problems you face.
+As the author of [Raft](https://raft.github.io) puts it:
+
+> The composition rules for multi-Paxos [Paxos with a log] add significant additional complexity and subtlety.
+
+For instance, what if a node fails?
+Paxos guarantees progress, so remaining nodes still decide on inputs.
+But when the node comes back up, it is late and need to learn the decisions it missed.
+Paxos does not answer the solution directly.
+
+Say running nodes are at state `S(current)`, while failing node is at state `S(old)`.
+Once the node is up, it needs to learn inputs `I(old + 1)`, ..., `I(current)`.
+
+This log repairing process can be achieved by:
+
+1. Node detects it is outdated on receiving a message
+2. Node stops accepting queries from client until repaired
+3. Node "asks" for `I(old + 1)`, ..., `I(current)`
+4. When the log is repaired, the node can accept client queries
+
+This is possible if you clear out 2 questions:
+
+* What about `I(current + 1)`, `I(current + 2)`, etc. that are decided while the node is repairing?
+* How does it "asks" for missing inputs?
+
+## Decision Making While Repairing
+
+The first problem is not really a problem.
+A repairing node can take part in Paxos decision for `I(current + x)`.
+It does not need to know the preceeding inputs to take part.
+However, it needs wait to apply inputs to its internal state machine until it has receives the next input.
+
+Say node is at state `S(100)` and receives `I(102)`, it buffers the input until it receives `I(101)`.
+It then applies `I(101)` and `I(102)` to reach the correct state `S(102)`.
+
+This is why consensus protocols are also said to solve total ordering of messages.
+You can guarantee that messages are received in the perfect order by recipient with a consensus protocol.
+Consensus = Total order.
+
+## Safely Restoring A Decision
+
+You could naively repairing decisions `I(old + 1)`, ..., `I(current)` by asking other nodes the learned decree.
+This works for the happy scenario, but consider this edge case:
+
+Node N1: repairing `I(101)`, I(100) = `v100`, I(101) = ?
+
+Node N2: Running, I(100) = `v100`, I(101) = Accepted `v101` (phase 2 of Paxos)
+
+Node N3: Failed, I(100) = `v100`, I(101) = `v101` (failed before broadcasting message)
+
+N1 cannot ask N3 for `I(101)`, it won't answer.
+N1 cannot ask N2 for `I(101)`, it has not decided anything yet.
+Is `I(101)` lost?
+
+This is where the knowledge of Paxos is crucial.
+Remember that a value that is *decided* is the only *safe* value.
+So if another round of Paxos is run, only `v101` is *safe*.
+Therefore, by running another round, N1 will decide `v101`!
+
+## Conclusion
+
+Knowledge and understanding of Paxos algorithm is crucial to implement an SMR.
+As Paxos is not easy, implementing an SMR is not easy!
+As we covered, understanding the Paxos is crucial to understand SMR.
+In the next posts, we'll go even further:
+implementing an effective Paxos-based replicated system requires even deeper understanding.
+
+---
+
+PS: you can prove that the repair algorithm works with a [TLA+ specification](https://gist.github.com/sadraskol/7c1bf2df592a67e34bd04658db4d8c67).
+Writing it led me to a deeper understanding of Paxos and it was an epiphany!
+If you are not sure of your algorithm, check them with TLA+ and everything becomes crystal clear.
