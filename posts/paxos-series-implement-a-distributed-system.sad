@@ -1,13 +1,13 @@
-title="Paxos series: implement a distributed database"
+title="Paxos series: implement a distributed system"
 publication_date="2021-07-05T20:02:10.873616722+00:00"
 language="en"
 ---- sadraskol ----
 
-In our last [post](), we covered single decree Paxos.
+In our last [post](https://sadraskol.com/posts/paxos-series-single-decree-paxos), we covered single decree Paxos.
 You might now wonder: what is all of this useful for?!
-Paxos is abstract and hard to understand.
+Paxos is abstract and hard to understand, no wonder you are confused.
 Leslie Lamport focused on the formal description of a general solution of a formal problem.
-In this post we'll uncover the ways it can be used to implement a resilient system.
+In this post we cover the ways it can be used to implement a resilient distributed system.
 
 ## State Machine
 
