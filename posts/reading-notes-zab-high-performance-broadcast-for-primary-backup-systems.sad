@@ -1,0 +1,80 @@
+title="Reading notes: Zab: High performance broadcast for primary-backup systems"
+publication_date="2021-06-30T15:22:29.773918471+00:00"
+language="en"
+---- sadraskol ----
+
+Zab stands for Zookeeper Atomic Broadcast.
+The authors published this [paper](https://www.cs.cornell.edu/courses/cs6452/2012sp/papers/zab-ieee.pdf) describing the atomic broadcast protocol of Zookeeper.
+
+Atomic broadcast was not a new problem at the time of publishing.
+Paxos already described a way to achieve that.
+Zookeeper requires two properties for success: 
+
+- An efficient recovery process
+- **Primary order**, a stronger guarantee than atomic broadcast
+
+The authors note that classical Paxos does not solve these issues.
+It explains the need for another protocol.
+
+## Primary order
+
+This seems surprising at first because Paxos offers linearizability, what would you need over that?!
+The following case is presented:
+
+![Paxos case where initial proposal order is A-B-D but ends up being C-B-D](/img/paxos-ordering-run.png)
+
+Value `A` does not end up in the final ordering.
+This can lead to weird behavior if `B` depends on `A`.
+If the system using the protocol cannot batch `A` and `B` together, then greater guarantees are needed.
+This is where they define **primary order**.
+
+**Primary order** tackles this issue: decided values must be causally consistent with the previous decided value.
+
+## Recovery
+
+Once you guarantee **primary order**, recovery becomes less of a problem.
+You only need to recover from the latest accepted value and not all instances of your log.
+
+With Zab recovery only requires knowing of the latest accepted value.
+**Primary order** guarantees that previous values are also accepted.
+The leader recovers its history until the latest accepted value and progress is resumed.
+
+If you are using classical Paxos, you need more than simply the latest accepted value.
+Every node can have a different view of accepted values.
+The new leader must recover all possible values from the latest learned value.
+This requires involving the whole available quorum.
+
+## The protocol
+
+Zab consists of 3 phases:
+
+- Phase 1 allows selecting the next leader.
+- Phase 2 restores the latest history of values to the leader.
+- Phase 3 consists of the leader broadcasting the values.
+
+I won't cover the details, but basically, zab is similar to Paxos with a safe recovery phase.
+In a catastrophic scenario, zab requires a whooping 5 RTT (round trip time) to make progress.
+With a stable leader, 2 RTT is sufficient.
+
+The recovery and **primary order** require one more RTT than classical Paxos.
+But since they only weigh on rare failure events, it's not an issue for production.
+
+## Conclusion
+
+This paper is really interesting because it presents the protocol entirely, even with recovery.
+It helps at getting the general picture of the protocol.
+This means that you can try to implement zab yourself!
+
+Interestingly, they designed the protocol based on their need.
+**Primary order** is not something all systems require.
+If the state machine can batch values together, Paxos is a better alternative.
+Nevertheless, it is now one of the most deployed database of its kind.
+
+Like Aphyr notes, it is one of the rare database to resist the infamous [Jepsen test](https://aphyr.com/posts/291-call-me-maybe-zookeeper).
+Although not a theoretical breakthrough, zab is an industrial success.
+It provides the bedrock for widespread technology like Cassandra or Kafka.
+
+I might also read the more general [paper on Zookeeper](https://www.usenix.org/legacy/event/atc10/tech/full_papers/Hunt.pdf) sometime soon.
+I wish to find the answer to the critical question: how come **primary order** was required in the first place.
+
+Take care!

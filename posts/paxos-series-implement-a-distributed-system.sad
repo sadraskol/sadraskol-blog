@@ -13,17 +13,17 @@ In this post we cover the ways it can be used to implement a resilient distribut
 
 Before understanding Paxos applicability, let's talk about state machines.
 A state machine is a computation model.
-It allow to describe how system behave.
+It allows to describe how a system behaves.
 Although not as powerful as Turing machines, they offer a simpler representation.
 
-A state machine, as its name implies, consist of a state `S` and a fcuntion `apply`.
+A state machine, as its name implies, consist of a state `S` and a function `apply`.
 `apply` can be defined as the following in pseudo-code:
 
 ```
 apply: State(current) + Input &larr; State(next) + Output
 ```
 
-If State(current) = State(next) then input is a read operation.
+If `State(current) = State(next)` then the input is a read operation.
 Otherwise it's an update or a write operation.
 
 Any system can be interpreted as state machine (SM).
