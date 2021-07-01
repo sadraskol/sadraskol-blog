@@ -87,7 +87,7 @@ fn gen() {
     let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| post.map(|p| p.path()))
         .map(|path| read_post(path.as_path()))
-        .filter(|p| p.publication_date <= now)
+        .filter(|p| p.publication_date.date() <= now.date())
         .collect();
     posts.sort_by(|l, r| l.publication_date.cmp(&r.publication_date).reverse());
 
