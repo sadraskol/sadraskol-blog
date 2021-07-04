@@ -1,5 +1,5 @@
 title="Paxos series: implement a distributed system"
-publication_date="2021-07-01T20:02:10.873616722+00:00"
+publication_date="2021-07-06T20:02:10.873616722+00:00"
 language="en"
 ---- sadraskol ----
 
@@ -113,7 +113,7 @@ This is possible if you clear out 2 questions:
 
 ## Decision Making While Repairing
 
-The first problem is not really a problem.
+The first problem isn't one.
 A repairing node can take part in Paxos decision for `I(current + x)`.
 It does not need to know the preceding inputs to take part.
 However, it needs to wait to apply inputs to its internal state machine until it has received the next input.
