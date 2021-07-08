@@ -1,5 +1,5 @@
 title="Paxos series: implement a distributed system"
-publication_date="2021-07-06T20:02:10.873616722+00:00"
+publication_date="2021-07-09T20:02:10.873616722+00:00"
 language="en"
 ---- sadraskol ----
 
@@ -161,5 +161,5 @@ It'll be the subject of the next and last post of the series.
 ---
 
 PS: you can prove that the repair algorithm works with a [TLA+ specification](https://gist.github.com/sadraskol/7c1bf2df592a67e34bd04658db4d8c67).
-Writing it led me to a deeper understanding of Paxos and it was an epiphany!
+Writing it led me to a deeper understanding of Paxos, it was an epiphany!
 If you are not sure of your algorithm, check them with TLA+ and everything becomes crystal clear.

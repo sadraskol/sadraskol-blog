@@ -70,7 +70,7 @@ Interestingly, they designed the protocol based on their need.
 If the state machine can batch values together, Paxos is a better alternative.
 Nevertheless, it is now one of the most deployed database of its kind.
 
-Like Aphyr notes, it is one of the rare database to resist the infamous [Jepsen test](https://aphyr.com/posts/291-call-me-maybe-zookeeper).
+Like Kyle Kingsbury notes, it is one of the rare database to resist the infamous [Jepsen test](https://aphyr.com/posts/291-call-me-maybe-zookeeper).
 Although not a theoretical breakthrough, zab is an industrial success.
 It provides the bedrock for widespread technology like Cassandra or Kafka.
 
