@@ -1,55 +1,55 @@
 title="Reading notes: SAMC, Semantic-Aware Model Checking"
-publication_date="2021-07-15T09:55:03.765217979+00:00"
+publication_date="2021-07-09T09:55:03.765217979+00:00"
 language="en"
 ---- sadraskol ----
 
 SAMC is a distributed system model checker, *dmck* for short.
-Traditionnal dmcks like [dBug](https://www.usenix.org/legacy/events/ssv10/tech/full_papers/Simsa.pdf),
-[CrystalBall](https://www.usenix.org/legacy/events/nsdi09/tech/full_papers/yabandeh/yabandeh.pdf) or
+Traditional dmcks like [dBug](https://www.usenix.org/legacy/events/ssv10/tech/full_papers/Simsa.pdf),
+[CrystalBall](https://www.usenix.org/legacy/events/nsdi09/tech/full_papers/yabandeh/yabandeh.pdf), or
 [MODIST](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/modist_nsdi2009.pdf)
 reorder messages sent between nodes of the system.
 They do not inject more than a single failure in each run.
 It would otherwise exacerbate the state-space exploration.
 
-SAMC is semantic-aware, meaning it knows how the systems under test reacts to events.
-This knowledge is used to look for what the paper calls *deep bugs*, bugs that include many crash/reboots.
-There are 4 semantic knowledge used to that effect:
+SAMC is semantic-aware, meaning it knows how the system under test reacts to events.
+This knowledge is used to look for what the paper calls *deep bugs*, bugs that include many crashes/reboots.
+There are 4 semantic patterns used to that effect:
 
 1. Local message independence (LMI)
 2. Crash message independence (CMI)
 3. Crash recovery symmetry (CRS)
 4. Reboot synchronization symmetry (RSS)
 
-SAMC also employs battle proved techniques to reduce the state-space explosion:
-State symmetry, architecture symmetry and independence-based dynamic partial order reduction (DOPR).
-The author tested Zookeeper, Hadoop/Yarn and Cassandra and found known and new bugs in these systems.
+SAMC also employs battle-proven techniques to reduce the state-space explosion:
+State symmetry, architecture symmetry, and independence-based dynamic partial order reduction (DOPR).
+The author tested Zookeeper, Hadoop/Yarn, and Cassandra and found known and new bugs in these systems.
 
 ## Independence
 
 MODIST is the most potent dmck when the paper is written, in 2014.
 Say messages `[a, b, c, d]` are executed, the checker needs to test `4! = 24` recombinations (`abcd`, `badc`, etc.).
-In order to reduce this complexity we can define *independence*.
+To reduce this complexity we can define *independence*.
 
 Independent messages do not need to be reordered.
 The order in which they are received would not change the final state.
 
 For instance, messages that are received by different nodes are *independent*.
 Say node 1 receives `a` and `b`, node 2 receives `c` and `d`.
-In this case, we only need to test `ab-cd`, `ba-cd`, `ab-dc` and `ba-dc`: 4 recombinations.
+In this case, we only need to test `ab-cd`, `ba-cd`, `ab-dc`, and `ba-dc`: 4 recombinations.
 
 ## White box checking
 
 MODIST is a black box testing rig.
-It does not have prior knowledge to how the system under test works.
-MODIST explores more state through randomness and checkpoints.
+It does not have prior knowledge of how the system under test works.
+MODIST explores more states through randomness and checkpoints.
 These techniques are either random (...) or tedious to implement.
 
-The author look down on these methods and want to have a more thorough method.
-To explore more state, they included some knowledge of the system under test.
-This allow to discard a lot of *useless* reordering.
+The authors look down on these methods and want to have a more thorough method.
+To explore more states, they included some knowledge of the system under test.
+This allows discarding a lot of *useless* reordering.
 
 For instance, say messages `a`, `b` and `c` are discarded by the node.
-This happen a whole lot in many protocols.
+This happens a whole lot in many protocols.
 Not reordering them, saves `3! = 6` precious state exploration.
 
 ## Local Message Independence
@@ -58,14 +58,14 @@ Local messages are concurrent inflight messages to a given node.
 Black box testing requires `n!` executions.
 
 LMI defines 4 patterns.
-In these pseudo code, `m` is the message, `px` is the predicate for `x` and `ls` is the local state of the node.
+In these pseudo code snippets, `m` is the message, `px` is the predicate for `x` and `ls` is the local state of the node.
 
 - Discard: `if pd(m, ls): noop`
 - Increment: `if pi(m, ls): ls++`
 - Constant: `if pc(m, ls): ls = const`
 - Modify: `if pm(m, ls): modify(m, ls)`
 
-LMI uses the following rules to reduce the state exploration:
+LMI uses the following rules to reduce state exploration:
 
 - m1 and m2 are *independent* if `pd` is true for any
 - m1 and m2 are *independent* if `pi` or `pc` is true for both
@@ -75,53 +75,72 @@ Tester needs to implement these rules in the checker.
 
 ## Crash Message Independence
 
-Say leader `L` sends message `a` and `b` to follower F1, `c` and `d` to follower F2 and F3 crashes.
-CMI allows to simplify the reordering of the crash in regard to messages.
+Say leader `L` sends messages `a` and `b` to follower F1, `c` and `d` to follower F2, and F3 crashes.
+CMI allows simplifying the reordering of the crashes with messages.
 
 2 patterns are used:
 
 - Global Impact: `if pg(X, ls): modify(ls) && sendMsgs`
 - Local Impact: `if pl(X, ls): modify(ls)`
 
-Note that we are checking these patterns to every non failing nodes.
+Note that we are checking these patterns for every non-failing node.
 
-If `pl` is true, the failure is independent to messages.
-Otherwise `pg` is true and the failure is dependent to the messages.
+If `pl` is true, the failure is independent of messages.
+Otherwise `pg` is true and the failure is dependent on the messages.
 
-For instance if a follower crashes, the leader decreases #follower, the number of follower.
+For instance, if a follower crashes, the leader decreases #follower, the number of followers.
 If it still has a quorum, there are no changes, it is a *local impact*.
-If it looses its quorum, it requires a new leader election, it is an instance of a *global impact*.
+If it lses its quorum, it requires a new leader election, it is an instance of a *global impact*.
 
 ## Crash Recovery Symmetry
 
 On one hand, dmcks cannot reduce the number of messages produced, as it depends on the system under test.
 On the other, dmcks are allowed to decide how many failures will be injected.
-Some crashes lead to a symmetric recovery.
+Some crashes lead to symmetric recovery.
 
-The paper defines crash recovery symmetry: two recovery are symmetric if they produce the same messages and the same changes to the same local states.
+The paper defines crash recovery symmetry: two recoveries are symmetric if they produce the same messages and the same changes to the same local states.
 It covers how to extract recovery abstract local state (rals) for every node.
 
 Before crashing a node, SAMC saves all rals and orders them into recovery abstract global state (rags).
 Before crashing a node, if the current rags already exists, the crash is skipped.
 
-## Reboot Synchronization Symmetry 
+## Reboot Synchronization Symmetry
 
-RSS is similar to CRS but with reboot.
+RSS is similar to CRS but with reboots.
 The process is not explicitely discussed, as it works the same way as CRS.
 
 ## Discussion
 
 SAMC requires manual pattern extraction from the tester.
-The authors believe it is not that much of an issue for modern cloud DevOps: tester know the internals of the systems they test very well.
-Compared to existing techniques, it has found bugs 33 times fasters in average.
+The authors believe it is not that much of an issue for modern cloud DevOps: testers know the internals of the systems they test very well.
+Compared to existing techniques, it has found bugs 33 times fasters on average.
 It could find bugs that randomness couldn't.
 They also found bugs in existing systems!
 
 The authors finally mention alternatives to SAMC and dmck:
 
-- Formal model checkers like TLA+: does not check implementation
+- Abstract model checkers (they don't mention TLA+ but the references are quite similar to it):
+  do not check implementation, they're abstract
 - Symbolic execution: cannot check distributed systems
 - Fault injectors: suffer from randomness issue already mentioned
 
 ## Conclusion
 
+This article dates from 2014 and it shows!
+Even though the tool seems promising it is stuck between two approaches.
+[Jepsen tests](https://jepsen.io/analyses) started making noise.
+It takes the fault injection approach and managed to find bugs in systems under test.
+On the other end of the spectrum, TLA+ has been successfully used to design distributed systems.
+
+I could not find traces of SAMPro, the tool that implements SAMC.
+In my opinion, the author underestimated the difficulty to implement system behaviors into the testing tool.
+No surprise black box testing is preferred.
+
+On the other hand, TLA+ is way more helpful at implementing complex systems from the ground up.
+They need to understand how the algorithm could fail in the first place, rather than focus on the implementation.
+
+The paper is really interesting nonetheless because it exercises failure scenarios.
+Having these patterns in mind help you focus on the pitfalls of your implementation.
+The hybrid approach of SAMC did not get the traction it deserved, but in the end, users decide!
+
+Take care!
