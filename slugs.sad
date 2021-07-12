@@ -6,3 +6,4 @@ rewrite /posts/developers-proust-questionnaire /posts/developer-s-proust-questio
 rewrite /posts/ifless-game-life /posts/if-less-game-of-life permanent;
 rewrite /posts/largument-ontologique-de-lagilite /posts/l-argument-ontologique-de-l-agilite permanent;
 rewrite /posts/distributed-systems-a-review /posts/reading-notes-distributed-systems permanent;
+rewrite /posts/paxos-series-implement-a-distributed-system /posts/paxos-series-implementing-a-distributed-system permanent;
