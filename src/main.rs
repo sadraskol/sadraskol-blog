@@ -4,12 +4,12 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use askama::Template;
+use chrono::Utc;
 
 use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
-use crate::fs::{read_post, FileDiff};
+use crate::fs::{FileDiff, read_post};
 use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
-use chrono::Utc;
 
 mod custom_markdown;
 mod domain;
@@ -77,8 +77,42 @@ fn gen_assets() {
             origin.as_path(),
             PathBuf::from("dist/img").join(origin_file.file_name()),
         )
-        .unwrap();
+            .unwrap();
     }
+}
+
+fn gen_slides() {
+    std::fs::create_dir_all("dist/slides").unwrap();
+
+    fn visit_dirs<P: AsRef<std::path::Path>>(dir: P, cb: &dyn Fn(&std::fs::DirEntry)) -> std::io::Result<()> {
+        let dir = dir.as_ref();
+        if dir.is_dir() {
+            for entry in std::fs::read_dir(dir)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_dir() {
+                    visit_dirs(&path, cb)?;
+                } else {
+                    cb(&entry);
+                }
+            }
+        }
+        Ok(())
+    }
+    fn copy_file(f: &std::fs::DirEntry) {
+        let buf = f.path();
+        let relative_path = buf.strip_prefix("slides").unwrap();
+        println!("copying {:?}, relative path: {:?}", f.path(), relative_path);
+        std::fs::create_dir_all(PathBuf::from("dist/slides")
+            .join(relative_path.parent().unwrap())).unwrap();
+        std::fs::copy(
+            f.path(),
+            PathBuf::from("dist/slides")
+                .join(relative_path),
+        )
+            .unwrap();
+    }
+    visit_dirs("slides", &copy_file).unwrap();
 }
 
 fn gen() {
@@ -97,6 +131,7 @@ fn gen() {
 
     gen_redirects();
     gen_assets();
+    gen_slides();
 }
 
 fn main() {
@@ -120,7 +155,7 @@ fn main() {
             "publication_date=\"{}\"",
             chrono::Utc::now().to_rfc3339()
         )
-        .unwrap();
+            .unwrap();
         writeln!(f, "language=\"en\"").unwrap();
         writeln!(f, "---- sadraskol ----").unwrap();
     } else if args.len() > 1 && args[1] == "mv" {
@@ -159,7 +194,7 @@ fn main() {
             slugify(args[2].clone()),
             slugify(args[3].clone())
         )
-        .unwrap();
+            .unwrap();
         std::fs::remove_file(&from_file).unwrap();
     } else {
         println!("Help sadraskol blog cli");

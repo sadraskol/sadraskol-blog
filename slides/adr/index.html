@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Architecture Decision Record</title>
+
+		<meta name="author" content="Thomas Bracher">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section>
+          <h1>Architecture Decision Record</h1>
+          <p>By <a href="https://twitter.com/sadraskol">Thomas Bracher</a></p>
+        </section>
+        <section>
+          <h3>Context</h3>
+          <p>When no documentation is available:</p>
+          <ol>
+            <li>Blindly accept it</li>
+            <li>Blindly change it</li>
+          </ol>
+        </section>
+        <section>
+          <p>[Insert sad panda gif]</p>
+        </section>
+        <section>
+          <h3>Decision</h3>
+          <p>Store decisions in simple text files</p>
+        </section>
+        <section>
+          <ul>
+            <li>Title</li>
+            <li>Context</li>
+            <li>Decision</li>
+            <li>Status</li>
+            <li>Consequences</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Status: Pending</h3>
+        </section>
+        <section>
+          <h3>Consequences</h3>
+          <ul>
+            <li>Motivation of important decision visible</li>
+            <li>Show effect of decisions on project</li>
+            <li>Maintain status of decisions</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <ul>
+            <li>Migration to AWS: ops, dev, etc.</li>
+            <li>Framework choice for compilation</li>
+            <li>Dependency injection practice change</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Alternatives</h3>
+          <p><a href="/home/thomas/Bureau/sadraskol/slides/adr">Repo</a> of alternatives</p>
+          <p>Micro services oriented, business plan oriented</p>
+        </section>
+        <section>
+          <p>Merci de votre attention!</p>
+        </section>
+        <section>
+          <h3>Bibliography</h3>
+          <ul>
+            <li><a href="http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions">ADR explained by Michael Nygard</a></li>
+            <li><a href="https://resources.sei.cmu.edu/asset_files/Presentation/2017_017_001_497746.pdf">ADR at IBM</a></li>
+            <li><a href="https://github.com/joelparkerhenderson/architecture_decision_record">alternative ADRs</a></li>
+            <li><a href="https://github.com/npryce/adr-tools">Bash tools for ADR</a></li>
+          </ul>
+        </section>
+      </div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: []
+			});
+
+		</script>
+
+	</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Division By Zero</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Division Par Zéro</h3>
+        <p>Par <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <img alt="Conversation Slack" src="img/slack.png">
+      </section>
+      <section>
+        <h3>Quizz</h3>
+        <p class="fragment">Java <code>12/0</code> ?</p>
+        <p class="fragment">Java <code>12.0/0</code> ?</p>
+        <p class="fragment">Javascript <code>12/0</code> ?</p>
+        <p class="fragment">Javascript <code>12.0/0</code> ?</p>
+        <p class="fragment">Purescript <code>12/0</code> ?</p>
+        <p class="fragment">Purescript <code>12.0/0</code> ?</p>
+        <p class="fragment">Et en mathématiques ?</p>
+      </section>
+      <section>
+        <h3>Réponses</h3>
+        <p>Java <code>12/0</code> <code class="fragment">ArithmeticException("/ by zero")</code></p>
+        <p>Java <code>12.0/0</code> <code class="fragment">Infinity</code></p>
+        <p>Javascript <code>12/0</code> <code class="fragment">Infinity</code></p>
+        <p>Javascript <code>12.0/0</code> <code class="fragment">Infinity</code></p>
+        <p>Purescript <code>12/0</code> <code class="fragment">0</code></p>
+        <p>Purescript <code>12.0/0</code> <code class="fragment">Infinity</code></p>
+        <p>Et en mathématiques <span>???</span></p>
+      </section>
+      <section>
+        <h3>Cas pour les nombres flotants</h3>
+      </section>
+      <section>
+        <h3>Standard pour les float (IEEE 754)</h3>
+        <img alt="IEEE 754 exceptions et résultats" src="img/ieee754.png">
+      </section>
+      <section>
+        <h3>Pourquoi payer le prix d'opérations inexactes ?</h3>
+        <pre class="c fragment"><code>float Q_rsqrt( float number )
+{
+  long i;
+  float x2, y;
+  const float threehalfs = 1.5F;
+
+  x2 = number * 0.5F;
+  y  = number;
+  i  = * ( long * ) &y;         // evil floating point bit level hacking
+  i  = 0x5f3759df - ( i &gt;&gt; 1 ); // what the fuck? 
+  y  = * ( float * ) &i;
+  y  = y * ( threehalfs - ( x2 * y * y ) );
+
+  return y;
+}</code></pre>
+      </section>
+      <section>
+        <h3>Cas pour les nombres entiers</h3>
+      </section>
+      <section>
+        <blockquote>On peut pas diviser par zéro en mathématiques !</blockquote>
+        <p><i>Un informaticien en mal d'amour</i></p>
+      </section>
+      <section>
+        <h3>Anneau Euclidien <code>(R, +, *)</code></h3>
+        <pre><code>(a, b, c) &isin; R&sup3;
+a + (b + c) = (a + b) + c
+a + b = b + a
+a + 0 = a
+a + (-a) = 0
+
+a * (b * c) = (a * b) * c
+a * b = b * a
+a * 1 = a
+
+(a + b) * c = a * c + b * c
+
+a / b = c &lt;=&gt; &exist; b != 0 =&gt; b * c = a </code></pre>
+      </section>
+      <section>
+        <blockquote>[In ZF set theory] Since 0 is not in the domain of recip, we know nothing about the value of 1 / 0; it might equal √2, it might equal R, or it might equal anything else.</blockquote>
+        <p>Leslie Lamport, Math PhD and winner of the 2013 Turing Award</p>
+        <p><small><a href="https://www.hillelwayne.com/post/divide-by-zero/">Plus d'info ici</a></small></p>
+      </section>
+      <section>
+        <h3>Veut-on diviser par zéro ?</h3>
+        <p>Moyenne sur une liste vide : <code>0/0 = ??</code></p>
+        <p><code>sin(0)/0 ~= 1</code></p>
+        <p class="fragment">Faire confiance au langage (mais pas trop)</p>
+        <p class="fragment">Utiliser <code>BigDecimal</code> où c'est critique</p>
+      </section>
+      <section>
+        <h3>&#x1f496;</h3>
+        <p>Merci</p>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+      history: true,
+
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+    });
+  </script>
+</body>
+</html>

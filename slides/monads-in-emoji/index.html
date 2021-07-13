@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Ecto</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+  <script src="//twemoji.maxcdn.com/2/twemoji.min.js?11.2"></script>
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Les monades en Emoji</h3>
+        <p>Par <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <h3>Monade par ci, monade par là</h3>
+        <ol>
+          <li>Monade + Traversable = 80% d'Haskell/purescript</li>
+          <li>Outils de composition</li>
+          <li>Osef des maths, on est là pour parler fonctionnel</li>
+        </ol>
+      </section>
+      <section>
+        <h3>Rappel de 3 fonctions d'un Array</h3>
+        <ol>
+          <li>Pure</li>
+          <li>Map</li>
+          <li>Join</li>
+        </ol>
+      </section>
+      <section>
+        <h3>Trivial : Une pomme, i.e. un tableau de pommes</h3>
+        <p>pure :: &#x1f34e; &rarr; Array &#x1f34e;</p>
+      </section>
+      <section>
+        <h3>Un peu plus compliqué : mapper une fonction</h3>
+        <p>bake :: &#x1f34e; &rarr; &#x1f967;</p>
+        <p>bakes :: Array &#x1f34e; &rarr; Array &#x1f967;</p>
+        <p>map :: (&#x1f34e; &rarr; &#x1f967;) &rarr; (Array &#x1f34e; &rarr; Array &#x1f967;)</p>
+      </section>
+      <section>
+        <h3>Pas si simple : mapper puis applatir un tableau</h3>
+        <p>join :: Array (Array &#x1f34e;) &rarr; Array &#x1f34e;</p>
+      </section>
+      <section>
+        <h3>Petit excercice</h3>
+        <p>bake :: &#x1f34e; &rarr; &#x1f967;</p>
+        <p>harvest :: &#x1f333; &rarr; Array &#x1f34e;</p>
+        <p class="fragment">Comment obtenir harvestAndBake :: &#x1f333; &rarr; Array &#x1f967; ?</p>
+        <p class="fragment">Et harvestAndBakeField :: Array &#x1f333; &rarr; Array &#x1f967; ?</p>
+      </section>
+      <section>
+        <h3>Solution en code</h3>
+        <pre class="haskell"><code>bake :: &#x1f34e; &rarr; &#x1f967;
+harvest :: &#x1f333; &rarr; Array &#x1f34e;
+
+harvestAndBake :: &#x1f333; &rarr; Array &#x1f967;
+harvestAndBake tree = map bake (harvest tree)
+
+harvestAndBakeField :: Array &#x1f333; &rarr; Array &#x1f967;
+harvestAndBakeField trees = join (map harvestAndBake trees)
+</code></pre>
+      </section>
+      <section>
+        <h3>Les tableaux c'est beau,</h3>
+        <h3>quid des effets de bords ?</h3>
+        <pre class="haskell"><code>() &rarr; &#x1f34e;</code></pre>
+      </section>
+      <section>
+        <h3>Pure ?</h3>
+        <pre class="haskell"><code>pure :: &#x1f34e; &rarr; (() &rarr; &#x1f34e;)</code></pre>
+      </section>
+      <section>
+        <h3>Map ?</h3>
+        <p>
+        <p>map :: (&#x1f34e; &rarr; &#x1f967;) &rarr; ((() &rarr; &#x1f34e;) &rarr; (() &rarr; &#x1f967;)) ?</p>
+        <pre class="haskell"><code>appleProvider :: () &rarr; &#x1f34e;
+bake :: &#x1f34e; &rarr; &#x1f967;
+pure :: &#x1f967; &rarr; (() &rarr; &#x1f967;)</code></pre>
+      </section>
+      <section>
+        <h3>Join ?</h3>
+        <pre class="haskell"><code>join :: (() &rarr; (() &rarr; &#x1f34e;)) &rarr; (() &rarr; &#x1f34e;)</code></pre>
+        <pre class="haskell fragment"><code>() &rarr; &#x1f34e; == Effect &#x1f34e;</code></pre>
+        <pre class="haskell fragment"><code>join :: Effect (Effect &#x1f34e;) &rarr; Effect &#x1f34e;</code></pre>
+      </section>
+      <section>
+        <h3>Un effet de bord, c'est une monade !</h3>
+        <pre class="haskell"><code>bake :: &#x1f34e; &rarr; &#x1f967;
+harvest :: &#x1f333; &rarr; Effect &#x1f34e;
+
+harvestAndBake :: &#x1f333; &rarr; Effect &#x1f967;
+harvestAndBake tree = map bake (harvest tree)
+
+harvestAndBakeField :: Effect &#x1f333; &rarr; Effect &#x1f967;
+harvestAndBakeField trees = join (map harvestAndBake trees)
+</code></pre>
+      </section>
+      <section>
+        <h3>Ce qu'il vous reste à voir:</h3>
+        <ol>
+          <li>bind :: (&#x1f333; &rarr; Effect &#x1f967;) &rarr; (Effect &#x1f333; &rarr; Effect &#x1f967;)</li>
+          <li>La do-notation : rendre lisible l'utilisation du bind</li>
+          <li>La pratique (préférablement plus que 10 minutes)</li>
+          <li>Traversable</li>
+      </section>
+      <section>
+        <h3>Merci &#xe022;</h3>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+      history: true,
+
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+    });
+  </script>
+</body>
+</html>

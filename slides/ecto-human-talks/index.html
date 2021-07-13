@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Ecto</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Ecto: Elixir database wrapper</h3>
+        <p>By <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <h3>Elixir lang</h3>
+        <ol>
+          <li>Based on Erlang VM</li>
+          <li>Immutability, process-oriented, functional...</li>
+          <li>And: MACRO</li>
+          <li>Syntax similar to ruby</li>
+        </ol>
+      </section>
+      <section>
+        <h3>Basic types</h3>
+        <pre class="elixir"><code>string = "hello"
+atom = :some_atom
+tuple = {"nice", "tuple"}
+map = %{some: "other", :structure => 1}
+list = [123, 321, 34, "hello"]
+keywords = [desc: :e_fame], # [{:desc, :e_fame}]</code></pre>
+      </section>
+      <section>
+        <h3>Pattern matching</h3>
+        <pre class="elixir"><code>[head | tail] = [1, 2, 3]
+assert head == 1
+assert tail == [2, 3]
+%{title: some_title} = %{title: "super", description: "blah blah blah"}
+assert some_title == "super"</code></pre>
+      </section>
+      <section>
+        <h3>More than just variables</h3>
+        <pre class="elixir"><code>defmodule HumanTalks.Host do
+  def thank_you(message) do
+    case message do
+      %{type: :mail, title: title, sender: sender} ->
+        # send automatic mail
+      %{type: :sms, content: content, sender: sender} ->
+        # automatic Text
+      other_message ->
+        IO.puts "hey we received an unknown message: #{inspect(other_type)}"
+    end
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h1>Ecto</h1>
+        <p>Disclaimer: this is not a tutorial</p>
+      </section>
+      <section>
+        <h3>Define a model</h3>
+        <pre class="elixir"><code>defmodule HumanTalks.Host do
+  use Ecto.Schema
+
+  schema "hosts" do
+    field :name     # Defaults to type :string
+    field :email
+    field :encrypted_password_super_secure # md5 hash
+    field :e_fame, :integer, default: -5
+    field :last_response, Ecto.DateTime
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>Query the database</h3>
+        <pre class="elixir"><code>defmodule HumanTalks.WhosWho do
+  import Ecto.Query, only: [from: 2]
+  alias HumanTalks.Host
+  alias HumanTalks.Repo
+
+  def most_famous_host do
+    query = from(h in Host,
+         where: not is_nil(h.e_fame),
+         order_by: [desc: :e_fame],
+         select: {h.name, h.email},
+         limit: 1)
+    Repo.one(query)
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>Validate and contrain changes</h3>
+        <pre class="elixir"><code>defmodule HumanTalks.WelcomeHost do
+  import Ecto.Changeset
+  alias HumanTalks.Host
+
+  def new_host(params \\ %{}) do
+    %Host{}
+    |> cast(params, [:name, :email, :e_fame])
+    |> validate_required([:name, :email])
+    |> validate_format(:email, ~r/@/)
+    |> validate_number(:e_fame, :greater_than_or_equal_to, 0)
+    |> unique_constraint(:email)
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>Insert changeset</h3>
+        <pre class="elixir"><code>defmodule HumanTalks.Reception do
+  alias HumanTalks.WelcomeHost
+
+  def welcome_new_host(params) do
+    insert_changes = WelcomeHost.new_host(params)
+    # insert_changes.is_valid? == true
+    case Repo.insert(insert_changes) do
+      {:ok, host} ->
+        # host.name == params["name"]
+      {:error, changeset} ->
+        IO.inspect changeset.errors
+        #=> [email: {"has already been taken", []}]
+    end
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>And many more!</h3>
+        <ul>
+          <li>Easy associations</li>
+          <li>Smart transactions</li>
+          <li>Rails-like migrations</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Sum up</h3>
+        <ul>
+          <li>Testable as hell</li>
+          <li>No hidden magic</li>
+          <li>Based on an awesome language</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Working with associations</h3>
+        <pre class="elixir"><code>defmodule Post do
+  use Ecto.Schema
+
+  schema "posts" do
+    field :name, :string
+    field :age, :integer, default: 0
+    has_many :comments, Comment
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>Join tables</h3>
+        <pre class="elixir"><code># Create a query
+query = from p in Post,
+          join: c in Comment, where: c.post_id == p.id
+
+# Extend the query
+query = from [p, c] in query,
+          select: {p.title, c.body}
+
+# Or
+query = from p in Post, preload: [:comments]</code></pre>
+      </section>
+      <section>
+        <h3>Transaction with <code>Multi</code></h3>
+        <pre class="elixir"><code>defmodule HumanTalks.PasswordManager do
+  alias Ecto.Multi
+
+  def reset(account, params) do
+    Multi.new
+    |> Multi.update(:account, Account.password_reset_changeset(account, params))
+    |> Multi.insert(:log, Log.password_reset_changeset(account, params))
+    |> Multi.delete_all(:sessions, Ecto.assoc(account, :sessions))
+  end
+
+  def perform(multi) do
+    HumanTalks.Repo.transaction(multi)
+  end
+end</code></pre>
+      </section>
+      <section>
+        <h3>Test multi transaction</h3>
+        <pre class="elixir"><code>test "dry run password reset" do
+  account = %HumanTalks.Host{password: "letmein"}
+  multi = HumanTalks.PasswordManager.reset(account, params)
+
+  assert [
+    {:account, {:update, account_changeset, []}},
+    {:log, {:insert, log_changeset, []}},
+    {:sessions, {:delete_all, query, []}}
+  ] = Ecto.Multi.to_list(multi)
+
+  # We can introspect changesets and query to see if everything
+  assert account_changeset.valid?
+  assert log_changeset.valid?
+  assert inspect(query) == "#Ecto.Query&lt;from a in Session&gt;"
+end</code></pre>
+      </section>
+      <section>
+        <h3>Mutability with GenServer</h3>
+        <pre class="elixir"><code>defmofule Stack do
+  use GenServer
+
+  def handle_call(:pop, _from, [h | t]) do
+    {:reply, h, t}
+  end
+
+  def handle_cast({:push, item}, state) do
+    {:noreply, [item | state]}
+  end
+end
+
+{:ok, pid} = GenServer.start_link(Stack, [:hello])
+GenServer.call(pid, :pop) #=> :hello
+GenServer.cast(pid, {:push, :world}) #=> :ok
+GenServer.call(pid, :pop) #=> :world</code></pre>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+  // More info https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    history: true,
+
+    // More info https://github.com/hakimel/reveal.js#dependencies
+    dependencies: [
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+    ]
+  });
+  </script>
+</body>
+</html>

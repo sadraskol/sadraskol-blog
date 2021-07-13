@@ -1,0 +1,14 @@
+digraph G {
+  subgraph {
+    subgraph {
+      rankdir=LR
+      getCurrentIdentity [shape=box]
+      HttpRequest -> getCurrentIdentity -> Identity
+      { rank = same; HttpRequest; getCurrentIdentity; Identity }
+    }
+    subgraph {
+      rankdir=LR
+      sessionService -> getCurrentIdentity
+    }
+  }
+}

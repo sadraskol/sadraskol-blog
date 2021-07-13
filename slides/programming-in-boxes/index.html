@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Des boîtes et des traits</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Programmer avec des boîtes et des traits</h3>
+        <p>Par <a href="https://twitter.com/sadraskol">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <h3>Un simple contrôleur</h3>
+        <pre><code class="java">public ResponseEntity&lt;?&gt; sendInvoices(HttpRequest request) {
+// de la logique
+}</code></pre>
+      </section>
+      <section>
+        <img src="img/controller.svg" />
+      </section>
+      <section>
+        <h3>Révéler les dépendances cachées</h3>
+      </section>
+      <section>
+        <pre><code class="java">public ResponseEntity&lt;?&gt; sendInvoices(HttpRequest request) {
+  Identity identity = getCurrentIdentity(request);
+  Quarter currentQuarter = getCurrentQuarter(request);
+  this.invoiceSendingService.send(identity, currentQuarter);
+  return ResponseEntity.ok("");
+}</code></pre>
+      </section>
+      <section>
+        <img src="img/level1.svg" />
+      </section>
+      <section>
+        <pre><code class="java">public Identity sendInvoices(HttpRequest request) {
+  return sessionService.getCurrentUserIdentity(request);
+}</code></pre>
+      </section>
+      <section>
+        <img src="img/level2.svg" />
+      </section>
+      <section>
+        <h3>Regrouper les effets de bords</h3>
+        <p>et révéler le code métier</p>
+      </section>
+      <section>
+        <pre><code class="java">public void send(Identity identity, Quarter quarter) {
+  List&lt;Invoice&gt; invoices = invoices.for(identity, quarter);
+  if (invoices.isEmpty() || !hasTaxes(invoices)) {
+    return;
+  }
+  Locale locale = i18n.localeFor(identity);
+  Csv csv = csvBuilder.format(invoices, locale);
+  Company company = companies.of(identity);
+  Account account = accounts.of(identity);
+  mailSender.send(new TaxForQuarter(
+    account, identity, company, quarter, csv, locale
+  );
+}</code></pre>
+      </section>
+      <section>
+        <img src="img/level3.svg" />
+      </section>
+      <section>
+        <h3>Pourquoi tout ça ?</h3>
+        <ul>
+          <li>crayon + papier = win</li>
+          <li>facile à partager</li>
+          <li>facile à jeter</li>
+          <li>fonction &lt;3 objet</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Merci</h3>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+      history: true,
+
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+    });
+  </script>
+</body>
+</html>

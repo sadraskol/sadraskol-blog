@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Composition with purescript</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Composition in purescript</h3>
+        <p>By <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <h3>Why composition?</h3>
+        <ul>
+          <li>Decompose problems in small solutions and recompose them into a software</li>
+          <li>Practical guide to purely functional language</li>
+        </ul>
+      </section>
+      <section>
+        <h3>"Simple" tutorial</h3>
+        <pre class="haskell"><code>appInit :: SnapletInit App App
+appInit = makeSnaplet "myapp" "My example app" Nothing $ do
+    hs &lt;- nestSnaplet "heist" heist $ heistInit "templates"
+    fs &lt;- nestSnaplet "foo" foo $ fooInit
+    bs &lt;- nestSnaplet "" bar $ nameSnaplet "newname" $ barInit foo
+    addRoutes [ ("hello", writeText "hello world")
+              , ("fooname", with foo namePage)
+              , ("barname", with bar namePage)
+              , ("company", companyHandler)
+              ]
+    wrapSite (&lt;|&gt; heistServe)
+    ref &lt;- liftIO $ newIORef "fooCorp"
+    return $ App hs fs bs ref</code></pre>
+        <p>Source: <a href="http://snapframework.com/docs/tutorials/snaplets-tutorial">snap tutorial</a></p>
+      </section>
+      <section>
+        <h3>Discover Composition</h3>
+        <ol>
+          <li>Functor: <i>map</i></li>
+          <li>Apply: <i>apply</i></li>
+          <li>Applicative: <i>pure</i></li>
+          <li>Bind: <i>bind</i></li>
+        </ol>
+      </section>
+      <section>
+        <h3>Functor</h3>
+        <p><i>map :: (a &rarr; b) &rarr; F a &rarr; F b</i></p>
+      </section>
+      <section>
+        <h3>Length of a functor of strings</h3>
+        <pre class="java"><code>Integer length(String str) { ... }
+Stream&lt;String&gt; names = Stream.of("Adil", "Aline");
+Stream&lt;Integer&gt; nameLengths = names.map(::length);</code></pre>
+        <pre class="haskell"><code>length :: String &rarr; Integer
+names :: List String
+nameLengths :: List Integer
+nameLengths = length &lt;$&gt; names</code></pre>
+      </section>
+      <section>
+        <h3>Other utilities of Functor</h3>
+        <ul>
+          <li>&lt;$&gt; <i>map :: (a &rarr; b) &rarr; F a &rarr; F b</i></li>
+          <li>&lt;#&gt; <i>mapFlip :: F a &rarr; (a &rarr; b) &rarr; F b</i></li>
+          <li>&lt;@&gt; <i>flap :: F (a &rarr; b) -> a -> F b</i></li>
+        </ul>
+      </section>
+      <section>
+        <h3>Simple flap example</h3>
+        <pre class="haskell"><code>isLongEnough :: String &rarr; Boolean
+hasSymbol :: String &rarr; Boolean
+hasDigit :: String &rarr; Boolean
+validate :: String &rarr; Array Boolean
+validate input = [isLongEnough, hasSymbol, hasDigit] &lt;@&gt; input</code></pre>
+      </section>
+      <section>
+        <h3>Apply</h3>
+        <p>"inherits" from Functor</p>
+        <p><i>&lt;*&gt; = apply :: F (a &rarr; b) &rarr; F a &rarr; F b</i></p>
+      </section>
+      <section>
+        <h3>Usage of Apply</h3>
+        <pre class="java"><code>Date getDate(Day day, Month month) { ... }
+Optional&lt;Day&gt; day = ...;
+Month month = Month.July;
+Optional&lt;Date&gt; date = day.map(day &rarr; getDate(day, month));</code></pre>
+        <p>Note: Java does not provide tools like apply</p>
+      </section>
+      <section>
+        <h3>Usage of Apply</h3>
+        <pre class="haskell"><code>getDate :: Day &rarr; Month &rarr; Date
+maybeDay :: Maybe Day -- Just 1 | Nothing
+month = July
+getDate &lt;$&gt; maybeDay :: Maybe (Month &rarr; Date)
+maybeDate :: Maybe Date
+maybeDate = getDate &lt;$&gt; maybeDay &lt;*&gt; Just month</code></pre>
+        <p>An idea on how to improve the last line? <br />
+        <small>(replacing the &lt;*&gt; with ...)</small>
+        </p>
+      </section>
+      <section>
+        <h3>Other utility</h3>
+        <p><i>lift2 :: (a &rarr; b &rarr; c) &rarr; F a &rarr; F b &rarr; F c</i></p>
+      </section>
+      <section>
+        <h3>Applicative</h3>
+        <p>"inherits" from Apply</p>
+        <p><i>pure :: a -> F a</i><p>
+      </section>
+      <section>
+        <h3>Examples in Java</h3>
+        <pre class="java"><code>Optional&lt;String&gt; opt = Optional.of("hello");
+Stream&lt;String&gt; str = Stream.of("hello");</code></pre>
+        <p>Why are they not strictly Applicatives?</p>
+      </section>
+      <section>
+        <h3>Same in Purescript</h3>
+        <pre class="haskell"><code>pure "hello" :: Maybe String
+pure "hello" :: List String</code></pre>
+      </section>
+      <section>
+        <h3>Bind</h3>
+        <p>"inherits" from Apply</p>
+        <p><i>&gt;&gt;= bind :: F a &rarr; (a &rarr; F b) &rarr; F b</i></p>
+      </section>
+      <section>
+        <h3>Usage example of Bind</h3>
+        <pre class="java"><code>Optional&lt;Date&gt; parseDate(String str) { ... }
+Optional&lt;String&gt; input = getInput();
+Optional&lt;Date&gt; date = input.flatMap(str &rarr; parseDate(str));</code></pre>
+        <pre class="haskell"><code>parseDate :: String &rarr; Maybe Date
+input = getInputFromUnknownSource :: Maybe String
+maybeDate = input &gt;&gt;= parseDate
+maybeDate = do
+  input &larr; getInputFromUnknownSource
+  parseDate input</code></pre>
+      </section>
+      <section>
+        <h3>Bind alternatives</h3>
+        <ul>
+          <li><i>=&lt;&lt; :: (a &rarr; F b) &rarr; F a &rarr; F b</i></li>
+          <li><i>&gt;=&gt; :: (a &rarr; F b) &rarr; (b &rarr; F c) &rarr; a &rarr; F c</i></li>
+          <li><i>join :: F (F a) &rarr; F a</i></li>
+        </ul>
+      </section>
+      <section>
+        <h3>Kleisli composition</h3>
+        <pre class="haskell"><code>parseDate :: String &rarr; Maybe Date
+getSubscription :: Date &rarr; Maybe Subscription
+getFare :: Subscription &rarr; Maybe Money
+getFareFromDate input =
+  (parseDate &gt;=&gt; getSubscription &gt;=&gt; getFare) input</code></pre>
+        <p>Do you remember how we simplified this at the very beginning?</p>
+      </section>
+      <section>
+        <h3>Monad</h3>
+        <p>"inherits" from Bind and Applicative</p>
+        <p><i>[mind blowing gif]</i></p>
+      </section>
+      <section>
+        <h3>Monad</h3>
+        <ul style="list-style: none;">
+          <li><i>map :: (a &rarr; b) &rarr; F a &rarr; F b</i></li>
+          <li><i>apply :: F (a &rarr; b) &rarr; F a &rarr; F b</i></li>
+          <li><i>pure :: a &rarr; F a</i></li>
+          <li><i>bind :: (a &rarr; F b) &rarr; F a &rarr; F b</i></li>
+        </ul>
+      </section>
+      <section>
+        <h3>What is a Monad?</h3>
+        <ul>
+          <li>List</li>
+          <li>Maybe</li>
+          <li>IO with monad Eff</li>
+        </ul>
+      </section>
+      <section>
+        <h3>A lot more</h3>
+        <ul>
+          <li>Comonad, Traversable, Monoid, etc.</li>
+          <li>A lot of different tools to compose</li>
+          <li>There's always a tool for what you're doing!</li>
+        </ul>
+        <p>Functional languages are made for <strong>composition</strong></p>
+      </section>
+      <section>
+        <h3>Thank you</h3>
+      </section>
+      <section>
+        <h3>Resources</h3>
+        <ul>
+          <li><a href="http://learn.hfm.io/">Haskell for mac</a></li>
+          <li><a href="http://blog.ploeh.dk/2017/10/06/monoids/">Mark Seemann's monoid series</a></li>
+          <li><a href="https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/">Bartosz's category theory for programmer</a></li>
+          <li><a href="https://pursuit.purescript.com">browse the docs</a></li>
+          <li>practice, practice, practice</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+  // More info https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    history: true,
+
+    // More info https://github.com/hakimel/reveal.js#dependencies
+    dependencies: [
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+    ]
+  });
+  </script>
+</body>
+</html>

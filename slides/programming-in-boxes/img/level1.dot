@@ -1,0 +1,14 @@
+digraph G {
+  subgraph {
+    subgraph {
+      rankdir=LR
+      sendInvoices [shape=box]
+      HttpRequest -> sendInvoices -> ResponseEntity
+      { rank = same; HttpRequest; sendInvoices; ResponseEntity }
+    }
+    subgraph {
+      rankdir=LR
+      InvoiceSendingService -> sendInvoices
+    }
+  }
+}

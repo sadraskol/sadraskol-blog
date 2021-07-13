@@ -1,0 +1,344 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Aggregate Persistence</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-background="#add9e4">
+        <h3>Refactor to onion architecture</h3>
+        <p>By <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section data-background="#add9e4">
+        <figure>
+          <img src="img/triangularity.jpg" />
+        </figure>
+        <p><small><a href="https://argumatronic.com/posts/2018-09-02-effective-metaphor.html">From Julie Moronuki</a></small></p>
+      </section>
+      <section data-background="#add9e4">
+        <p>Goals</p>
+        <p>&darr;</p>
+        <p>Explore options</p>
+        <p>&darr;</p>
+        <p>Compare</p>
+        <p>&darr;</p>
+        <p>Choose the best</p>
+      </section>
+      <section data-background="#add9e4">
+        <h3>Goals</h3>
+        <ul>
+          <li>Make the domain easy to test</li>
+          <li>Low coupling with infrastructure</li>
+          <li>Resilient to changes</li>
+        </ul>
+      </section>
+      <section data-background="#add9e4">
+        <h3>N-Tier in theory</h3>
+        <figure>
+          <img src="img/ntier.svg" />
+        </figure>
+      </section>
+      <section data-background="#add9e4">
+        <h3>The legacy application</h3>
+        <figure>
+          <img src="img/shittier.svg" />
+        </figure>
+      </section>
+      <section data-background="#f7fbfc">
+        <h3>Use case</h3>
+        <figure>
+          <img src="img/orga.png" />
+        </figure>
+      </section>
+      <section>
+        <h2>The ORM Way (or save it all)</h2>
+      </section>
+      <section>
+        <h3>Create a team with a new member</h3>
+        <pre class="java"><code>@Entity
+class OrganizationOrm {
+  @Id
+  private long id;
+  @OneToMany
+  private List&lt;TeamOrm&gt; teams;
+
+  public void createTeamAndMember() {
+    val team = new TeamOrm();
+    val member = new MemberOrm();
+    team.add(member);
+    this.teams.add(team);
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>The ORM entities</h3>
+        <p><em>ps: I never used an ORM, no guarantees it works</em></p>
+        <pre class="java"><code>@Entity
+class TeamOrm {
+  @Id
+  private long id;
+
+  @ManyToMany
+  private List&lt;MemberOrm&gt; members;
+}</code></pre>
+        <pre class="java"><code>@Entity
+class MemberOrm {
+  @Id
+  private long id;
+}</code></pre>
+      </section>
+      <section>
+        <h3>Saving anything</h3>
+        <pre class="java"><code>class OrganizationRepository {
+  private OrmRepository orm;
+
+  public void save(OrganizationOrm organization) {
+    this.orm.save(organization);
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Controller layer</h3>
+        <pre class="java"><code>class OrganizationController {
+  @PutMapping("/organization/{orgaId}/team")
+  public Response endpoint(String orgaId) {
+    OrganizationOrm organization = repo.find(orgaId);
+    organization.createTeamAndMember();
+    repo.save(organization);
+    return Response.ok();
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Any Comment?</h3>
+        <pre class="java"><code>@Entity
+class OrganizationOrm {
+  @Id
+  private long id;
+  @OneToMany
+  private List&lt;TeamOrm&gt; teams;
+
+  public void createTeamAndMember() {
+    val team = new TeamOrm();
+    val member = new MemberOrm();
+    team.add(member);
+    this.teams.add(team);
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Introduction of failure</h3>
+        <p><small>(or else known as domain)</small></p>
+        <p>There can not be more than 10 teams per organization</p>
+      </section>
+      <section>
+        <pre class="java"><code>@Entity
+class OrganizationOrm {
+  // ...
+
+  public void createTeamAndMember() {
+    if (teams.size() &gt; 10) {
+      return;
+    }
+    val team = new TeamOrm();
+    val member = new MemberOrm();
+    team.add(member);
+    this.teams.add(team);
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>What about the user?</h3>
+        <p>De l'explicabilité des systèmes : les enjeux de l'explication des décisions automatisées</p>
+      </section>
+      <section>
+        <pre class="java"><code>class OrganizationController {
+  @PutMapping("/organization/{orgaId}/team")
+  public Response endpoint(String orgaId) {
+    OrganizationOrm organization = repo.find(orgaId);
+    organization.createTeamAndMember();
+    repo.save(organization);
+    if (/* some condition */) {
+      return Response.error();
+    }
+    return Response.ok();
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>3 Fixes</h3>
+<pre class="java"><code>public boolean createTeamAndMember()</code></pre>
+<pre class="java"><code>public void createTeamAndMember() throws TooManyTeamsException</code></pre>
+<pre class="java"><code>public Optional&lt;TooManyTeams&gt; createTeamAndMember()</code></pre>
+      </section>
+      <section data-background="#ffc0cb">
+        <h3>Concurrent modification</h3>
+        <p>It's the story of 10000 users editing the same organization <em>but not only!</em></p>
+      </section>
+      <section data-background="#ffc0cb">
+        <h3>Strategies (for SQL)</h3>
+        <ul>
+          <li>Transactions? (no)</li>
+          <li>Pessimistic locking</li>
+          <li>Optimistic locking</li>
+        </ul>
+      </section>
+      <section data-background="#ffc0cb">
+        <h3>Pessimistic locking</h3>
+        <p>Use <code>SELECT FOR UPDATE</code> to lock the aggregate's row</p>
+        <p>The lock is freed on <code>COMMIT</code> or <code>ROLLBACK</code></p>
+      </section>
+      <section data-background="#ffc0cb">
+        <h3>Optimistic locking</h3>
+        <pre class="java"><code>@Entity
+class OrganizationOrm {
+  // ...
+  private int version;
+}</code></pre>
+        <pre class="java"><code>class OrganizationRepository {
+  private OrmRepository orm;
+
+  public void save(OrganizationOrm organization) {
+    this.orm.save(organization);
+    this.orm.execute("update organisations " +
+            " set version = $1 " +
+            " where organisations.id = $2 " +
+            " and organisations.version = $3",
+      organisation.getVersion() + 1,
+      organisation.getId(),
+      organisation.getVersion());
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Wrap up the ORM way</h3>
+        <ul>
+          <li>Easy to test</li>
+          <li>Not far from classical architecture</li>
+          <li>Tedious in complex workflow</li>
+          <li>Rely on ORM or diff algorithms</li>
+        </ul>
+      </section>
+      <section>
+        <h2>The Event way, Granular saves</h2>
+      </section>
+      <section>
+        <h3>Domain</h3>
+        <pre class="java"><code>class Organization {
+  private OrganizationId id;
+  private List&lt;Team&gt; teams;
+
+  public OrganizationEvent createTeamAndMember() {
+    if (teams.size() > 10) {
+      return new TooManyTeams();
+    } else {
+      return new AddNewTeamAndMember(this.id);
+    }
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Controller layer</h3>
+        <pre class="java"><code>class OrganizationController {
+  @PutMapping("/organization/{orgaId}/team")
+  public Response endpoint(String orgaId) {
+    Organization organization = repo.find(orgaId);
+    val event = organization.createTeamAndMember();
+    repo.save(event);
+    return toResponse(event);
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Infrastructure</h3>
+        <pre class="java"><code>class OrganizationRepository {
+  private OrmRepository orm;
+
+  public void save(OrganizationEvent event) {
+    if (event instanceOf AddNewTeamAndMember) {
+      OrganizationOrm orga = this.orm.find(event.id);
+      val team = new TeamOrm();
+      val member = new MemberOrm();
+      team.add(member);
+      orga.getTeams.add(team);
+      this.orm.save(orga);
+    }
+  }
+}</code></pre>
+      </section>
+      <section>
+        <h3>Infrastructure (SQL)</h3>
+        <pre class="java"><code>class OrganizationRepository {
+  private OrmRepository orm;
+
+  public void save(OrganizationEvent event) {
+    if (event instanceOf AddNewTeamAndMember) {
+      long teamId = this.orm.get(
+        "insert into teams (organization_id) values ($1) " +
+        " returning id",
+        event.id
+      );
+      this.orm.execute(
+        "insert into members (team_id) values ($1)",
+        teamId
+      );
+    }</code></pre>
+      </section>
+      <section>
+        <h3>What if event are propagated in the application</h3>
+        <pre class="java"><code>class OrganizationRepository {
+  private OrmRepository orm;
+  private EventNotifier notifier;
+
+  public void save(OrganizationEvent event) {
+    this.persist(event);
+    this.notifier.propagate(event);
+  }</code></pre>
+      </section>
+      <section>
+        <h3>Granular saves wrap up</h3>
+        <ul>
+          <li>Supple design</li>
+          <li>Immutability -> Easy Domain tests</li>
+          <li>Transaction &amp; Lock still applicable</li>
+          <li>Infra coherence more difficult</li>
+          <li>Applicable to Application code</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Conclusion</h3>
+        <ul>
+          <li>ORM is not the problem</li>
+          <li>Domain paradigm &gt; Persistence</li>
+          <li>Testing is key</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+  // More info https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    history: true,
+
+    // More info https://github.com/hakimel/reveal.js#dependencies
+    dependencies: [
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+    ]
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+digraph G {
+  subgraph {
+    subgraph {
+      rankdir=LR
+      send [shape=box]
+      Identity -> send
+      Quarter -> send
+      { rank = same; Quarter; send; Identity }
+    }
+    subgraph {
+      rankdir=LR
+      InvoiceRepository [color=blue]
+      AccountRepository [color=blue]
+      CompanyRepository [color=blue]
+      I18nService [color=green]
+      MailSender [color=red]
+      InvoiceRepository -> send
+      I18nService -> send
+      CsvBuilder -> send
+      CompanyRepository -> send
+      AccountRepository -> send
+      MailSender -> send
+    }
+  }
+}

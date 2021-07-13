@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Event Driven Discovery</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/sky.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <h3>Event Driven Discovery</h3>
+        <p>by <a href="https://sadraskol.com">Thomas Bracher</a></p>
+      </section>
+      <section>
+        <img alt="CQRS explained by Martin Fowler" src="img/cqrs.png">
+				<div>CQRS explained by <a href="https://martinfowler.com/bliki/CQRS.html">Martin Fowler</a></div>
+      </section>
+			<section>
+				<img alt="Event source loop" src="img/eventsourcing.jpg">
+				<div>Ref. <a href="https://twitter.com/thinkb4coding">Jérémie Chassaing</a></div>
+			</section>
+			<section>
+				<h3>Workshop steps</h3>
+				<ol>
+					<li>Events</li>
+					<li>Decision</li>
+					<li>Commands</li>
+				</ol>
+			</section>
+			<section>
+				<img alt="Kanban Board Example" src="img/kanban.jpg">
+				<div><a href="https://en.wikipedia.org/wiki/File:Simple-kanban-board-.jpg">Jeff.lasovski</a></div>
+			</section>
+			<section>
+				<h3>Starting Rules</h3>
+				<ul>
+					<li>Card start in the "ToDo" column</li>
+					<li>Card should move forward, but users can always change their mind</li>
+					<li>Done cards disappear after 2 weeks</li>
+				</ul>
+			</section>
+			<section>
+				<h3>First of all: Events!</h3>
+				<ul>
+					<li>Name them properly</li>
+					<li>What information should they carry</li>
+					<li>Speak up when something bugs you</li>
+				</ul>
+			</section>
+    </div>
+  </div>
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+      history: true,
+
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+    });
+  </script>
+</body>
+</html>
