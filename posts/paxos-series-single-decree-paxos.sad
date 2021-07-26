@@ -60,7 +60,7 @@ Once the value is *chosen*, it can be safely executed.
 
 ## Node State
 
-Each node have the following state:
+Each node has the following state:
 
 ```rust
 struct Node {
@@ -83,7 +83,7 @@ struct Node {
 
 The `round` is the last round of Paxos protocol the node ran.
 Remember that I said that the protocol repeats indefinitely.
-We call each repetition an round of Paxos.
+We call each repetition a round of Paxos.
 We only care about the latest round of Paxos (we see why later),
 so the property is a singleton, not a collection.
 
@@ -309,7 +309,7 @@ The role of phase 1 is key for that to happen.
 
 I hope this article helps you with single-decree Paxos.
 I didn't get into 5 nodes examples for clarity sake.
-But you can think for yourself of more complex example.
+But you can think for yourself of more complex examples.
 Paxos is really hard so don't hesitate to ask questions about it.
 
 There's a lot to cover from there.

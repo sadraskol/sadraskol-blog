@@ -102,7 +102,6 @@ fn gen_slides() {
     fn copy_file(f: &std::fs::DirEntry) {
         let buf = f.path();
         let relative_path = buf.strip_prefix("slides").unwrap();
-        println!("copying {:?}, relative path: {:?}", f.path(), relative_path);
         std::fs::create_dir_all(PathBuf::from("dist/slides")
             .join(relative_path.parent().unwrap())).unwrap();
         std::fs::copy(
