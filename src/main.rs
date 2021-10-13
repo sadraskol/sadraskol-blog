@@ -37,7 +37,8 @@ fn gen_feed(posts: &[SadPost]) {
 
     let xml = FeedTemplate { posts: v }.render().unwrap();
 
-    let mut file = FileDiff::new("dist/feed");
+    std::fs::create_dir_all("dist/feed").unwrap();
+    let mut file = FileDiff::new("dist/feed/index.xml");
     file.write_diff(xml);
 }
 
@@ -53,7 +54,8 @@ fn gen_post(post: &SadPost) {
 
     let html = page.render().unwrap();
 
-    let mut file = FileDiff::new(format!("dist/posts/{}", slugify(post.title.clone())));
+    std::fs::create_dir_all(format!("dist/posts/{}", slugify(post.title.clone()))).unwrap();
+    let mut file = FileDiff::new(format!("dist/posts/{}/index.html", slugify(post.title.clone())));
     file.write_diff(html);
 }
 
