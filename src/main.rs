@@ -137,7 +137,20 @@ fn gen() {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 && args[1] == "gen" {
+    if args.len() > 1 && args[1] == "drafts" {
+        let now = Utc::now();
+        let posts_files = std::fs::read_dir("posts").unwrap();
+        let drafts: Vec<_> = posts_files
+            .flat_map(|post| post.map(|p| p.path()))
+            .filter(|path| {
+                let p = read_post(path.as_path());
+                p.publication_date.date() > now.date()
+            })
+            .collect();
+        for draft in drafts {
+            println!("{}", draft.to_str().unwrap());
+        }
+    } else if args.len() > 1 && args[1] == "gen" {
         gen();
     } else if args.len() > 1 && args[1] == "new" {
         if args.len() < 3 {
@@ -154,7 +167,7 @@ fn main() {
         writeln!(
             f,
             "publication_date=\"{}\"",
-            chrono::Utc::now().to_rfc3339()
+            (chrono::Utc::now() + chrono::Duration::days(30)).to_rfc3339()
         )
             .unwrap();
         writeln!(f, "language=\"en\"").unwrap();
@@ -201,6 +214,7 @@ fn main() {
         println!("Help sadraskol blog cli");
         println!("\thelp - print this help");
         println!("\tgen - generate static site in dist/");
+        println!("\tdrafts - list posts not published yet");
         println!("\tnew [title] - new article with title [title]");
         println!("\tmv [from] [dest] - move [from](slug) article to [dest] title, with correct redirects");
     }
