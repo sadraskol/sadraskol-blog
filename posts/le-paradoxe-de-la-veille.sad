@@ -3,39 +3,33 @@ publication_date="2023-12-03T09:26:30.198719903+00:00"
 language="fr"
 ---- sadraskol ----
 
-Il y a un discours ambiant qui nous dit qu'il faut faire de la veille.
-Elle m'a permis de prendre des postes et m'attaquer à des projets intéressants.
-Je suis d'accord avec ce discours.
-Certains veulent aussi faire de la veille en dehors des heures de travail.
-C'est :
-
-1) illégal (pas de travail en dehors des heures de travail)
-2) toxique (burnout possible des devs)
-3) dangereux (pas de victoire sans combat contre l'employeur)
-
-Or c'est ce que je fais...
-Je suis sur twitter h24.
-Mes bouquins sont techniques.
-Mon putain de blogs est une vitrine de ce travail putain !
-
-Pourquoi? Le capitalisme fuck.
-
------
-
 La veille technique demande un travail.
 C'est pourtant une tâche que les développeurs font principalement pendant leur temps libre.
 Le temps libre n'est pas inclus dans le temps défini par son contrat de travail.
-Pourtant ce temps n'est clairement pas réclamé par la majorité d'entre eux.
+Au regard de la loi, c'est des heures qui devraient être payées en heures supplémentaires.
+Pourquoi les développeurs ne les réclament pas ?
 
-1. C'est un travail
+## Une réclamation légitime
 
-Les sources de la veille peuvent être:
+D'abord, pourquoi la veille est un temps travaillé?
+D'après la loi :
+
+> L’employeur a une obligation générale de former ses salariés (article L 6321-1 du Code du travail).
+> Il doit s’assurer de leur adaptation à leur poste de travail,
+> veiller au maintien de leur capacité à occuper un emploi,
+> au regard de l’évolution des emplois, des technologies et des organisations.
+
+L'employé peut reclamer à son employeur de rester au top de la technologie.
+
+### Un travail pénible
+
+Les sources de l'évolution de la technologies peuvent être :
 
 - un livre
 - un article de blog
 - un papier académique
 - un tutoriel
-- un tweet bien écrit
+- un tweet bien documenté
 - une newsletter
 - un meetup
 - une conférence
@@ -44,43 +38,119 @@ Les sources de la veille peuvent être:
 - un coding game
 - un side project
 
-Il faut:
+Avant d'obtenir l'information utile, il faut :
 
-- Comprendre ses objectifs
+- Comprendre ses objectifs d'évolution
 - Collecter les sources de savoir
-- Les évaluer
-- Les trier
-- Les prioriser
-- Lire
-- Comprendre
-- S'exercer
+- Évaluer leur plus-value
+- Trier les doublons
+- Prioriser
 
 Ça demande du temps.
-Ça demande beaucoup de temps.
-Ça demande énormément de temps.
 Ça demande des compétences.
+Ça demande de la discipline.
 
-2. Ça n'est pas très rentable
+Une fois tout cela fait, il faut encore prendre du temps pour lire, comprendre et mettre en pratique.
+
+### Travail pas rentable ?
 
 La majorité de la veille n'est pas rentable.
-Tout ce que l'on lit n'est pas digne d'intérêt.
+Tout ce que l'on lit n'est pas pertinent.
 Même si ça l'est, on n'est pas sûr de la qualité du contenu.
 Le contenu peut ne pas être nouveau pour vous.
 Le sujet n'est peut-être plus d'actualité sans le savoir.
 Bref la plupart du contenu va à la poubelle.
 
 C'est frustrant.
+On a vite l'impression de n'avoir rien fait.
 
-3. C'est l'obsession de certains
+## L'engrenage
 
-Pourtant tous les devs font de la veille, beaucoup de veille.
-Les entreprises nous encouragent à faire de la veille.
-Les développeurs sur le réseau HN (maintenu par la startup nation de SF)
-sont obsédés par les "side project".
+Tout semble indiquer que la veille est déplaisante.
+Pourtant certains semblent en faire plus que de raison.
+Prenons par hasard un sujet non représentatif : moi.
+
+Ma veille est organisé de la manière suivante :
+
+- Des listes Twitter sur mes sujets de prédilection
+- Des flux RSS de blogs sélectionnés avec le temps
+- Plusieurs livres techniques lu par an
+- Des side project en Elixir, Purescript, Rust, etc.
+- La participation active à la communauté des crafters de Lyon
+- 1 ou 2 conférences par an
+- Des revues de papiers académiques (un peu abandonné il est vrai)
+- Relecture des docs des techno sur lesquels je travaille
+
+Je consacre un nombre incalculable d'heure à ma veille.
+
+### Quel résultats ?
+
+Je ne regrette pas le temps investi dans ma veille.
+La majorité du temps de la veille est infructueux, mais l'accumulation de petits savoirs finit par l'emporter.
+
+Prenons un exemple : les microservices.
+En 2015, j'ai lu le livre de Sam Newman sur les micro-services.
+Je ne travaillais pas sur ce genre d'architecture, mais le concept m'intriguait.
+J'y découvre le concept de traitement asynchrone, de découverte de services, etc.
+En 2017, je suis en entretien pour Malt.
+Le processus a une étape de culture générale.
+Malt étant basé sur une architecture asynchrone, la connaissance de ses concepts m'a apporté une aide non négligeable.
+
+On peut dire que la lecture de ce livre, entre autres, m'a permis d'avoir un poste.
+Ma carrière est ce qu'elle est grâce à la connaissance que j'ai accumulé par la veille.
+
+### Le paradoxe
+
+Et c'est là le paradoxe.
+Faire de la veille est nécessaire pour avoir des postes avec de meilleures conditions de travail.
+Pourtant je n'ai jamais réclamé plus de temps pour pouvoir la faire.
+J'ai toujours fait ma veille sur mon temps perso, au moins partiellement.
+
+Ce paradoxe crée une culture toxique.
+
+## La culture du mérite
+
+Tout le monde ne peut pas prendre du temps perso.
+C'est simple d'en prendre en étant pris en charge par ses parents.
+Ça l'est moins si on a des enfants, des proches handicapés, ou si on est passioné de voile.
+Chaque situation individuelle est complexe mais l'impératif du side project ne convient pas à tout le monde.
+
+Or c'est ce genre de critère qui est recherché par les recruteurs.
+Malt a supprimé l'epreuve de culture général car elle favorisait les profils comme le mien.
+Il élimine les individus qui n'ont pas eu la chance de travailler avec ces technos et qui n'ont pas le temps de faire de la veille.
+Or ça ne permet pas de choisir des individus talentueux par ailleurs.
+
+Cette culture du side project est partout.
+Prenez Hacker News, le fil d'actualité tech maintenu par la communauté startup de San Fransisco.
+Comme l'a fait remarqué Jesse Jiryu Davis,
+[les gens y sont obnubilés par les side project](https://twitter.com/jessejiryudavis/status/1454063466155761671).
+
+En France, certaines ESN ont des pratiques assez louches sur le sujet.
+J'ai vu des évaluations annuelles où le nombre d'article publié est décompté.
+Or l'entreprise en question ne consacre aucun temps à cette écriture.
+Pire, une ESN a reproché à un collaborateur un article ecrit sur son temps perso.
+On lui reproche d'avoir publié sur son blog perso et non la plateforme de l'ESN.
+
+## Se battre, sans abandonner
+
+Depuis que j'ai réalisé cette supercherie, je fais ma veille différemment.
+La veille qui concerne les technos de mon employeur est réalisée sur mon temps de travail.
+La veille qui m'amuse et ne concerne pas mon employeur (mon blog par exemple) est réalisé sur mon temps libre.
+Il n'y a pas d'entre deux.
+
+Je sais combien je suis dans une situation privilégiée.
+Mais je me rends compte que l'on marche sur la tête.
+Pour arriver dans une situation où je peux ne plus faire de veille sur mon temps libre, j'ai sacrifié un temps libre de fou.
+On ne devrait pas arriver dans de telle situation.
+
+Réclamez de vos employeurs que du temps soit alloué à votre veille.
+Réclamez de vos employeurs que les heures supplémentaires soient rémunérées.
+Réclamez de vos employeurs qu'ils respectent leurs obligations !
+Le combat n'est pas facile mais il en vaut la chandelle.
 
 ---
 
 https://eventuallycoding.com/2021/10/20/se-tenir-a-jour-dans-une-equipe-produit/
 https://fabien-lamarque.eu/C'est-quoi-%C3%AAtre-professionnel/
-https://twitter.com/jessejiryudavis/status/1454063466155761671
 https://www.syndicat-informatique.fr/nos-revendications
+https://www.juritravail.com/Actualite/l-8217-obligation-de-formation-de-l-8217-employeur-envers-ses-salaries/Id/301234
