@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cargo run gen
+rsync -r dist/ sadraskol:/home/admin
