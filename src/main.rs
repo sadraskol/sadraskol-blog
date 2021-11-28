@@ -126,6 +126,7 @@ fn gen() {
         .filter(|p| p.publication_date <= now)
         .collect();
     posts.sort_by_key(|p| p.publication_date.clone());
+    posts.reverse();
 
     gen_home(&posts);
     gen_feed(&posts);
