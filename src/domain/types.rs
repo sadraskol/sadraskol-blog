@@ -1,7 +1,7 @@
-use chrono::{DateTime, Utc};
 use pulldown_cmark::{Options, Parser};
 
 use crate::custom_markdown::sad_push_html;
+use crate::domain::date::Date;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Markdown {
@@ -30,7 +30,7 @@ impl Markdown {
 pub struct SadPost {
     pub title: String,
     pub language: String,
-    pub publication_date: DateTime<Utc>,
+    pub publication_date: Date,
     pub saddown_content: Markdown,
     pub image: Option<String>,
 }

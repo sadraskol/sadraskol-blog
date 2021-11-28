@@ -2,9 +2,9 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::date::Date;
 use crate::domain::types::{Markdown, SadPost};
 
 pub struct FileDiff {
@@ -67,10 +67,7 @@ pub fn read_post(path: &Path) -> SadPost {
     let header: SadHeader = toml::from_str(v[0]).unwrap();
     let content = v[1];
 
-    let date_time = DateTime::parse_from_rfc3339(header.publication_date.as_str())
-        .ok()
-        .map(|d| d.with_timezone(&Utc))
-        .unwrap();
+    let date_time = Date::parse_from_rfc3339(header.publication_date.as_str()).unwrap();
 
     SadPost {
         title: header.title,

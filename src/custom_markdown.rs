@@ -5,7 +5,9 @@ use std::str::from_utf8;
 
 use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
-use crate::highlight::SadLang::{Alloy, Elixir, Erlang, Haskell, Java, Javascript, Tex, Text, Tla, Rust};
+use crate::highlight::SadLang::{
+    Alloy, Elixir, Erlang, Haskell, Java, Javascript, Rust, Tex, Text, Tla,
+};
 use crate::highlight::{highlight, SadLang};
 
 enum TableState {
@@ -431,7 +433,7 @@ where
                     escape_html(&mut self.writer, &title)?;
                 }
 
-                if let Some(path) = dest.strip_prefix("/") {
+                if let Some(path) = dest.strip_prefix('/') {
                     self.write("\" ")?;
                     let (w, h) = image::image_dimensions(path).unwrap();
                     self.write("width=\"")?;

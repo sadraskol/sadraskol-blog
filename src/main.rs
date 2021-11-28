@@ -4,11 +4,11 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use askama::Template;
-use chrono::Utc;
 
+use crate::domain::date::Date;
 use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
-use crate::fs::{FileDiff, read_post};
+use crate::fs::{read_post, FileDiff};
 use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
 
 mod custom_markdown;
@@ -45,9 +45,9 @@ fn gen_feed(posts: &[SadPost]) {
 fn gen_post(post: &SadPost) {
     let page = PostTemplate {
         has_image: post.image.is_some(),
-        image: &post.image.as_deref().unwrap_or(""),
+        image: post.image.as_deref().unwrap_or(""),
         title: &post.title.clone(),
-        publication_date: &post.publication_date.format("%d %B %Y").to_string(),
+        publication_date: &post.publication_date.human_format(&post.language),
         back_link: "/",
         raw_content: &post.saddown_content.format(),
     };
@@ -55,7 +55,10 @@ fn gen_post(post: &SadPost) {
     let html = page.render().unwrap();
 
     std::fs::create_dir_all(format!("dist/posts/{}", slugify(post.title.clone()))).unwrap();
-    let mut file = FileDiff::new(format!("dist/posts/{}/index.html", slugify(post.title.clone())));
+    let mut file = FileDiff::new(format!(
+        "dist/posts/{}/index.html",
+        slugify(post.title.clone())
+    ));
     file.write_diff(html);
 }
 
@@ -79,14 +82,17 @@ fn gen_assets() {
             origin.as_path(),
             PathBuf::from("dist/img").join(origin_file.file_name()),
         )
-            .unwrap();
+        .unwrap();
     }
 }
 
 fn gen_slides() {
     std::fs::create_dir_all("dist/slides").unwrap();
 
-    fn visit_dirs<P: AsRef<std::path::Path>>(dir: P, cb: &dyn Fn(&std::fs::DirEntry)) -> std::io::Result<()> {
+    fn visit_dirs<P: AsRef<std::path::Path>>(
+        dir: P,
+        cb: &dyn Fn(&std::fs::DirEntry),
+    ) -> std::io::Result<()> {
         let dir = dir.as_ref();
         if dir.is_dir() {
             for entry in std::fs::read_dir(dir)? {
@@ -104,27 +110,22 @@ fn gen_slides() {
     fn copy_file(f: &std::fs::DirEntry) {
         let buf = f.path();
         let relative_path = buf.strip_prefix("slides").unwrap();
-        std::fs::create_dir_all(PathBuf::from("dist/slides")
-            .join(relative_path.parent().unwrap())).unwrap();
-        std::fs::copy(
-            f.path(),
-            PathBuf::from("dist/slides")
-                .join(relative_path),
-        )
+        std::fs::create_dir_all(PathBuf::from("dist/slides").join(relative_path.parent().unwrap()))
             .unwrap();
+        std::fs::copy(f.path(), PathBuf::from("dist/slides").join(relative_path)).unwrap();
     }
     visit_dirs("slides", &copy_file).unwrap();
 }
 
 fn gen() {
-    let now = Utc::now();
+    let now = Date::now();
     let posts_files = std::fs::read_dir("posts").unwrap();
     let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| post.map(|p| p.path()))
         .map(|path| read_post(path.as_path()))
-        .filter(|p| p.publication_date.date() <= now.date())
+        .filter(|p| p.publication_date <= now)
         .collect();
-    posts.sort_by(|l, r| l.publication_date.cmp(&r.publication_date).reverse());
+    posts.sort_by_key(|p| p.publication_date.clone());
 
     gen_home(&posts);
     gen_feed(&posts);
@@ -138,13 +139,13 @@ fn gen() {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 && args[1] == "drafts" {
-        let now = Utc::now();
+        let now = Date::now();
         let posts_files = std::fs::read_dir("posts").unwrap();
         let drafts: Vec<_> = posts_files
             .flat_map(|post| post.map(|p| p.path()))
             .filter(|path| {
                 let p = read_post(path.as_path());
-                p.publication_date.date() > now.date()
+                p.publication_date > now
             })
             .collect();
         for draft in drafts {
@@ -169,7 +170,7 @@ fn main() {
             "publication_date=\"{}\"",
             (chrono::Utc::now() + chrono::Duration::days(30)).to_rfc3339()
         )
-            .unwrap();
+        .unwrap();
         writeln!(f, "language=\"en\"").unwrap();
         writeln!(f, "---- sadraskol ----").unwrap();
     } else if args.len() > 1 && args[1] == "mv" {
@@ -208,7 +209,7 @@ fn main() {
             slugify(args[2].clone()),
             slugify(args[3].clone())
         )
-            .unwrap();
+        .unwrap();
         std::fs::remove_file(&from_file).unwrap();
     } else {
         println!("Help sadraskol blog cli");

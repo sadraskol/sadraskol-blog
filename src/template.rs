@@ -15,7 +15,7 @@ impl PostSummaryView {
         PostSummaryView {
             title: p.title.clone(),
             language: p.language.to_string(),
-            publication_date: p.publication_date.format("%d %B %Y").to_string(),
+            publication_date: p.publication_date.human_format(&p.language),
             view_link: format!("/posts/{}", slugify(p.title.clone())),
         }
     }
