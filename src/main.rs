@@ -84,6 +84,8 @@ fn gen_assets() {
         )
         .unwrap();
     }
+
+    std::fs::copy("favicon.ico", "dist/favicon.ico").unwrap();
 }
 
 fn gen_slides() {
