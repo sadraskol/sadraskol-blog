@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate rocket;
 extern crate askama;
 
 use std::io::Write;
@@ -16,12 +18,10 @@ mod domain;
 mod fs;
 mod highlight;
 mod template;
+mod preview;
 
 fn gen_home(posts: &[SadPost]) {
-    let v: Vec<_> = posts
-        .iter()
-        .map(|p| PostSummaryView::for_human(p))
-        .collect();
+    let v: Vec<_> = posts.iter().map(PostSummaryView::for_human).collect();
 
     let html: String = IndexTemplate::new(v).render().unwrap();
 
@@ -30,10 +30,7 @@ fn gen_home(posts: &[SadPost]) {
 }
 
 fn gen_feed(posts: &[SadPost]) {
-    let v: Vec<_> = posts
-        .iter()
-        .map(|p| PostSummaryView::for_robot(p))
-        .collect();
+    let v: Vec<_> = posts.iter().map(PostSummaryView::for_robot).collect();
 
     let xml = FeedTemplate { posts: v }.render().unwrap();
 
@@ -54,11 +51,8 @@ fn gen_post(post: &SadPost) {
 
     let html = page.render().unwrap();
 
-    std::fs::create_dir_all(format!("dist/posts/{}", slugify(post.title.clone()))).unwrap();
-    let mut file = FileDiff::new(format!(
-        "dist/posts/{}/index.html",
-        slugify(post.title.clone())
-    ));
+    std::fs::create_dir_all(format!("dist/posts/{}", slugify(&post.title))).unwrap();
+    let mut file = FileDiff::new(format!("dist/posts/{}/index.html", slugify(&post.title)));
     file.write_diff(html);
 }
 
@@ -139,9 +133,12 @@ fn gen() {
     gen_slides();
 }
 
-fn main() {
+#[rocket::main]
+async fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 && args[1] == "drafts" {
+    if args.len() > 1 && args[1] == "preview" {
+        preview::server().await;
+    } else if args.len() > 1 && args[1] == "drafts" {
         let now = Date::now();
         let posts_files = std::fs::read_dir("posts").unwrap();
         let drafts: Vec<_> = posts_files
@@ -164,7 +161,7 @@ fn main() {
         let mut f = std::fs::OpenOptions::new()
             .create(true)
             .write(true)
-            .open(format!("posts/{}.sad", slugify(args[2].clone())))
+            .open(format!("posts/{}.sad", slugify(&args[2])))
             .unwrap();
 
         writeln!(f, "title=\"{}\"", args[2]).unwrap();
@@ -188,7 +185,7 @@ fn main() {
         let mut dest = std::fs::OpenOptions::new()
             .create_new(true)
             .write(true)
-            .open(format!("posts/{}.sad", slugify(args[3].clone())))
+            .open(format!("posts/{}.sad", slugify(&args[3])))
             .unwrap();
         let from_file = format!("posts/{}.sad", args[2].clone());
 
@@ -209,8 +206,8 @@ fn main() {
         writeln!(
             redirects,
             "rewrite /posts/{} /posts/{} permanent;",
-            slugify(args[2].clone()),
-            slugify(args[3].clone())
+            slugify(&args[2]),
+            slugify(&args[3])
         )
         .unwrap();
         std::fs::remove_file(&from_file).unwrap();
@@ -221,5 +218,6 @@ fn main() {
         println!("\tdrafts - list posts not published yet");
         println!("\tnew [title] - new article with title [title]");
         println!("\tmv [from] [dest] - move [from](slug) article to [dest] title, with correct redirects");
+        println!("\tpreview - open firefox to display a live reloading preview of articles");
     }
 }

@@ -16,7 +16,7 @@ impl PostSummaryView {
             title: p.title.clone(),
             language: p.language.to_string(),
             publication_date: p.publication_date.human_format(&p.language),
-            view_link: format!("/posts/{}", slugify(p.title.clone())),
+            view_link: format!("/posts/{}", slugify(&p.title)),
         }
     }
 
@@ -25,7 +25,7 @@ impl PostSummaryView {
             title: p.title.clone(),
             language: p.language.to_string(),
             publication_date: p.publication_date.to_rfc3339(),
-            view_link: format!("/posts/{}", slugify(p.title.clone())),
+            view_link: format!("/posts/{}", slugify(&p.title)),
         }
     }
 }
