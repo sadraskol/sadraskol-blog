@@ -1,19 +1,22 @@
-use std::process::Command;
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::channel;
-use std::time::Duration;
-use notify::{DebouncedEvent, RecursiveMode, watcher, Watcher};
+use crate::{read_post, slugify, IndexTemplate, PostSummaryView, PostTemplate, SadPost};
+use askama::Template;
+use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
+use rocket::fairing::AdHoc;
 use rocket::http::{ContentType, Status};
 use rocket::log::LogLevel;
 use rocket::State;
-use askama::Template;
-use crate::{IndexTemplate, PostSummaryView, PostTemplate, read_post, SadPost, slugify};
+use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::channel;
+use std::sync::Arc;
+use std::time::Duration;
 
 #[get("/")]
 fn home_page() -> (ContentType, String) {
     let posts_files = std::fs::read_dir("posts").unwrap();
     let mut posts: Vec<SadPost> = posts_files
         .flat_map(|post| post.map(|p| p.path()))
+        .filter(|p| p.extension().map(|p| p == "sad").unwrap_or(false))
         .map(|path| read_post(path.as_path()))
         .collect();
     posts.sort_by_key(|p| p.publication_date.clone());
@@ -31,6 +34,7 @@ fn post_page(slugs: String) -> (ContentType, String) {
     let posts_files = std::fs::read_dir("posts").unwrap();
     let post = posts_files
         .flat_map(|post| post.map(|p| p.path()))
+        .filter(|p| p.extension().map(|p| p == "sad").unwrap_or(false))
         .map(|path| read_post(path.as_path()))
         .find(|p| slugify(&p.title) == slugs)
         .expect("no post");
@@ -72,9 +76,9 @@ fn img(img: String) -> (ContentType, Vec<u8>) {
 
 #[get("/__changes")]
 fn changes(reload: &State<Reload>) -> (Status, String) {
-    let mut d = reload.0.lock().unwrap();
-    if *d {
-        *d = false;
+    let d = reload.0.load(Ordering::Acquire);
+    if d {
+        reload.0.store(false, Ordering::Release);
         (Status::Ok, "reload".to_string())
     } else {
         (Status::NotModified, "".to_string())
@@ -82,7 +86,7 @@ fn changes(reload: &State<Reload>) -> (Status, String) {
 }
 
 #[derive(Clone)]
-struct Reload(Arc<Mutex<bool>>);
+struct Reload(Arc<AtomicBool>);
 
 pub async fn server() {
     Command::new("firefox-esr")
@@ -90,36 +94,49 @@ pub async fn server() {
         .spawn()
         .expect("could not open browser");
 
-    let reload = Reload(Arc::new(Mutex::new(false)));
+    let reload = Reload(Arc::new(AtomicBool::new(false)));
     let trigger = reload.clone();
 
-    rocket::tokio::spawn(async move {
-        let (sender, receiver) = channel();
-        let mut watcher = watcher(sender, Duration::from_secs(10)).unwrap();
-        watcher.watch("posts", RecursiveMode::Recursive).unwrap();
-        loop {
-            match receiver.recv() {
-                Ok(event) => {
-                    match event {
-                        DebouncedEvent::Write(_) => {}
-                        _ => {
-                            let mut d = trigger.0.lock().unwrap();
-                            *d = true;
-                        }
-                    }
-                },
-                Err(_e) => {},
-            }
-        }
-    });
-
-    let mut r = rocket::Config::default();
-    r.log_level = LogLevel::Critical;
+    let r = rocket::Config {
+        log_level: LogLevel::Critical,
+        ..rocket::Config::default()
+    };
 
     rocket::build()
         .mount("/", routes![home_page, post_page, img, favicon, changes])
         .manage(reload)
         .configure(r)
+        .attach(AdHoc::on_liftoff("reload_fairing", |r| {
+            Box::pin(async move {
+                let shutdown = r.shutdown();
+                rocket::tokio::spawn(async move {
+                    let abort = Arc::new(AtomicBool::new(false));
+                    let t_abort = abort.clone();
+                    rocket::tokio::spawn(async move {
+                        let (sender, receiver) = channel();
+                        let mut watcher = watcher(sender, Duration::from_secs(2)).unwrap();
+                        watcher.watch("posts", RecursiveMode::Recursive).unwrap();
+                        loop {
+                            match receiver.recv_timeout(Duration::from_millis(100)) {
+                                Ok(event) => match event {
+                                    DebouncedEvent::Write(_) => {}
+                                    _ => {
+                                        trigger.0.store(true, Ordering::Release);
+                                    }
+                                },
+                                Err(_e) => {
+                                    if t_abort.load(Ordering::Acquire) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    shutdown.await;
+                    abort.store(true, Ordering::Release);
+                });
+            })
+        }))
         .launch()
         .await
         .unwrap();

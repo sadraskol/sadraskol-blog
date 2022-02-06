@@ -17,8 +17,8 @@ mod custom_markdown;
 mod domain;
 mod fs;
 mod highlight;
-mod template;
 mod preview;
+mod template;
 
 fn gen_home(posts: &[SadPost]) {
     let v: Vec<_> = posts.iter().map(PostSummaryView::for_human).collect();

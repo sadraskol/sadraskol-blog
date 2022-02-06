@@ -266,6 +266,8 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
                     keyword("window"),
                     keyword("for"),
                     keyword("let"),
+                    keyword("await"),
+                    keyword("async"),
                     keyword("of"),
                     keyword("null"),
                     keyword("if"),
