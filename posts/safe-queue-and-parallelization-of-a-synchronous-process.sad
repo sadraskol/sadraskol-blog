@@ -1,0 +1,76 @@
+title="safe queue and parallelization of a synchronous process"
+publication_date="2022-03-02T22:13:37.978788231+00:00"
+language="en"
+---- sadraskol ----
+
+Our first day of our glorious file sending startup.
+We write and successfully deploy the following code:
+
+```javascript
+const our_service = async (files) => {
+    const user = await get_user()
+    files.forEach(file => {
+        await send_file(user, file)
+    })
+}
+```
+
+We are happy and our customers too.
+Comes the time to grow the code with new functionnalities.
+And the code becomes
+
+```javascript
+const our_service = async (files) => {
+    const token = await get_token()
+    files.forEach(file => {
+        await analyse_for_recommandation(file)
+        await fix_meta_of_oriented_image(file)
+        await create_lead_for_huge_file(file)
+        await send_file(token, file)
+    })
+}
+```
+
+Wow some devs implemented some cool functionalities!
+Your client base grows.
+With success comes its load of complaints.
+Sending a lot of files is slow and customers start to notice.
+
+## Analysis
+
+You start monitoring shit, and the numbers are unforgiving:
+
+| method | mean time | 99 percentile |
+|---|---|---|
+| get_token | 123ms | 400ms |
+| analyse_for_recommandation | 1ms | 3ms |
+| fix_meta_of_oriented_image | 2ms | 4ms |
+| create_lead_for_huge_file | 3ms | 12ms |
+| send_file | 30ms | 1500ms |
+
+You service is spending most of its time waiting for a token and sending files.
+Also large files are a bottleneck.
+
+## Refactoring
+
+Developers are not happy with the code.
+They don't understand this token call in the middle of a clean workflow.
+They would like you to refactor in this way:
+
+```javascript
+const our_service = async (files) => {
+    files.forEach(file => {
+        await analyse_for_recommandation(file)
+        await fix_meta_of_oriented_image(file)
+        await create_lead_for_huge_file(file)
+        await send_file(file)
+    })
+}
+```
+
+Is that possible? Yes, but not that easy.
+`send_file` must first fetch the token, then send the file.
+
+## Step 1: parallel
+
+bke uroihoihfewoihoifhoiohifhe oehf
