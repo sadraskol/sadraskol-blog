@@ -433,14 +433,6 @@ where
                     escape_html(&mut self.writer, &title)?;
                 }
 
-                if let Some(path) = dest.strip_prefix('/') {
-                    self.write("\" ")?;
-                    let (w, h) = image::image_dimensions(path).unwrap();
-                    self.write("width=\"")?;
-                    self.write(&w.to_string())?;
-                    self.write("\" height=\"")?;
-                    self.write(&h.to_string())?;
-                };
                 self.write("\" /></figure>")
             }
             Tag::FootnoteDefinition(name) => {
