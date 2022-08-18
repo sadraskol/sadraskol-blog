@@ -44,7 +44,7 @@ where
     }
 }
 
-impl<'w> StrWrite for String {
+impl StrWrite for String {
     #[inline]
     fn write_str(&mut self, s: &str) -> io::Result<()> {
         self.push_str(s);

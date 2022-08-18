@@ -88,9 +88,19 @@ fn changes(reload: &State<Reload>) -> (Status, String) {
 #[derive(Clone)]
 struct Reload(Arc<AtomicBool>);
 
+#[allow(unused_must_use)]
 pub async fn server() {
+    use std::net::TcpListener;
+    let mut candidate = 3000;
+    let port = loop {
+        if TcpListener::bind(("127.0.0.1", candidate)).is_ok() {
+            break candidate;
+        }
+        candidate += 1;
+    };
+
     Command::new("firefox-esr")
-        .args(["http://localhost:8000"])
+        .args([format!("http://localhost:{port}")])
         .spawn()
         .expect("could not open browser");
 
@@ -99,6 +109,7 @@ pub async fn server() {
 
     let r = rocket::Config {
         log_level: LogLevel::Critical,
+        port,
         ..rocket::Config::default()
     };
 
