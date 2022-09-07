@@ -14,719 +14,370 @@ pub enum SadLang {
     Tla,
     Tex,
     Text,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-enum Span {
-    SurroundingSpan(usize, usize, String),
-    ReplacingSpan(usize, usize, String),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-enum SpanStrategy {
-    SurroundingSpanStrategy(String),
-    ReplacingSpanStrategy(String),
-}
-
-impl SpanStrategy {
-    fn span(&self, start: usize, end: usize) -> Span {
-        match self {
-            SpanStrategy::SurroundingSpanStrategy(tag) => {
-                Span::SurroundingSpan(start, end, tag.clone())
-            }
-            SpanStrategy::ReplacingSpanStrategy(replacement) => {
-                Span::ReplacingSpan(start, end, replacement.clone())
-            }
-        }
-    }
-}
-
-impl Span {
-    fn format<W: StrWrite>(self, w: &mut W, mark: usize, s: &&str) -> io::Result<usize> {
-        match self {
-            Span::SurroundingSpan(start, end, tag) => {
-                w.write_str(&s[mark..start])?;
-                w.write_str(format!("<span class=\"h-{}\">", tag).as_str())?;
-                w.write_str(&s[start..end])?;
-                w.write_str("</span>")?;
-                Ok(end)
-            }
-            Span::ReplacingSpan(start, end, replace) => {
-                w.write_str(&s[mark..start])?;
-                w.write_str(replace.as_str())?;
-                Ok(end)
-            }
-        }
-    }
+    Sql,
 }
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
-    match l {
-        SadLang::Rust => {
-            let cs = def_lang(
-                "rust",
-                vec![
-                    keyword("struct"),
-                    keyword("impl"),
-                    keyword("mut"),
-                    keyword("self"),
-                    keyword("return"),
-                    keyword("fn"),
-                    inline_comment("//"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Tex => {
-            let cs = def_lang(
-                "tex",
-                vec![
-                    replacement("\\A", "∀"),
-                    replacement("\\E", "∃"),
-                    replacement("\\in", "∈"),
-                    replacement("\\X", "×"),
-                    replacement("\\union", "∪"),
-                    replacement("\\div", "÷"),
-                    replacement("==", "≜"),
-                    replacement("/\\", "⋀"),
-                    replacement("\\/", "⋁"),
-                    replacement("<<", "⟨"),
-                    replacement(">>", "⟩"),
-                    keyword("EXCEPT"),
-                    keyword("UNCHANGED"),
-                    keyword("DOMAIN"),
-                    keyword("LAMBDA"),
-                    keyword("SUBSET"),
-                    keyword("UNION"),
-                    keyword("CHOOSE"),
-                    keyword("VARIABLE"),
-                    inline_comment("\\*"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Tla => {
-            let cs = def_lang(
-                "tla",
-                vec![
-                    keyword("\\A"),
-                    keyword("\\E"),
-                    keyword("\\in"),
-                    keyword("\\X"),
-                    keyword("\\union"),
-                    keyword("\\div"),
-                    keyword("EXCEPT"),
-                    keyword("UNCHANGED"),
-                    keyword("DOMAIN"),
-                    keyword("LAMBDA"),
-                    keyword("SUBSET"),
-                    keyword("UNION"),
-                    keyword("CHOOSE"),
-                    keyword("VARIABLE"),
-                    inline_comment("\\*"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Java => {
-            let cs = def_lang(
-                "java",
-                vec![
-                    keyword("class"),
-                    keyword("public"),
-                    keyword("static"),
-                    keyword("private"),
-                    keyword("void"),
-                    keyword("null"),
-                    keyword("extends"),
-                    keyword("implements"),
-                    keyword("try"),
-                    keyword("while"),
-                    keyword("catch"),
-                    keyword("finally"),
-                    keyword("throw"),
-                    keyword("throws"),
-                    keyword("interface"),
-                    keyword("if"),
-                    keyword("else"),
-                    keyword("return"),
-                    keyword("new"),
-                    inline_comment("//"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Alloy => {
-            let cs = def_lang(
-                "alloy",
-                vec![
-                    keyword("abstract"),
-                    keyword("all"),
-                    keyword("and"),
-                    keyword("as"),
-                    keyword("assert"),
-                    keyword("but"),
-                    keyword("check"),
-                    keyword("disj"),
-                    keyword("else"),
-                    keyword("exactly"),
-                    keyword("extends"),
-                    keyword("fact"),
-                    keyword("for"),
-                    keyword("fun"),
-                    keyword("iden"),
-                    keyword("iff"),
-                    keyword("implies"),
-                    keyword("in"),
-                    keyword("Int"),
-                    keyword("let"),
-                    keyword("lone"),
-                    keyword("module"),
-                    keyword("no"),
-                    keyword("none"),
-                    keyword("not"),
-                    keyword("one"),
-                    keyword("open"),
-                    keyword("or"),
-                    keyword("pred"),
-                    keyword("run"),
-                    keyword("set"),
-                    keyword("sig"),
-                    keyword("some"),
-                    keyword("sum"),
-                    keyword("univ"),
-                    inline_comment("//"),
-                    inline_comment("--"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Erlang => {
-            let cs = def_lang(
-                "erlang",
-                vec![
-                    keyword("when"),
-                    keyword("case"),
-                    keyword("of"),
-                    keyword("end"),
-                    keyword("pred"),
-                    inline_comment("//"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Elixir => {
-            let cs = def_lang(
-                "elixir",
-                vec![
-                    keyword("def"),
-                    keyword("defmodule"),
-                    keyword("defmacro"),
-                    keyword("defstruct"),
-                    keyword("quote"),
-                    keyword("cond"),
-                    keyword("true"),
-                    keyword("false"),
-                    keyword("nil"),
-                    keyword("do"),
-                    keyword("end"),
-                    keyword("import"),
-                    inline_comment("#"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Haskell => {
-            let cs = def_lang(
-                "haskell",
-                vec![
-                    keyword("type"),
-                    keyword("data"),
-                    keyword("one"),
-                    keyword("lone"),
-                    keyword("pred"),
-                    inline_comment("//"),
-                    string('"'),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Javascript => {
-            let cs = def_lang(
-                "javascript",
-                vec![
-                    keyword("const"),
-                    keyword("window"),
-                    keyword("for"),
-                    keyword("let"),
-                    keyword("await"),
-                    keyword("async"),
-                    keyword("of"),
-                    keyword("null"),
-                    keyword("if"),
-                    keyword("else"),
-                    inline_comment("//"),
-                    string('"'),
-                    string('\''),
-                ],
-            );
-            highlight_structure(&mut w, &s, cs)
-        }
-        SadLang::Text => w.write_str(s),
-    }
+    highlight_lang(&mut w, &s, l)
 }
 
-fn def_lang(lang: &str, tokens: Vec<Tokenizer>) -> Structure {
-    Structure {
-        start: 0,
-        class: lang.to_string(),
-        inside_tokens: tokens,
-        final_tokens: vec![],
-        spans: vec![],
-        parent: None,
-    }
+pub struct SadLangConf {
+    string: char,
+    comment: (String, String),
+    inline_comment: String,
+    identifiers: Vec<String>,
 }
 
-fn keyword(keyword: &str) -> Tokenizer {
-    Tokenizer::Waiting {
-        params: TokenParams {
-            escape_pred: TokenDelimiter::Identifier,
-            span_strategy: SpanStrategy::SurroundingSpanStrategy("keyword".to_string()),
-            token: keyword.to_string(),
-            structure: None,
-            include: false,
-        },
-    }
-}
-
-fn replacement(keyword: &str, replacement: &str) -> Tokenizer {
-    Tokenizer::Waiting {
-        params: TokenParams {
-            escape_pred: TokenDelimiter::AnyChar,
-            span_strategy: SpanStrategy::ReplacingSpanStrategy(replacement.to_string()),
-            token: keyword.to_string(),
-            structure: None,
-            include: false,
-        },
-    }
-}
-
-fn inline_comment(start_with: &str) -> Tokenizer {
-    Tokenizer::Waiting {
-        params: TokenParams {
-            escape_pred: TokenDelimiter::Identifier,
-            span_strategy: SpanStrategy::SurroundingSpanStrategy(start_with.to_string()),
-            token: start_with.to_string(),
-            structure: Some(Structure {
-                start: 0,
-                inside_tokens: vec![],
-                final_tokens: vec![Tokenizer::Waiting {
-                    params: TokenParams {
-                        escape_pred: TokenDelimiter::StructChar,
-                        span_strategy: SpanStrategy::SurroundingSpanStrategy(
-                            "end-comment".to_string(),
-                        ),
-                        token: "\n".to_string(),
-                        structure: None,
-                        include: false,
-                    },
-                }],
-                spans: vec![],
-                parent: None,
-                class: "comment".to_string(),
-            }),
-            include: false,
-        },
-    }
-}
-
-fn string(separator: char) -> Tokenizer {
-    Tokenizer::Waiting {
-        params: TokenParams {
-            escape_pred: TokenDelimiter::StructChar,
-            span_strategy: SpanStrategy::SurroundingSpanStrategy("string".to_string()),
-            token: separator.to_string(),
-            structure: Some(Structure {
-                start: 0,
-                inside_tokens: vec![],
-                final_tokens: vec![Tokenizer::Waiting {
-                    params: TokenParams {
-                        escape_pred: TokenDelimiter::StructChar,
-                        span_strategy: SpanStrategy::SurroundingSpanStrategy(
-                            "end-comment".to_string(),
-                        ),
-                        token: separator.to_string(),
-                        structure: None,
-                        include: true,
-                    },
-                }],
-                spans: vec![],
-                parent: None,
-                class: "string".to_string(),
-            }),
-            include: false,
-        },
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-struct Structure {
-    inside_tokens: Vec<Tokenizer>,
-    final_tokens: Vec<Tokenizer>,
-    spans: Vec<Span>,
-    parent: Option<Box<Structure>>,
+struct Parser<'a> {
+    source: &'a str,
     start: usize,
-    class: String,
+    current: usize,
+    lang: SadLangConf,
 }
 
-impl Structure {
-    fn to_parent(&self, eof_size: usize) -> Structure {
-        let some_parent = self.parent.clone();
-        let mut p = *some_parent.unwrap();
-
-        match self.final_tokens[0].clone() {
-            Tokenizer::Waiting { .. } => {
-                p.add(Span::SurroundingSpan(
-                    self.start,
-                    eof_size,
-                    self.class.clone(),
-                ));
-            }
-            Tokenizer::Matching { .. } => {
-                p.add(Span::SurroundingSpan(
-                    self.start,
-                    eof_size,
-                    self.class.clone(),
-                ));
-            }
-            Tokenizer::Sleeping { .. } => {
-                p.add(Span::SurroundingSpan(
-                    self.start,
-                    eof_size,
-                    self.class.clone(),
-                ));
-            }
-            Tokenizer::Candidate { params, start, end } => {
-                if params.include {
-                    p.add(Span::SurroundingSpan(self.start, end, self.class.clone()));
-                } else {
-                    p.add(Span::SurroundingSpan(self.start, start, self.class.clone()));
-                }
-            }
-            Tokenizer::Completed { params, start, end } => {
-                if params.include {
-                    p.add(Span::SurroundingSpan(self.start, end, self.class.clone()));
-                } else {
-                    p.add(Span::SurroundingSpan(self.start, start, self.class.clone()));
-                }
-            }
-        }
-        p
-    }
-    fn add(&mut self, s: Span) {
-        self.spans.push(s);
-    }
-    fn start(&mut self, start: usize) {
-        self.start = start;
-    }
-    fn eof(&mut self, end: usize) -> Vec<Span> {
-        if self.parent.is_some() {
-            self.to_parent(end).eof(end)
-        } else {
-            self.spans.clone()
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum TokenDelimiter {
-    // Special case for structure: they have no final token delimiter
-    StructChar,
-    AnyChar,
+#[derive(Debug)]
+enum TokenType {
+    Eof,
+    Transparent,
     Identifier,
+    String,
+    Number,
+    Comment,
+    InlineComment,
 }
 
-impl TokenDelimiter {
-    fn outside_of_token(self, c: char) -> bool {
-        match self {
-            TokenDelimiter::StructChar => true,
-            TokenDelimiter::AnyChar => true,
-            TokenDelimiter::Identifier => {
-                if c.is_ascii() {
-                    !matches!(c as u8, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_')
-                } else {
-                    true
-                }
-            }
-        }
-    }
+#[derive(Debug)]
+struct Token {
+    kind: TokenType,
+    lexeme: String,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct TokenParams {
-    escape_pred: TokenDelimiter,
-    token: String,
-    structure: Option<Structure>,
-    include: bool,
-    span_strategy: SpanStrategy,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-enum Tokenizer {
-    Waiting {
-        params: TokenParams,
-    },
-    Matching {
-        start: usize,
-        valid_acc: Vec<char>,
-        missing_acc: Vec<char>,
-        params: TokenParams,
-    },
-    Candidate {
-        start: usize,
-        end: usize,
-        params: TokenParams,
-    },
-    Completed {
-        start: usize,
-        end: usize,
-        params: TokenParams,
-    },
-    Sleeping {
-        params: TokenParams,
-    },
-}
-
-impl Tokenizer {
-    fn accumulate(&self, c: char, s: usize) -> Self {
-        match self {
-            Tokenizer::Waiting { params } => {
-                let mut valid_acc = vec![];
-                let mut missing_acc: Vec<char> = params.token.chars().collect();
-                if missing_acc[0] == c {
-                    valid_acc.push(c);
-                    missing_acc.remove(0);
-                    if missing_acc.is_empty() {
-                        Tokenizer::Candidate {
-                            start: s,
-                            end: s + c.len_utf8(),
-                            params: params.clone(),
-                        }
-                    } else {
-                        Tokenizer::Matching {
-                            start: s,
-                            valid_acc,
-                            missing_acc,
-                            params: params.clone(),
-                        }
-                    }
-                } else if !params.escape_pred.outside_of_token(c) {
-                    Tokenizer::Sleeping {
-                        params: params.clone(),
-                    }
-                } else {
-                    Tokenizer::Waiting {
-                        params: params.clone(),
-                    }
-                }
-            }
-            Tokenizer::Matching {
-                params,
-                start,
-                valid_acc,
-                missing_acc,
-            } => {
-                if missing_acc[0] == c {
-                    let mut valids = valid_acc.clone();
-                    let mut missings = missing_acc.clone();
-                    valids.push(c);
-                    missings.remove(0);
-                    if missings.is_empty() {
-                        if params.escape_pred == TokenDelimiter::StructChar {
-                            // TODO This is a special case for structure finalizing token (should be a special case indeed!)
-                            Tokenizer::Waiting {
-                                params: params.clone(),
-                            }
-                        } else {
-                            Tokenizer::Candidate {
-                                start: *start,
-                                end: s + c.len_utf8(),
-                                params: params.clone(),
-                            }
-                        }
-                    } else {
-                        Tokenizer::Matching {
-                            missing_acc: missings,
-                            valid_acc: valids,
-                            start: *start,
-                            params: params.clone(),
-                        }
-                    }
-                } else if !params.escape_pred.outside_of_token(c) {
-                    Tokenizer::Sleeping {
-                        params: params.clone(),
-                    }
-                } else {
-                    Tokenizer::Waiting {
-                        params: params.clone(),
-                    }
-                }
-            }
-            Tokenizer::Candidate { params, start, end } => {
-                if params.escape_pred.outside_of_token(c) {
-                    Tokenizer::Completed {
-                        start: *start,
-                        end: *end,
-                        params: params.clone(),
-                    }
-                } else {
-                    Tokenizer::Sleeping {
-                        params: params.clone(),
-                    }
-                }
-            }
-            Tokenizer::Sleeping { params } => {
-                if params.escape_pred.outside_of_token(c) {
-                    Tokenizer::Waiting {
-                        params: params.clone(),
-                    }
-                } else {
-                    self.clone()
-                }
-            }
-            Tokenizer::Completed { .. } => self.clone(),
+impl<'a> Parser<'a> {
+    fn init(source: &'a str, lang: SadLangConf) -> Self {
+        Parser {
+            source,
+            start: 0,
+            current: 0,
+            lang,
         }
     }
 
-    fn is_complete(&self) -> bool {
-        match self {
-            Tokenizer::Waiting { .. } => false,
-            Tokenizer::Sleeping { .. } => false,
-            Tokenizer::Matching { .. } => false,
-            Tokenizer::Candidate { .. } => false,
-            Tokenizer::Completed { .. } => true,
+    pub fn scan_token(&mut self) -> Token {
+        self.start = self.current;
+        if self.is_at_end() {
+            self.make_token(TokenType::Eof)
+        } else {
+            let c = self.advance();
+
+            if self.is_identifier_start(c) {
+                return self.identifier();
+            }
+            if c.is_numeric() {
+                return self.number();
+            }
+
+            if self.is_string_start(c) {
+                return self.string();
+            }
+
+            if self.is_inline_comment_start(c) {
+                return self.inline_comment();
+            }
+
+            if self.is_comment_start(c) {
+                return self.comment();
+            }
+
+            self.make_token(TokenType::Transparent)
         }
     }
 
-    fn as_span(&self) -> (Self, Span) {
-        match self {
-            Tokenizer::Waiting { .. } => panic!("Waiting token cannot be converted to span"),
-            Tokenizer::Sleeping { .. } => panic!("Sleeping token cannot be converted to span"),
-            Tokenizer::Matching { .. } => panic!("Matching token cannot be converted to span"),
-            Tokenizer::Candidate { params, start, end } => (
-                Tokenizer::Waiting {
-                    params: params.clone(),
-                },
-                params.span_strategy.span(*start, *end),
-            ),
-            Tokenizer::Completed { params, start, end } => (
-                Tokenizer::Waiting {
-                    params: params.clone(),
-                },
-                params.span_strategy.span(*start, *end),
-            ),
-        }
-    }
-
-    fn structure_starts(&self) -> bool {
-        match self {
-            Tokenizer::Waiting { params } => params.structure.is_some(),
-            Tokenizer::Sleeping { params } => params.structure.is_some(),
-            Tokenizer::Matching { params, .. } => params.structure.is_some(),
-            Tokenizer::Candidate { params, .. } => params.structure.is_some(),
-            Tokenizer::Completed { params, .. } => params.structure.is_some(),
-        }
-    }
-
-    fn as_struct(&self) -> (Self, Structure) {
-        let (params, start) = match self {
-            Tokenizer::Waiting { .. } => panic!("Waiting token cannot be converted to structure"),
-            Tokenizer::Sleeping { .. } => panic!("Waiting token cannot be converted to structure"),
-            Tokenizer::Matching { .. } => panic!("Waiting token cannot be converted to structure"),
-            Tokenizer::Candidate { params, start, .. } => (params, start),
-            Tokenizer::Completed { params, start, .. } => (params, start),
-        };
-        let mut structure = params.structure.clone().unwrap();
-        structure.start(*start);
-        (
-            Tokenizer::Waiting {
-                params: params.clone(),
-            },
-            structure,
-        )
-    }
-}
-
-fn highlight_structure<W: StrWrite>(w: &mut W, s: &&str, mut cs: Structure) -> io::Result<()> {
-    let mut size = 0;
-    for c in s.chars() {
-        let mut opt_span = None;
-        let mut opt_structure = None;
-        cs.inside_tokens = cs
-            .inside_tokens
+    fn identifier(&mut self) -> Token {
+        let expected_chars: Vec<_> = self
+            .lang
+            .identifiers
             .iter()
-            .map(|t| t.accumulate(c, size))
+            .flat_map(|s| s.chars())
             .collect();
-        cs.final_tokens = cs
-            .final_tokens
+        let mut n = 0;
+        let mut candidates: Vec<_> = self
+            .lang
+            .identifiers
+            .clone()
             .iter()
-            .map(|t| t.accumulate(c, size))
+            .cloned()
+            .filter(|ident| ident.chars().next().unwrap() == self.previous())
             .collect();
-
-        size += c.len_utf8();
-
-        cs.inside_tokens = cs
-            .inside_tokens
-            .iter()
-            .map(|t| {
-                if t.is_complete() {
-                    if t.structure_starts() {
-                        let (s, structure) = t.as_struct();
-                        opt_structure = Some(structure);
-                        s
-                    } else {
-                        let (s, span) = t.as_span();
-                        opt_span = Some(span);
-                        s
-                    }
-                } else {
-                    t.clone()
-                }
-            })
-            .collect();
-
-        if let Some(mut new_cs) = opt_structure {
-            new_cs.parent = Some(Box::new(cs));
-            cs = new_cs;
-        } else if let Some(span) = opt_span {
-            cs.add(span);
+        while expected_chars.contains(&self.peek()) && !self.is_at_end() {
+            self.advance();
+            n += 1;
+            candidates = candidates
+                .iter()
+                .cloned()
+                .filter(|ident| ident.chars().nth(n) == Some(self.previous()))
+                .collect();
         }
 
-        if !cs.final_tokens.is_empty() && cs.final_tokens[0].is_complete() {
-            cs = cs.to_parent(size);
+        if candidates.is_empty() {
+            self.make_token(TokenType::Transparent)
+        } else {
+            self.make_token(TokenType::Identifier)
         }
     }
 
-    let spans: Vec<Span> = cs.eof(size);
-
-    let mut mark = 0;
-    for span in spans {
-        mark = span.format(w, mark, s)?;
+    fn is_identifier_start(&self, c: char) -> bool {
+        self.lang
+            .identifiers
+            .iter()
+            .any(|i| i.chars().next().unwrap() == c)
     }
-    w.write_str(&s[mark..])
+
+    fn string(&mut self) -> Token {
+        while !self.is_string_end() && !self.is_at_end() {
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.make_token(TokenType::Transparent)
+        } else {
+            self.string_end();
+            self.make_token(TokenType::String)
+        }
+    }
+
+    fn is_string_start(&self, c: char) -> bool {
+        c == self.lang.string
+    }
+
+    fn is_string_end(&self) -> bool {
+        self.peek() == self.lang.string
+    }
+
+    fn string_end(&mut self) {
+        self.advance();
+    }
+
+    fn comment(&mut self) -> Token {
+        while !self.is_comment_end() && !self.is_at_end() {
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.make_token(TokenType::Transparent)
+        } else {
+            self.comment_end();
+            self.make_token(TokenType::Comment)
+        }
+    }
+
+    fn is_comment_start(&self, c: char) -> bool {
+        let mut chars = self.lang.comment.0.chars();
+        if chars.next() != Some(c) {
+            return false;
+        }
+        for (n, c) in chars.enumerate() {
+            if self.peek_nth(n) != Some(c) {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn is_comment_end(&self) -> bool {
+        for (n, c) in self.lang.comment.1.chars().enumerate() {
+            if self.peek_nth(n) != Some(c) {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn comment_end(&mut self) {
+        for _ in (self.lang.comment.1).clone().chars() {
+            self.advance();
+        }
+    }
+
+    fn inline_comment(&mut self) -> Token {
+        while self.peek() != '\n' && !self.is_at_end() {
+            self.advance();
+        }
+
+        self.make_token(TokenType::InlineComment)
+    }
+
+    fn is_inline_comment_start(&self, c: char) -> bool {
+        let mut chars = self.lang.inline_comment.chars();
+        if chars.next() != Some(c) {
+            return false;
+        }
+        for (n, c) in chars.enumerate() {
+            if self.peek_nth(n) != Some(c) {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn number(&mut self) -> Token {
+        while self.peek().is_numeric() && !self.is_at_end() {
+            self.advance();
+        }
+
+        self.make_token(TokenType::Number)
+    }
+
+    fn previous(&self) -> char {
+        self.source.chars().nth(self.current - 1).unwrap()
+    }
+
+    fn peek(&self) -> char {
+        self.source.chars().nth(self.current).unwrap()
+    }
+
+    fn peek_nth(&self, n: usize) -> Option<char> {
+        self.source.chars().nth(self.current + n - 1)
+    }
+
+    fn make_token(&self, kind: TokenType) -> Token {
+        Token {
+            kind,
+            lexeme: self.source[self.start..self.current].to_string(),
+        }
+    }
+
+    fn is_at_end(&self) -> bool {
+        self.current == self.source.chars().count()
+    }
+
+    fn advance(&mut self) -> char {
+        assert!(!self.is_at_end());
+        self.current += 1;
+        self.source.chars().nth(self.current - 1).unwrap()
+    }
+}
+
+fn translate(token: Token) -> String {
+    match token.kind {
+        TokenType::Eof => token.lexeme,
+        TokenType::Transparent => token.lexeme,
+        TokenType::Identifier => format!("<span class=\"h-keyword\">{}</span>", token.lexeme),
+        TokenType::String => format!("<span class=\"h-string\">{}</span>", token.lexeme),
+        TokenType::Number => format!("<span class=\"h-number\">{}</span>", token.lexeme),
+        TokenType::Comment => format!("<span class=\"h-comment\">{}</span>", token.lexeme),
+        TokenType::InlineComment => format!("<span class=\"h-comment\">{}</span>", token.lexeme),
+    }
+}
+
+fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result<()> {
+    let conf = match lang {
+        SadLang::Java => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![
+                "static".to_string(),
+                "private".to_string(),
+                "public".to_string(),
+                "void".to_string(),
+                "null".to_string(),
+                "extends".to_string(),
+                "implements".to_string(),
+                "try".to_string(),
+                "while".to_string(),
+                "catch".to_string(),
+                "finally".to_string(),
+                "throw".to_string(),
+                "throws".to_string(),
+                "interface".to_string(),
+                "if".to_string(),
+                "class".to_string(),
+                "else".to_string(),
+                "return".to_string(),
+                "new".to_string(),
+            ],
+        },
+        SadLang::Alloy => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Erlang => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Elixir => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "#".to_string(),
+            identifiers: vec![
+                "def".to_string(),
+                "do".to_string(),
+            ],
+        },
+        SadLang::Haskell => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "--".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Javascript => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Rust => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Tla => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Tex => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Text => SadLangConf {
+            string: '"',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+        SadLang::Sql => SadLangConf {
+            string: '\'',
+            comment: ("/*".to_string(), "*/".to_string()),
+            inline_comment: "//".to_string(),
+            identifiers: vec![],
+        },
+    };
+    let mut parser = Parser::init(s.clone(), conf);
+    loop {
+        let token = parser.scan_token();
+
+        if matches!(token.kind, TokenType::Eof) {
+            break;
+        } else {
+            w.write_str(&translate(token))?;
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Alloy, Elixir, Java, Tex, Text};
+    use crate::highlight::SadLang::{Alloy, Elixir, Java, Sql, Tex, Text};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -821,9 +472,21 @@ mod test {
     }
 
     #[test]
-    fn highlight_replace_occurence_with_replacement() {
+    fn highlight_replace_occurrence_with_replacement() {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "\\Ax \\in Set", Tex).unwrap();
         assert_eq!("∀x ∈ Set", s.as_str());
+    }
+
+    #[test]
+    fn highlights_numbers() {
+        for i in 0..1000 {
+            let mut s = String::with_capacity(100);
+            highlight(&mut s, &format!("  {}  ", i), Sql).unwrap();
+            assert_eq!(
+                &format!("  <span class=\"h-number\">{}</span>  ", i),
+                s.as_str()
+            );
+        }
     }
 }
