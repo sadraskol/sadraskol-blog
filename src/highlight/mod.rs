@@ -1,3 +1,5 @@
+mod langs;
+
 use std::io;
 
 use crate::custom_markdown::StrWrite;
@@ -30,7 +32,7 @@ pub struct SadLangConf {
 }
 
 impl SadLangConf {
-    fn init() -> Self {
+    pub fn init() -> Self {
         SadLangConf {
             string: "".to_string(),
             comment: ("su".to_string(), "le".to_string()),
@@ -40,27 +42,27 @@ impl SadLangConf {
         }
     }
 
-    fn no_numbers(mut self) -> Self {
+    pub fn no_numbers(mut self) -> Self {
         self.numbers = false;
         self
     }
 
-    fn string<S: ToString>(mut self, s: S) -> Self {
+    pub fn string<S: ToString>(mut self, s: S) -> Self {
         self.string = s.to_string();
         self
     }
 
-    fn comment<S: ToString>(mut self, s: S, e: S) -> Self {
+    pub fn comment<S: ToString>(mut self, s: S, e: S) -> Self {
         self.comment = (s.to_string(), e.to_string());
         self
     }
 
-    fn inline_comment<S: ToString>(mut self, s: S) -> Self {
+    pub fn inline_comment<S: ToString>(mut self, s: S) -> Self {
         self.inline_comment.push(s.to_string());
         self
     }
 
-    fn identifier<S: ToString>(mut self, iden: S) -> Self {
+    pub fn identifier<S: ToString>(mut self, iden: S) -> Self {
         self.identifiers.push(iden.to_string());
         self
     }
@@ -332,210 +334,7 @@ fn translate(token: Token) -> String {
 }
 
 fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result<()> {
-    let conf = match lang {
-        SadLang::Java => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("//")
-            .identifier("class")
-            .identifier("static")
-            .identifier("private")
-            .identifier("public")
-            .identifier("void")
-            .identifier("null")
-            .identifier("extends")
-            .identifier("implements")
-            .identifier("try")
-            .identifier("while")
-            .identifier("catch")
-            .identifier("finally")
-            .identifier("throw")
-            .identifier("throws")
-            .identifier("interface")
-            .identifier("if")
-            .identifier("else")
-            .identifier("return")
-            .identifier("enum")
-            .identifier("final")
-            .identifier("int")
-            .identifier("new"),
-        SadLang::Alloy => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("//")
-            .identifier("abstract")
-            .identifier("all")
-            .identifier("and")
-            .identifier("as")
-            .identifier("assert")
-            .identifier("but")
-            .identifier("check")
-            .identifier("disj")
-            .identifier("else")
-            .identifier("exactly")
-            .identifier("extends")
-            .identifier("fact")
-            .identifier("for")
-            .identifier("fun")
-            .identifier("iden")
-            .identifier("iff")
-            .identifier("implies")
-            .identifier("in")
-            .identifier("Int")
-            .identifier("let")
-            .identifier("lone")
-            .identifier("for")
-            .identifier("fun")
-            .identifier("iden")
-            .identifier("iff")
-            .identifier("implies")
-            .identifier("in")
-            .identifier("Int")
-            .identifier("let")
-            .identifier("lone")
-            .identifier("module")
-            .identifier("no")
-            .identifier("none")
-            .identifier("not")
-            .identifier("one")
-            .identifier("open")
-            .identifier("or")
-            .identifier("pred")
-            .identifier("run")
-            .identifier("set")
-            .identifier("sig")
-            .identifier("some")
-            .identifier("sum")
-            .identifier("univ"),
-        SadLang::Erlang => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("//")
-            .identifier("when")
-            .identifier("case")
-            .identifier("of")
-            .identifier("end")
-            .identifier("pred"),
-        SadLang::Elixir => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("#")
-            .identifier("def")
-            .identifier("defmodule")
-            .identifier("defmacro")
-            .identifier("defstruct")
-            .identifier("quote")
-            .identifier("cond")
-            .identifier("true")
-            .identifier("false")
-            .identifier("nil")
-            .identifier("do")
-            .identifier("end")
-            .identifier("import"),
-        SadLang::Haskell => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("--")
-            .inline_comment("//")
-            .identifier("<$>")
-            .identifier("=<<")
-            .identifier(">>=")
-            .identifier("case")
-            .identifier("of")
-            .identifier("type")
-            .identifier("data")
-            .identifier("one")
-            .identifier("lone")
-            .identifier("pred"),
-        SadLang::Javascript => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("//")
-            .identifier("const")
-            .identifier("window")
-            .identifier("for")
-            .identifier("let")
-            .identifier("await")
-            .identifier("async")
-            .identifier("of")
-            .identifier("null")
-            .identifier("if")
-            .identifier("else"),
-        SadLang::Rust => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("//")
-            .identifier("struct")
-            .identifier("impl")
-            .identifier("mut")
-            .identifier("self")
-            .identifier("return")
-            .identifier("fn"),
-        // todo: how to make symbols included in the keyword/identifier/etc.
-        SadLang::Tla => SadLangConf::init()
-            .string('"')
-            .comment("/*", "*/")
-            .inline_comment("\\*")
-            .identifier("\\A")
-            .identifier("\\E")
-            .identifier("\\in")
-            .identifier("\\X")
-            .identifier("\\union")
-            .identifier("\\div")
-            .identifier("\\prec")
-            .identifier("\\/")
-            .identifier("/\\")
-            .identifier("=")
-            .identifier("==")
-            .identifier("<<")
-            .identifier(">>")
-            .identifier("{")
-            .identifier("}")
-            .identifier("~")
-            .identifier("EXCEPT")
-            .identifier("UNCHANGED")
-            .identifier("DOMAIN")
-            .identifier("LAMBDA")
-            .identifier("SUBSET")
-            .identifier("UNION")
-            .identifier("CHOOSE")
-            .identifier("VARIABLE"),
-        SadLang::Text => SadLangConf::init().no_numbers(),
-        SadLang::Sql => SadLangConf::init()
-            .string("'")
-            .identifier("select")
-            .identifier("from")
-            .identifier("inner")
-            .identifier("join")
-            .identifier("insert")
-            .identifier("into")
-            .identifier("commit")
-            .identifier("rollback")
-            .identifier("order")
-            .identifier("is")
-            .identifier("not")
-            .identifier("null")
-            .identifier("values")
-            .identifier("group")
-            .identifier("by")
-            .identifier("max")
-            .identifier("having")
-            .identifier("count")
-            .identifier("where")
-            .identifier("and")
-            .identifier("transaction")
-            .identifier("begin"),
-        SadLang::Bash => SadLangConf::init()
-            .string("\"")
-            .inline_comment("#")
-            .identifier("return")
-            .identifier("in")
-            .identifier("esac")
-            .identifier("if")
-            .identifier("fi")
-            .identifier("then")
-            .identifier("case"),
-    };
+    let conf = langs::langs(lang);
     let mut parser = Parser::init(s.clone(), conf);
     loop {
         let token = parser.scan_token();
