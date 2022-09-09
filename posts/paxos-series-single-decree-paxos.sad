@@ -69,15 +69,15 @@ struct Node {
     round: Round,
 
     // Proposer state
-    proposed_value: Option<Value>,
-    prepares: HashMap<NodeId, Option<(Round, Value)>>,
-    accepts: HashSet<NodeId>,
+    proposed_value: Option&lt;Value&gt;,
+    prepares: HashMap&lt;NodeId, Option&lt;(Round, Value)&gt;&gt;,
+    accepts: HashSet&lt;NodeId&gt;,
 
     // Acceptor state
-    accepted: Option<(Round, Value)>,
+    accepted: Option&lt;(Round, Value)&gt;
 
     // Learner
-    decided: Option<Value>,
+    decided: Option&lt;Value&gt;,
 }
 ```
 

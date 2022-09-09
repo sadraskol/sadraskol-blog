@@ -303,7 +303,6 @@ impl<'a> Parser<'a> {
     }
 
     fn make_token(&self, kind: TokenType) -> Token {
-        println!("making token: {:?}: \"{}\"", kind, self.current_lexeme());
         Token {
             kind,
             lexeme: self.current_lexeme(),
