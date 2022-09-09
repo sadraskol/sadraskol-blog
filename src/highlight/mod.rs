@@ -14,6 +14,7 @@ pub enum SadLang {
     Tla,
     Text,
     Sql,
+    Bash,
 }
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
@@ -23,8 +24,9 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
 pub struct SadLangConf {
     string: String,
     comment: (String, String),
-    inline_comment: String,
+    inline_comment: Vec<String>,
     identifiers: Vec<String>,
+    numbers: bool,
 }
 
 impl SadLangConf {
@@ -32,9 +34,15 @@ impl SadLangConf {
         SadLangConf {
             string: "".to_string(),
             comment: ("su".to_string(), "le".to_string()),
-            inline_comment: "odod".to_string(),
+            inline_comment: vec![],
             identifiers: vec![],
+            numbers: true,
         }
+    }
+
+    fn no_numbers(mut self) -> Self {
+        self.numbers = false;
+        self
     }
 
     fn string<S: ToString>(mut self, s: S) -> Self {
@@ -48,7 +56,7 @@ impl SadLangConf {
     }
 
     fn inline_comment<S: ToString>(mut self, s: S) -> Self {
-        self.inline_comment = s.to_string();
+        self.inline_comment.push(s.to_string());
         self
     }
 
@@ -102,7 +110,7 @@ impl<'a> Parser<'a> {
             if self.is_identifier_start(c) {
                 return self.identifier();
             }
-            if c.is_numeric() {
+            if self.lang.numbers && c.is_numeric() {
                 return self.number();
             }
 
@@ -110,7 +118,7 @@ impl<'a> Parser<'a> {
                 return self.string();
             }
 
-            if self.is_inline_comment_start(c) {
+            if self.has_inline_comment_start(c) {
                 return self.inline_comment();
             }
 
@@ -249,21 +257,23 @@ impl<'a> Parser<'a> {
         self.make_token(TokenType::InlineComment)
     }
 
-    fn is_inline_comment_start(&self, c: char) -> bool {
-        let mut chars = self.lang.inline_comment.chars();
-        if chars.next() != Some(c) {
-            return false;
-        }
-        for (n, c) in chars.enumerate() {
-            if self.peek_nth(n) != Some(c) {
+    fn has_inline_comment_start(&self, c: char) -> bool {
+        self.lang.inline_comment.iter().any(|start| {
+            let mut chars = start.chars();
+            if chars.next() != Some(c) {
                 return false;
             }
-        }
-        true
+            for (n, c) in chars.enumerate() {
+                if self.peek_nth(n) != Some(c) {
+                    return false;
+                }
+            }
+            true
+        })
     }
 
     fn number(&mut self) -> Token {
-        while self.peek().is_numeric() && !self.is_at_end() {
+        while !self.is_at_end() && self.peek().is_numeric() {
             self.advance();
         }
 
@@ -345,6 +355,9 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
             .identifier("if")
             .identifier("else")
             .identifier("return")
+            .identifier("enum")
+            .identifier("final")
+            .identifier("int")
             .identifier("new"),
         SadLang::Alloy => SadLangConf::init()
             .string('"')
@@ -422,7 +435,13 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
         SadLang::Haskell => SadLangConf::init()
             .string('"')
             .comment("/*", "*/")
+            .inline_comment("--")
             .inline_comment("//")
+            .identifier("<$>")
+            .identifier("=<<")
+            .identifier(">>=")
+            .identifier("case")
+            .identifier("of")
             .identifier("type")
             .identifier("data")
             .identifier("one")
@@ -452,6 +471,7 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
             .identifier("self")
             .identifier("return")
             .identifier("fn"),
+        // todo: how to make symbols included in the keyword/identifier/etc.
         SadLang::Tla => SadLangConf::init()
             .string('"')
             .comment("/*", "*/")
@@ -462,6 +482,16 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
             .identifier("\\X")
             .identifier("\\union")
             .identifier("\\div")
+            .identifier("\\prec")
+            .identifier("\\/")
+            .identifier("/\\")
+            .identifier("=")
+            .identifier("==")
+            .identifier("<<")
+            .identifier(">>")
+            .identifier("{")
+            .identifier("}")
+            .identifier("~")
             .identifier("EXCEPT")
             .identifier("UNCHANGED")
             .identifier("DOMAIN")
@@ -470,8 +500,41 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
             .identifier("UNION")
             .identifier("CHOOSE")
             .identifier("VARIABLE"),
-        SadLang::Text => SadLangConf::init(),
-        SadLang::Sql => SadLangConf::init(),
+        SadLang::Text => SadLangConf::init().no_numbers(),
+        SadLang::Sql => SadLangConf::init()
+            .string("'")
+            .identifier("select")
+            .identifier("from")
+            .identifier("inner")
+            .identifier("join")
+            .identifier("insert")
+            .identifier("into")
+            .identifier("commit")
+            .identifier("rollback")
+            .identifier("order")
+            .identifier("is")
+            .identifier("not")
+            .identifier("null")
+            .identifier("values")
+            .identifier("group")
+            .identifier("by")
+            .identifier("max")
+            .identifier("having")
+            .identifier("count")
+            .identifier("where")
+            .identifier("and")
+            .identifier("transaction")
+            .identifier("begin"),
+        SadLang::Bash => SadLangConf::init()
+            .string("\"")
+            .inline_comment("#")
+            .identifier("return")
+            .identifier("in")
+            .identifier("esac")
+            .identifier("if")
+            .identifier("fi")
+            .identifier("then")
+            .identifier("case"),
     };
     let mut parser = Parser::init(s.clone(), conf);
     loop {
@@ -489,7 +552,7 @@ fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result
 #[cfg(test)]
 mod test {
     use crate::highlight::highlight;
-    use crate::highlight::SadLang::{Alloy, Elixir, Java, Sql, Text};
+    use crate::highlight::SadLang::{Alloy, Elixir, Haskell, Java, Sql, Text};
 
     #[test]
     fn text_provided_as_it_is() {
@@ -600,5 +663,27 @@ mod test {
         let mut s = String::with_capacity(100);
         highlight(&mut s, "  t1er  ", Sql).unwrap();
         assert_eq!("  t1er  ", s.as_str());
+    }
+
+    #[test]
+    fn text_does_not_highlight_numbers() {
+        let mut s = String::with_capacity(100);
+        highlight(&mut s, "  123  ", Text).unwrap();
+        assert_eq!("  123  ", s.as_str());
+    }
+
+    #[test]
+    fn highlights_multiple_comments() {
+        let mut s = String::with_capacity(100);
+        highlight(
+            &mut s,
+            "  -- some comment for this line\nother text  ",
+            Haskell,
+        )
+        .unwrap();
+        assert_eq!(
+            "  <span class=\"h-comment\">-- some comment for this line</span>\nother text  ",
+            s.as_str()
+        );
     }
 }
