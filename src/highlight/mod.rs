@@ -21,23 +21,40 @@ pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
 }
 
 pub struct SadLangConf {
-    string: char,
+    string: String,
     comment: (String, String),
     inline_comment: String,
     identifiers: Vec<String>,
 }
 
-fn lang_conf(
-    string: char,
-    comment: (&str, &str),
-    inline_comment: &str,
-    identifiers: Vec<&str>,
-) -> SadLangConf {
-    SadLangConf {
-        string,
-        comment: (comment.0.to_string(), comment.1.to_string()),
-        inline_comment: inline_comment.to_string(),
-        identifiers: identifiers.iter().map(|s| s.to_string()).collect(),
+impl SadLangConf {
+    fn init() -> Self {
+        SadLangConf {
+            string: "".to_string(),
+            comment: ("su".to_string(), "le".to_string()),
+            inline_comment: "odod".to_string(),
+            identifiers: vec![],
+        }
+    }
+
+    fn string<S: ToString>(mut self, s: S) -> Self {
+        self.string = s.to_string();
+        self
+    }
+
+    fn comment<S: ToString>(mut self, s: S, e: S) -> Self {
+        self.comment = (s.to_string(), e.to_string());
+        self
+    }
+
+    fn inline_comment<S: ToString>(mut self, s: S) -> Self {
+        self.inline_comment = s.to_string();
+        self
+    }
+
+    fn identifier<S: ToString>(mut self, iden: S) -> Self {
+        self.identifiers.push(iden.to_string());
+        self
     }
 }
 
@@ -156,15 +173,31 @@ impl<'a> Parser<'a> {
     }
 
     fn is_string_start(&self, c: char) -> bool {
-        c == self.lang.string
+        let mut chars = self.lang.string.chars();
+        if chars.next() != Some(c) {
+            return false;
+        }
+        for (n, c) in chars.enumerate() {
+            if self.peek_nth(n) != Some(c) {
+                return false;
+            }
+        }
+        true
     }
 
     fn is_string_end(&self) -> bool {
-        self.peek() == self.lang.string
+        for (n, c) in self.lang.string.chars().enumerate() {
+            if self.peek_nth(n) != Some(c) {
+                return false;
+            }
+        }
+        true
     }
 
     fn string_end(&mut self) {
-        self.advance();
+        for _ in (self.lang.string).clone().chars() {
+            self.advance();
+        }
     }
 
     fn comment(&mut self) -> Token {
@@ -254,7 +287,7 @@ impl<'a> Parser<'a> {
     }
 
     fn peek_nth(&self, n: usize) -> Option<char> {
-        self.source.chars().nth(self.current + n - 1)
+        self.source.chars().nth(self.current + n)
     }
 
     fn make_token(&self, kind: TokenType) -> Token {
@@ -290,122 +323,155 @@ fn translate(token: Token) -> String {
 
 fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result<()> {
     let conf = match lang {
-        SadLang::Java => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "//",
-            vec![
-                "class",
-                "static",
-                "private",
-                "public",
-                "void",
-                "null",
-                "extends",
-                "implements",
-                "try",
-                "while",
-                "catch",
-                "finally",
-                "throw",
-                "throws",
-                "interface",
-                "if",
-                "else",
-                "return",
-                "new",
-            ],
-        ),
-        SadLang::Alloy => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "//", // and "--"
-            vec![
-                "abstract", "all", "and", "as", "assert", "but", "check", "disj", "else",
-                "exactly", "extends", "fact", "for", "fun", "iden", "iff", "implies", "in", "Int",
-                "let", "lone", "for", "fun", "iden", "iff", "implies", "in", "Int", "let", "lone",
-                "module", "no", "none", "not", "one", "open", "or", "pred", "run", "set", "sig",
-                "some", "sum", "univ",
-            ],
-        ),
-        SadLang::Erlang => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "//",
-            vec!["when", "case", "of", "end", "pred"],
-        ),
-        SadLang::Elixir => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "#",
-            vec![
-                "def",
-                "defmodule",
-                "defmacro",
-                "defstruct",
-                "quote",
-                "cond",
-                "true",
-                "false",
-                "nil",
-                "do",
-                "end",
-                "import",
-            ],
-        ),
-        SadLang::Haskell => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "//",
-            vec!["type", "data", "one", "lone", "pred"],
-        ),
-        SadLang::Javascript => lang_conf(
-            '"', // also '\''
-            ("/*", "*/"),
-            "//",
-            vec![
-                "const", "window", "for", "let", "await", "async", "of", "null", "if", "else",
-            ],
-        ),
-        SadLang::Rust => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "//",
-            vec!["struct", "impl", "mut", "self", "return", "fn"],
-        ),
-        SadLang::Tla => lang_conf(
-            '"',
-            ("/*", "*/"),
-            "\\*",
-            vec![
-                "\\A",
-                "\\E",
-                "\\in",
-                "\\X",
-                "\\union",
-                "\\div",
-                "EXCEPT",
-                "UNCHANGED",
-                "DOMAIN",
-                "LAMBDA",
-                "SUBSET",
-                "UNION",
-                "CHOOSE",
-                "VARIABLE",
-            ],
-        ),
-        SadLang::Text => SadLangConf {
-            string: '"',
-            comment: ("/*".to_string(), "*/".to_string()),
-            inline_comment: "//".to_string(),
-            identifiers: vec![],
-        },
-        SadLang::Sql => SadLangConf {
-            string: '\'',
-            comment: ("/*".to_string(), "*/".to_string()),
-            inline_comment: "//".to_string(),
-            identifiers: vec![],
-        },
+        SadLang::Java => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("class")
+            .identifier("static")
+            .identifier("private")
+            .identifier("public")
+            .identifier("void")
+            .identifier("null")
+            .identifier("extends")
+            .identifier("implements")
+            .identifier("try")
+            .identifier("while")
+            .identifier("catch")
+            .identifier("finally")
+            .identifier("throw")
+            .identifier("throws")
+            .identifier("interface")
+            .identifier("if")
+            .identifier("else")
+            .identifier("return")
+            .identifier("new"),
+        SadLang::Alloy => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("abstract")
+            .identifier("all")
+            .identifier("and")
+            .identifier("as")
+            .identifier("assert")
+            .identifier("but")
+            .identifier("check")
+            .identifier("disj")
+            .identifier("else")
+            .identifier("exactly")
+            .identifier("extends")
+            .identifier("fact")
+            .identifier("for")
+            .identifier("fun")
+            .identifier("iden")
+            .identifier("iff")
+            .identifier("implies")
+            .identifier("in")
+            .identifier("Int")
+            .identifier("let")
+            .identifier("lone")
+            .identifier("for")
+            .identifier("fun")
+            .identifier("iden")
+            .identifier("iff")
+            .identifier("implies")
+            .identifier("in")
+            .identifier("Int")
+            .identifier("let")
+            .identifier("lone")
+            .identifier("module")
+            .identifier("no")
+            .identifier("none")
+            .identifier("not")
+            .identifier("one")
+            .identifier("open")
+            .identifier("or")
+            .identifier("pred")
+            .identifier("run")
+            .identifier("set")
+            .identifier("sig")
+            .identifier("some")
+            .identifier("sum")
+            .identifier("univ"),
+        SadLang::Erlang => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("when")
+            .identifier("case")
+            .identifier("of")
+            .identifier("end")
+            .identifier("pred"),
+        SadLang::Elixir => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("#")
+            .identifier("def")
+            .identifier("defmodule")
+            .identifier("defmacro")
+            .identifier("defstruct")
+            .identifier("quote")
+            .identifier("cond")
+            .identifier("true")
+            .identifier("false")
+            .identifier("nil")
+            .identifier("do")
+            .identifier("end")
+            .identifier("import"),
+        SadLang::Haskell => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("type")
+            .identifier("data")
+            .identifier("one")
+            .identifier("lone")
+            .identifier("pred"),
+        SadLang::Javascript => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("const")
+            .identifier("window")
+            .identifier("for")
+            .identifier("let")
+            .identifier("await")
+            .identifier("async")
+            .identifier("of")
+            .identifier("null")
+            .identifier("if")
+            .identifier("else"),
+        SadLang::Rust => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("//")
+            .identifier("struct")
+            .identifier("impl")
+            .identifier("mut")
+            .identifier("self")
+            .identifier("return")
+            .identifier("fn"),
+        SadLang::Tla => SadLangConf::init()
+            .string('"')
+            .comment("/*", "*/")
+            .inline_comment("\\*")
+            .identifier("\\A")
+            .identifier("\\E")
+            .identifier("\\in")
+            .identifier("\\X")
+            .identifier("\\union")
+            .identifier("\\div")
+            .identifier("EXCEPT")
+            .identifier("UNCHANGED")
+            .identifier("DOMAIN")
+            .identifier("LAMBDA")
+            .identifier("SUBSET")
+            .identifier("UNION")
+            .identifier("CHOOSE")
+            .identifier("VARIABLE"),
+        SadLang::Text => SadLangConf::init(),
+        SadLang::Sql => SadLangConf::init(),
     };
     let mut parser = Parser::init(s.clone(), conf);
     loop {
@@ -477,7 +543,7 @@ mod test {
             "verified: set User, // Le service aura un set d'utilisateurs vérifiés\n",
             Alloy,
         )
-            .unwrap();
+        .unwrap();
         assert_eq!("verified: <span class=\"h-keyword\">set</span> User, <span class=\"h-comment\">// Le service aura un set d'utilisateurs vérifiés</span>\n", s.as_str());
     }
 
@@ -513,7 +579,7 @@ mod test {
             "      def unquote(:\"add_#{name}\")(addend), do: unquote(base_addend) + addend",
             Elixir,
         )
-            .unwrap();
+        .unwrap();
         assert_eq!("      <span class=\"h-keyword\">def</span> unquote(:<span class=\"h-string\">\"add_#{name}\"</span>)(addend), <span class=\"h-keyword\">do</span>: unquote(base_addend) + addend", s.as_str());
     }
 
