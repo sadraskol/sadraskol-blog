@@ -1,0 +1,293 @@
+title="removing duplicate items in postgres"
+publication_date="2022-10-11T20:00:12.431932265+00:00"
+language="en"
+---- sadraskol ----
+
+Unique indexes enforce uniqueness (as their name implies) of one or more column's value.
+For instance, let's have a unique shopping cart per user:
+
+``` sql
+=# create unique index uidx_shopping_carts_on_user_id on shopping_carts (user_id);
+```
+
+And that's it.
+With no data in the table, the index is created.
+Every user is have at most one shopping cart.
+When attempting at creating duplicates, you encounter the following:
+
+``` sql
+=# insert into shopping_carts(user_id) values (2), (2);
+
+ERROR:  duplicate key value violates unique constraint "uidx_shopping_carts_by_user_id"
+```
+
+Great value for the buck if you ask me.
+Your database acts as a failsafe if you cannot guarantee your consumers are good citizen.
+
+## Oupsy
+
+What if you have forgotten to create the index launching your feature?
+
+``` sql
+=# select user_id from shopping_carts order by user_id;
+
+ user_id 
+---------
+       1
+       2
+       2
+       3
+       4
+       5
+```
+
+Oupsy, 2 appears twice.
+This can be quite an issue.
+Three scenario can go wrong:
+
+- The user can see the wrong cart, leading to thing items are disappearing
+- Your data team has to apply heuristics to reunify the duplicates
+- Worst case: it leads to complex bugs, because everyone supposed shopping carts were unique
+
+Unfortunately postgresql cannot create the unique index as long as the duplicate items exists.
+You can try:
+
+``` sql
+=# create unique index uidx_shopping_carts_on_user_id on shopping_carts (user_id);
+
+ERROR:  could not create unique index "uidx_shopping_carts_by_user_id"
+```
+
+Your index is not created.
+First things first: how many duplicates do you have?
+Some self joining request does the trick:
+
+```sql
+=# select
+-=   count(*)
+-= from shopping_carts a
+-= join (select
+-=   user_id,
+-=   count(*)
+-= from shopping_carts
+-= group by user_id
+-= having count(*) > 1) as b
+-=   on b.user_id = a.user_id; 
+
+ count 
+-------
+ 76533
+```
+
+There's too much duplicates for a manual cleanup...
+Create a dashboard to track the duplicate injection rate.
+If your table already includes a `created_at` datetime, you can use a variation of the previous query:
+
+``` sql
+=# select
+-#   last_occurrence,
+-#   count(*)
+-# from shopping_carts a
+-# join (select
+-#   user_id,
+-#   max(date(created_at)) as last_occurrence,
+-#   count(*)
+-# from shopping_carts
+-# group by user_id
+-# having count(*) > 1) as b
+-#   on b.user_id = a.user_id
+-# group by last_occurrence
+-# order by last_occurrence DESC;
+
+ last_occurrence | count 
+-----------------+-------
+ 2022-09-13      |   193
+ 2022-09-12      |   484
+```
+
+This was you can verify the rate of duplicate creation and adapt your strategy.
+
+## Endpoint
+
+Let's consider your endpoint implements the following pseudo-java code:
+
+``` java
+public void create() {
+  insert().into("shopping_carts").values(...);
+}
+```
+
+Lets check the existence before creating:
+
+``` java
+public void create() {
+  if (!exists().shopping_carts().where(user_id: current_user_id)) {
+    insert().into("shopping_carts").values(...);
+  }
+}
+```
+
+This way no duplicate creation, right?
+You deploy and check the next day:
+
+``` sql
+ last_occurrence | count 
+-----------------+-------
+ 2022-09-14      |     8
+ 2022-09-13      |   193
+ 2022-09-12      |   484
+```
+
+Wait what?
+Still more duplicates!!!!
+
+## Transactions
+
+This is a race condition happening.
+Transaction are gonna help, but not directly.
+
+``` java
+public void create() {
+  within_transaction(() => {
+    if (!exists().shopping_carts().where(user_id: current_user_id)) {
+      insert().into("shopping_carts").values(...);
+    }
+  })
+}
+```
+
+You deploy this code and watch its effects:
+
+``` sql
+ last_occurrence | count 
+-----------------+-------
+ 2022-09-15      |    15
+ 2022-09-14      |     8
+ 2022-09-13      |   193
+ 2022-09-12      |   484
+```
+
+The problem is not solved.
+This is because transaction by default are isolated to `committed read` level.
+It's not a fatality, there is a solution to stop the bleeding: locks.
+
+Locks are usually managed by your database for operations like indexation, etc.
+You can also manually lock a row or a table.
+Locks are a very common way to create mutual exclusion.
+Mutual exclusion is preventing 2 process to access the same resource.
+
+In postgres you can lock rows or table using the `for udpate` keyword in a `select` query:
+
+
+``` java
+public void create() {
+  within_transaction(() => {
+    if (execute("select * from shopping_carts where user_id = ? for update;", current_user_id).empty()) {
+      insert().into("shopping_carts").values(...);
+    }
+  })
+}
+```
+
+You deploy and check the numbers the next day:
+
+``` sql
+ last_occurrence | count 
+-----------------+-------
+ 2022-09-16      |    11
+ 2022-09-15      |    15
+ 2022-09-14      |     8
+ 2022-09-13      |   193
+ 2022-09-12      |   484
+```
+
+Oupsy, the lock does not work?
+Because the `select` query returns no rows, no lock is upheld.
+We need to lock something **that exists**.
+Great thing that we have a unique user!
+
+``` java
+public void create() {
+  within_transaction(() => {
+    execute("select * from users where user_id = ? for update;", current_user_id);
+    if (!exists().shopping_carts().where(user_id: current_user_id)) {
+      insert().into("shopping_carts").values(...);
+    }
+  })
+}
+```
+
+Here the transation is finally helpful.
+The lock is released when the transaction is committed.
+You can deploy and see the result:
+
+``` sql
+ last_occurrence | count 
+-----------------+-------
+ 2022-09-16      |    11
+ 2022-09-15      |    15
+ 2022-09-14      |     8
+ 2022-09-13      |   193
+ 2022-09-12      |   484
+```
+
+No line for 2022-09-17: victory!
+We can now remove duplicates and setup the index.
+This can be a tough call.
+We used the default `updated_at` column to discriminate the right rows to delete:
+
+``` sql
+select
+  b.id
+from shopping_carts a
+join (select
+  user_id,
+  max(updated_at) AS last_updated_at
+from shopping_carts
+group by user_id
+having (count(*) > 1)) b
+  on a.patient_id = b.patient_id
+  and a.updated_at < b.last_updated_at
+```
+
+This way only the last updated rows remain.
+Let's check we can apply our unique index:
+
+```sql
+=# select
+-=   count(*)
+-= from shopping_carts a
+-= join (select
+-=   user_id,
+-=   count(*)
+-= from shopping_carts
+-= group by user_id
+-= having count(*) > 1) as b
+-=   on b.user_id = a.user_id; 
+
+ count 
+-------
+     0
+```
+
+Nice!
+
+## Conclusion
+
+I hope you learned some sql knowledge. Here are the main takeaway:
+
+1. Introduce unique constraints (or indexes) the soonest possible
+2. Learn some sql syntax to navigate easily in your database
+3. Transactions do **not** avoid race conditions
+
+Take care.
+
+---
+
+Bonus: what if i cannot lock a row?
+
+There's an alternative to check unicity.
+Remember that `read committed` isolation does not avoid race conditions?
+Well `serializable` can!
+It is a whole topic on its own that I won't cover here.
+Hit me up if you need more information.

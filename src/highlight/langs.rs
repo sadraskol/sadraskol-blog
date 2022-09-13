@@ -172,6 +172,10 @@ pub fn langs(lang: SadLang) -> SadLangConf {
         SadLang::Text => SadLangConf::init().no_numbers(),
         SadLang::Sql => SadLangConf::init()
             .string("'")
+            .identifier("create")
+            .identifier("unique")
+            .identifier("index")
+            .identifier("on")
             .identifier("select")
             .identifier("from")
             .identifier("inner")
