@@ -1,32 +1,26 @@
-title="removing duplicate items in postgres"
+title="Could not create unique index: how to solve duplication errors"
 publication_date="2022-10-11T20:00:12.431932265+00:00"
 language="en"
 ---- sadraskol ----
 
-Unique indexes enforce uniqueness (as their name implies) of one or more column's value.
+Unique indexes enforce uniqueness (as their name implies) of one or more columns' values.
 For instance, let's have a unique shopping cart per user:
 
 ``` sql
 =# create unique index uidx_shopping_carts_on_user_id on shopping_carts (user_id);
+
+ERROR:  could not create unique index "uidx_shopping_carts_by_user_id"
+DETAIL:  Key (user_id)=(2) is duplicated.
 ```
 
-And that's it.
-With no data in the table, the index is created.
-Every user is have at most one shopping cart.
-When attempting at creating duplicates, you encounter the following:
-
-``` sql
-=# insert into shopping_carts(user_id) values (2), (2);
-
-ERROR:  duplicate key value violates unique constraint "uidx_shopping_carts_by_user_id"
-```
-
-Great value for the buck if you ask me.
-Your database acts as a failsafe if you cannot guarantee your consumers are good citizen.
+Wow!
+What was that?
+It seems that the index can not be created: some existing rows already infringe the constraint.
 
 ## Oupsy
 
-What if you have forgotten to create the index launching your feature?
+Let's explore the data a bit.
+Can we spot culprits?
 
 ``` sql
 =# select user_id from shopping_carts order by user_id;
@@ -41,24 +35,16 @@ What if you have forgotten to create the index launching your feature?
        5
 ```
 
-Oupsy, 2 appears twice.
+Oupsy, "2" appears twice.
 This can be quite an issue.
-Three scenario can go wrong:
+It can go wrong for 3 reasons:
 
-- The user can see the wrong cart, leading to thing items are disappearing
+- The user can see the wrong cart, leading to items disappearing
 - Your data team has to apply heuristics to reunify the duplicates
-- Worst case: it leads to complex bugs, because everyone supposed shopping carts were unique
+- Worst case: it leads to complex bugs because everyone supposed shopping carts are unique
 
-Unfortunately postgresql cannot create the unique index as long as the duplicate items exists.
-You can try:
+Unfortunately, postgres cannot create a unique index as long as the duplicate items exist.
 
-``` sql
-=# create unique index uidx_shopping_carts_on_user_id on shopping_carts (user_id);
-
-ERROR:  could not create unique index "uidx_shopping_carts_by_user_id"
-```
-
-Your index is not created.
 First things first: how many duplicates do you have?
 Some self joining request does the trick:
 
@@ -79,7 +65,7 @@ Some self joining request does the trick:
  76533
 ```
 
-There's too much duplicates for a manual cleanup...
+There are too many duplicates for a manual cleanup...
 Create a dashboard to track the duplicate injection rate.
 If your table already includes a `created_at` datetime, you can use a variation of the previous query:
 
@@ -105,9 +91,10 @@ If your table already includes a `created_at` datetime, you can use a variation 
  2022-09-12      |   484
 ```
 
-This was you can verify the rate of duplicate creation and adapt your strategy.
+We have the duplicate rate per day.
+This is useful to check if our future fixes work.
 
-## Endpoint
+## Remove the root cause
 
 Let's consider your endpoint implements the following pseudo-java code:
 
@@ -117,7 +104,7 @@ public void create() {
 }
 ```
 
-Lets check the existence before creating:
+A quick fix is to check the existence of the row before creating it:
 
 ``` java
 public void create() {
@@ -144,7 +131,16 @@ Still more duplicates!!!!
 ## Transactions
 
 This is a race condition happening.
-Transaction are gonna help, but not directly.
+Two requests check and insert at the same time.
+
+|request 1|request 2|select count(*) from shopping_carts where id = 2|
+|---|---|---|
+|exists()... == false | - | 0 |
+| - | exists()... == false | 0 |
+| insert()... | - | 1 |
+| - | insert()... | 2 |
+ 
+Transactions are gonna help, but not directly.
 
 ``` java
 public void create() {
@@ -168,12 +164,14 @@ You deploy this code and watch its effects:
 ```
 
 The problem is not solved.
-This is because transaction by default are isolated to `committed read` level.
-It's not a fatality, there is a solution to stop the bleeding: locks.
+Transactions are configured to `committed read` isolation by default.
+If you replay the previous race condition under this isolation, you'll find no violation.
+Transactions do not avoid race conditions.
+Fortunately, there are tools to stop the bleeding: locks.
 
 Locks are usually managed by your database for operations like indexation, etc.
-You can also manually lock a row or a table.
-Locks are a very common way to create mutual exclusion.
+Locks are a common way to mutually exclude processes from shared resources.
+You can also manually lock a row.
 Mutual exclusion is preventing 2 process to access the same resource.
 
 In postgres you can lock rows or table using the `for udpate` keyword in a `select` query:
@@ -202,7 +200,7 @@ You deploy and check the numbers the next day:
 ```
 
 Oupsy, the lock does not work?
-Because the `select` query returns no rows, no lock is upheld.
+Because the `select` query returns no rows, so no lock is upheld.
 We need to lock something **that exists**.
 Great thing that we have a unique user!
 
@@ -217,7 +215,7 @@ public void create() {
 }
 ```
 
-Here the transation is finally helpful.
+Here the transaction is finally helpful.
 The lock is released when the transaction is committed.
 You can deploy and see the result:
 
@@ -232,9 +230,15 @@ You can deploy and see the result:
 ```
 
 No line for 2022-09-17: victory!
-We can now remove duplicates and setup the index.
-This can be a tough call.
-We used the default `updated_at` column to discriminate the right rows to delete:
+Next, we remove duplicates and create the unique index.
+
+## Removing duplicates
+
+Removing duplicates can be a touchy matter.
+I find the following heuristic true most of the time: the latest modified row is the most updated.
+Some frameworks automatically generate `updated_at` columns.
+This can be useful to apply the heuristic.
+We use `updated_at` column to discriminate the old rows to delete:
 
 ``` sql
 select
@@ -251,7 +255,7 @@ having (count(*) > 1)) b
 ```
 
 This way only the last updated rows remain.
-Let's check we can apply our unique index:
+Let's check if there's no duplicate left:
 
 ```sql
 =# select
@@ -272,22 +276,47 @@ Let's check we can apply our unique index:
 
 Nice!
 
+## Creating the unique index
+
+With no duplicate in the table left, we can create the index:
+
+``` sql
+=# create unique index uidx_shopping_carts_on_user_id on shopping_carts (user_id);
+```
+
+This time, there's no error.
+Every user has at most one shopping cart.
+When attempting to create duplicates, you encounter the following error:
+
+``` sql
+=# insert into shopping_carts(user_id) values (2), (2);
+
+ERROR:  duplicate key value violates unique constraint "uidx_shopping_carts_by_user_id"
+```
+
+No process can violate the business rule, even under race conditions!
+Great value for the buck if you ask me.
+
 ## Conclusion
 
-I hope you learned some sql knowledge. Here are the main takeaway:
+I hope you learned some sql knowledge. Here are the main takeaways:
 
-1. Introduce unique constraints (or indexes) the soonest possible
-2. Learn some sql syntax to navigate easily in your database
+1. Introduce unique constraints before you feed the data (this applies to other constraints)
+2. Learn some sql syntax to navigate easily in your data
 3. Transactions do **not** avoid race conditions
 
 Take care.
 
 ---
 
-Bonus: what if i cannot lock a row?
+Bonus: what if you cannot lock a row?
 
 There's an alternative to check unicity.
 Remember that `read committed` isolation does not avoid race conditions?
-Well `serializable` can!
+Well, `serializable` isolation can!
 It is a whole topic on its own that I won't cover here.
 Hit me up if you need more information.
+
+---
+
+PS: [Doctolib hires talented engineers to solve this kind of problems](https://refer.hellotrusty.io/YP1WLAS9Lm).
