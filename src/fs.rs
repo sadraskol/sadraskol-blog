@@ -62,12 +62,13 @@ struct SadHeader {
 }
 
 pub fn read_post(path: &Path) -> SadPost {
-    let s = fs::read_to_string(path).unwrap();
+    let s = fs::read_to_string(path).expect(&format!("no file to read at {:?}", path));
     let v: Vec<_> = s.split("---- sadraskol ----").collect();
-    let header: SadHeader = toml::from_str(v[0]).unwrap();
+    let header: SadHeader = toml::from_str(v[0]).expect("could not parse toml header");
     let content = v[1];
 
-    let date_time = Date::parse_from_rfc3339(header.publication_date.as_str()).unwrap();
+    let date_time = Date::parse_from_rfc3339(header.publication_date.as_str())
+        .expect("could not parse publication date");
 
     SadPost {
         title: header.title,
