@@ -1,5 +1,5 @@
 title="Could not create unique index: how to solve duplication errors"
-publication_date="2022-10-11T20:00:12.431932265+00:00"
+publication_date="2022-09-20:00:12.431932265+00:00"
 language="en"
 ---- sadraskol ----
 
@@ -17,7 +17,7 @@ Wow!
 What was that?
 It seems that the index can not be created: some existing rows already infringe the constraint.
 
-## Oupsy
+## Oopsy
 
 Let's explore the data a bit.
 Can we spot culprits?
@@ -35,7 +35,7 @@ Can we spot culprits?
        5
 ```
 
-Oupsy, "2" appears twice.
+Oopsy, "2" appears twice.
 This can be quite an issue.
 It can go wrong for 3 reasons:
 
@@ -199,7 +199,7 @@ You deploy and check the numbers the next day:
  2022-09-12      |   484
 ```
 
-Oupsy, the lock does not work?
+Oopsy, the lock does not work?
 Because the `select` query returns no rows, so no lock is upheld.
 We need to lock something **that exists**.
 Great thing that we have a unique user!
@@ -301,10 +301,12 @@ Great value for the buck if you ask me.
 
 I hope you learned some sql knowledge. Here are the main takeaways:
 
-1. Introduce unique constraints before you feed the data (this applies to other constraints)
-2. Learn some sql syntax to navigate easily in your data
-3. Transactions do **not** avoid race conditions
+1. Learn some sql syntax to navigate easily in your data
+2. Columns `created_at` and `updated_at` managed by your ORM are great tools for maintenance
+2. Transactions do **not** avoid race conditions
+3. Introduce unique constraints before you feed the data (this applies to other constraints)
 
+I had to solve a similar problem at work and [we are hiring talented engineers to solve this kind of problems](https://refer.hellotrusty.io/YP1WLAS9Lm).
 Take care.
 
 ---
@@ -316,7 +318,3 @@ Remember that `read committed` isolation does not avoid race conditions?
 Well, `serializable` isolation can!
 It is a whole topic on its own that I won't cover here.
 Hit me up if you need more information.
-
----
-
-PS: [Doctolib hires talented engineers to solve this kind of problems](https://refer.hellotrusty.io/YP1WLAS9Lm).
