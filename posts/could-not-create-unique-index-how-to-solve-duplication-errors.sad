@@ -250,7 +250,7 @@ join (select
 from shopping_carts
 group by user_id
 having (count(*) > 1)) b
-  on a.patient_id = b.patient_id
+  on a.user_id = b.user_id
   and a.updated_at < b.last_updated_at
 ```
 
