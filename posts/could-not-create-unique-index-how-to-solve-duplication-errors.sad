@@ -3,7 +3,8 @@ publication_date="2022-09-19T10:00:12.431932265+00:00"
 language="en"
 ---- sadraskol ----
 
-Unique indexes enforce uniqueness (as their name implies) of one or more columns' values.
+Unique indexes enforce the uniqueness (as their name implies) of one or more columns' values.
+They can guarantee one-to-one relationships in your model.
 For instance, let's have a unique shopping cart per user:
 
 ``` sql
@@ -41,7 +42,7 @@ It can go wrong for 3 reasons:
 
 - The user can see the wrong cart, leading to items disappearing
 - Your data team has to apply heuristics to reunify the duplicates
-- Worst case: it leads to complex bugs because everyone supposed shopping carts are unique
+- Worst case: it leads to complex bugs because everyone suppose shopping carts are unique
 
 Unfortunately, postgres cannot create a unique index as long as the duplicate items exist.
 
@@ -115,7 +116,7 @@ public void create() {
 ```
 
 This way no duplicate creation, right?
-You deploy and check the next day:
+You deploy and check the numbers the next day:
 
 ``` sql
  last_occurrence | count 
@@ -131,7 +132,7 @@ Still more duplicates!!!!
 ## Transactions
 
 This is a race condition happening.
-Two requests check and insert at the same time.
+Two requests check existence and insert at the same time.
 
 |request 1|request 2|select count(*) from shopping_carts where id = 2|
 |---|---|---|
@@ -172,9 +173,9 @@ Fortunately, there are tools to stop the bleeding: locks.
 Locks are usually managed by your database for operations like indexation, etc.
 Locks are a common way to mutually exclude processes from shared resources.
 You can also manually lock a row.
-Mutual exclusion is preventing 2 process to access the same resource.
+Mutual exclusion is preventing 2 processes to access the same resource.
 
-In postgres you can lock rows or table using the `for udpate` keyword in a `select` query:
+In postgres you can lock rows or tables using the `for udpate` keyword in a `select` query:
 
 
 ``` java
@@ -312,8 +313,9 @@ Take care.
 ---
 
 Bonus: what if you cannot lock a row?
+You can guarantee unicity outside of a one-to-one relationship.
 
-There's an alternative to check unicity.
+There's an alternative to locking to check unicity.
 Remember that `read committed` isolation does not avoid race conditions?
 Well, `serializable` isolation can!
 It is a whole topic on its own that I won't cover here.
