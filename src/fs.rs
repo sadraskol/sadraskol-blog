@@ -62,7 +62,7 @@ struct SadHeader {
 }
 
 pub fn read_post(path: &Path) -> SadPost {
-    let s = fs::read_to_string(path).expect(&format!("no file to read at {:?}", path));
+    let s = fs::read_to_string(path).unwrap_or_else(|_| panic!("no file to read at {:?}", path));
     let v: Vec<_> = s.split("---- sadraskol ----").collect();
     let header: SadHeader = toml::from_str(v[0]).expect("could not parse toml header");
     let content = v[1];
@@ -75,6 +75,5 @@ pub fn read_post(path: &Path) -> SadPost {
         language: header.language,
         publication_date: date_time,
         saddown_content: Markdown::new(content),
-        image: header.image,
     }
 }

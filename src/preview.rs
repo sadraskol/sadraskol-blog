@@ -39,9 +39,7 @@ fn post_page(slugs: String) -> (ContentType, String) {
         .find(|p| slugify(&p.title) == slugs)
         .expect("no post");
     let page = PostTemplate {
-        has_image: post.image.is_some(),
-        image: post.image.as_deref().unwrap_or(""),
-        title: &post.title.clone(),
+        title: &post.title,
         publication_date: &post.publication_date.human_format(&post.language),
         back_link: "/",
         raw_content: &post.saddown_content.format(),

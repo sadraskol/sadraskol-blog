@@ -2,8 +2,9 @@
 extern crate rocket;
 extern crate askama;
 
-use std::io::Write;
+use std::io::{BufRead, Write};
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use askama::Template;
 
@@ -41,8 +42,6 @@ fn gen_feed(posts: &[SadPost]) {
 
 fn gen_post(post: &SadPost) {
     let page = PostTemplate {
-        has_image: post.image.is_some(),
-        image: post.image.as_deref().unwrap_or(""),
         title: &post.title.clone(),
         publication_date: &post.publication_date.human_format(&post.language),
         back_link: "/",
@@ -138,6 +137,45 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 && args[1] == "preview" {
         preview::server().await;
+    } else if args[1] == "publish" {
+        let now = Date::now();
+        let posts_files = std::fs::read_dir("posts").unwrap();
+        let drafts: Vec<_> = posts_files
+            .flat_map(|post| post.map(|p| p.path()))
+            .map(|p| read_post(p.as_path()))
+            .filter(|p| p.publication_date > now)
+            .collect();
+        if drafts.is_empty() {
+            println!("no draft to publish");
+        } else {
+            println!("Choose the draft to publish:");
+            for (i, draft) in drafts.iter().enumerate() {
+                println!("\t{}: {}", i, draft.title);
+            }
+            let stdin = std::io::stdin();
+            let mut buf = String::new();
+            stdin.lock().read_line(&mut buf).unwrap();
+            let i = usize::from_str(buf.to_string().trim()).unwrap();
+            let mut draft: SadPost = drafts[i].clone();
+            draft.publication_date = now;
+
+            let mut f = std::fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(format!("posts/{}.sad", slugify(&draft.title)))
+                .unwrap();
+
+            writeln!(f, "title=\"{}\"", draft.title).unwrap();
+            writeln!(
+                f,
+                "publication_date=\"{}\"",
+                draft.publication_date.to_rfc3339()
+            )
+            .unwrap();
+            writeln!(f, "language=\"{}\"", draft.language).unwrap();
+            writeln!(f, "---- sadraskol ----").unwrap();
+            writeln!(f, "{}", draft.saddown_content.raw()).unwrap();
+        }
     } else if args.len() > 1 && args[1] == "drafts" {
         let now = Date::now();
         let posts_files = std::fs::read_dir("posts").unwrap();
@@ -213,11 +251,12 @@ async fn main() {
         std::fs::remove_file(&from_file).unwrap();
     } else {
         println!("Help sadraskol blog cli");
-        println!("\thelp - print this help");
-        println!("\tgen - generate static site in dist/");
         println!("\tdrafts - list posts not published yet");
-        println!("\tnew [title] - new article with title [title]");
+        println!("\tgen - generate static site in dist/");
+        println!("\thelp - print this help");
         println!("\tmv [from] [dest] - move [from](slug) article to [dest] title, with correct redirects");
+        println!("\tnew [title] - new article with title [title]");
         println!("\tpreview - open firefox to display a live reloading preview of articles");
+        println!("\tpublish - tool to include some draft in the next release");
     }
 }

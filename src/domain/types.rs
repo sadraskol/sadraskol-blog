@@ -25,12 +25,16 @@ impl Markdown {
         sad_push_html(&mut html_output, &mut parser);
         html_output
     }
+
+    pub fn raw(&self) -> &str {
+        &self.raw
+    }
 }
 
+#[derive(Clone)]
 pub struct SadPost {
     pub title: String,
     pub language: String,
     pub publication_date: Date,
     pub saddown_content: Markdown,
-    pub image: Option<String>,
 }

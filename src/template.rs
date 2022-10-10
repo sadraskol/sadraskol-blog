@@ -34,8 +34,6 @@ impl PostSummaryView {
 #[template(path = "index.html")]
 pub struct IndexTemplate<'a> {
     pub title: &'a str,
-    pub has_image: bool,
-    pub image: &'a str,
     pub posts: Vec<PostSummaryView>,
 }
 
@@ -43,8 +41,6 @@ impl<'a> IndexTemplate<'a> {
     pub fn new(posts: Vec<PostSummaryView>) -> Self {
         IndexTemplate {
             title: "Sadraskol",
-            has_image: false,
-            image: "",
             posts,
         }
     }
@@ -54,8 +50,6 @@ impl<'a> IndexTemplate<'a> {
 #[template(path = "post.html")]
 pub struct PostTemplate<'a> {
     pub title: &'a str,
-    pub has_image: bool,
-    pub image: &'a str,
     pub publication_date: &'a str,
     pub back_link: &'a str,
     pub raw_content: &'a str,

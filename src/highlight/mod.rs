@@ -20,7 +20,7 @@ pub enum SadLang {
 }
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {
-    highlight_lang(&mut w, &s, l)
+    highlight_lang(&mut w, s, l)
 }
 
 pub struct SadLangConf {
@@ -332,9 +332,9 @@ fn translate(token: Token) -> String {
     }
 }
 
-fn highlight_lang<W: StrWrite>(w: &mut W, s: &&str, lang: SadLang) -> io::Result<()> {
+fn highlight_lang<W: StrWrite>(w: &mut W, s: &str, lang: SadLang) -> io::Result<()> {
     let conf = langs::langs(lang);
-    let mut parser = Parser::init(s.clone(), conf);
+    let mut parser = Parser::init(s, conf);
     loop {
         let token = parser.scan_token();
 
