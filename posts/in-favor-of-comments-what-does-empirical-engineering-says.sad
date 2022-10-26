@@ -1,0 +1,173 @@
+title="In favor of comments, what does empirical engineering says?"
+publication_date="2022-10-26T19:56:54.746907268+00:00"
+language="en"
+---- sadraskol ----
+
+
+Okay so what's up with comments?
+Devs seem to hate them.
+Infamous Cleanest Coders do not write comments, right?
+
+I disagree.
+I think comments are great.
+A good comment can make my day wonderful.
+Look at [all these beauties](https://blog.regehr.org/archives/1653)!
+
+But this is only opinion against opinion.
+Even if I'm not the only one advocating for [writing comments](https://buttondown.email/hillelwayne/archive/comment-the-why-and-the-what/),
+it's still unfounded opinions.
+Can we find evidence that commenting is good?
+
+## Quick Overview
+
+Thankfully for me, there's a lot of research on the subject.
+A quick search in [Empirical Software Engineering](https://link.springer.com/search/page/1?query=comment&search-within=Journal&facet-journal-id=10664)
+yields 44 pages of results!
+
+Most of the articles are positive towards commenting code.
+This [one](https://link.springer.com/article/10.1007/s10664-019-09730-9) states that:
+
+> Existing studies show that code comments help developers comprehend programs and reduce additional time spent on reading and navigating source code.
+
+Unfortunately, I have to pay 40 euros to have access to it...
+This is extortion.
+There's an [open-access article](https://link.springer.com/article/10.1007/s10664-021-09981-5#auth-Pooja-Rani)
+with a lot of references.
+I use it as a starting point.
+
+## The Papers
+
+Firstly, i'll skim through all the papers.
+Then i'll devise a documented opinion on the matter.
+
+### Documentation Reuse: Hot or Not? An Empirical Study [1]
+
+Documentation is crucial for software development.
+It helps understand other people's code, without reading it.
+This is critical for libraries.
+Imagine having to choose between a well-documented library and some library without documentation.
+
+Also, engineers prefer writing the documentation close to the code.
+So comments are the most obvious way to write documentation.
+
+These are great but the studies' core subject is comment reuse in object-oriented languages.
+This is not what i'm looking for.
+
+This paper is an excellent pointer to other references though.
+
+### An Empirical Investigation on Documentation Usage Patterns in Maintenance Tasks [2]
+
+This article is promising at first: analyzing the process of how developers analyze code.
+It is a weak article for me: it only evaluates students.
+
+It shows that they went back and forth between the code and the documentation.
+That's it...
+
+### Quality Analysis of Source Code Comments [3]
+
+This paper suggests that 2 types of comments are bad:
+
+- short comments that can be extracted as methods
+- comments with not enough information: what does it mean?
+
+It has a great _survey question_ section to see what was evaluated:
+
+Survey 1:
+1. Does the comment provide additional information from the method name?
+2. The method name is meaningful?
+
+Survey 2: What to do with the comment?
+1. Remove it, and do not change the code
+2. Remove it, extract the following code in a meaningful method
+3. Keep the comment
+
+Survey 3:
+1. The comment contains information that can not be extracted from the following code
+2. The comment contains only information that can be extracted from the following code
+
+This paper does not discuss much how this taxonomy helps understand comments.
+Which is quite disappointing...
+They used a magical metric (_c_coeff_) to know if comments were good or not.
+
+I don't know what to think about this paper.
+I either read it too quickly or it's not interesting, but I couldn't extract useful information.
+
+### The Effect of Modularization and Comments on Program Comprehension [4]
+
+This study is good.
+48 experienced programmers are given a random piece of code.
+The code is either commented or not.
+The participants have to answer 20 questions about the code.
+If the code had comments, participants answers more correctly.
+
+The experiment is an easy task.
+It's the best experiment showing that commented code is better than uncommented code.
+
+This experiment was reproduced with concording results in [a later study](http://reflect.otago.ac.nz/cosc345/resources/Read-Ex-1.pdf)
+
+Note: according to the last paper's surveys, comments in these studies are:
+
+1. Provide more information than the method names
+2. Only contain information that can be extracted from the following code
+
+This is interesting because one might think only external context could be useful.
+
+### On the Comprehension of Program Comprehension [5]
+
+Combined observation of 28 professional devs and survey of 1477 respondents.
+This study is on program comprehension.
+Many studies already tackle the subject before but with smaller samples.
+
+The result of the study: developers use informal tools to get knowledge.
+They prefer code comments, commit messages, emails, tickets, etc.
+The appropriate knowledge is usually not documented.
+
+I haven't learned much from this paper :shrug:
+
+### A Study of the Documentation Essential to Software Maintenance [6]
+
+This study is pretty good.
+Its scope is limited which makes it simple to read and understand.
+It surveys the artifact used by developers to maintain software.
+
+It would be great if this study was reproduced.
+It does not prove much but: devs use all sorts of documentation.
+
+The four most important artifacts are:
+
+1. Source code
+2. Comments
+3. Data model
+4. Requirement Description
+
+It does not say which is best.
+It does say one thing though: documentation is key for maintenance.
+
+## Conclusions
+
+My conclusion is: **not much can be said about comments**.
+Most studies suffer from flaws: either unreproduced results ([6], [5], etc.), old studies ([4]), small or non-representative samples ([2]), contradicting results ([3] and [4]), etc.
+None is strong and all are open to interpretation.
+
+It does not mean that _nothing_ can be said.
+Every paper shows that comments are **useful**.
+They are part of documentation which helps **comprehension**.
+
+All the following sentences are **not** supported by science:
+
+- Code comments are useless
+- There's a better way of writing comments
+- Comments get outdated and make software difficult to maintain
+- A comment that could be a method is a bad smell
+
+Nevertheless, the studies are pretty clear on one thing: comments are good.
+They are a form of documentation which are the closest to the code.
+
+The studies do not say what kind of comments are the most useful.
+Until the facts are settled, you'll still have to discuss it with your team.
+Please do.
+Discuss comments with your teammates.
+Agree on how to write comments to make sure you do write them.
+
+Take care.
+
