@@ -5,8 +5,7 @@ set -e
 sudo apt update -y
 sudo apt install -y nginx certbot python3-certbot-nginx
 
-mkdir /home/ubuntu/blog
-sudo chown ubuntu:ubuntu /home/ubuntu/blog
+sudo -u ubuntu mkdir /home/ubuntu/blog
 
 echo "<!doctype html>
 <html lang=\"en\">
@@ -258,8 +257,7 @@ echo "<!doctype html>
 </div>
 </body>
 </html>
-" | tee /home/ubuntu/blog/index.html
-sudo chown ubuntu:ubuntu /home/ubuntu/blog/index.html
+" | sudo -u ubuntu tee /home/ubuntu/blog/index.html
 
 echo "server {
     root /home/ubuntu/blog;
@@ -304,6 +302,7 @@ http {
     include /etc/nginx/sites-enabled/*;
 }" | sudo tee /etc/nginx/nginx.conf
 
+sudo gpasswd -a www-data ubuntu
 sudo systemctl restart nginx
 
 # Wait for the DNS to be refreshed before setting up https
