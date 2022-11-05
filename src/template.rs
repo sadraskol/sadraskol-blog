@@ -60,3 +60,9 @@ pub struct PostTemplate<'a> {
 pub struct FeedTemplate {
     pub posts: Vec<PostSummaryView>,
 }
+
+#[derive(Template)]
+#[template(path = "about.html")]
+pub struct AboutTemplate<'a> {
+    pub title: &'a str,
+}
