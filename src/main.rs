@@ -12,7 +12,7 @@ use crate::domain::date::Date;
 use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
 use crate::fs::{read_post, FileDiff};
-use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
+use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate, AboutTemplate};
 
 mod custom_markdown;
 mod domain;
@@ -20,6 +20,13 @@ mod fs;
 mod highlight;
 mod preview;
 mod template;
+
+fn gen_about() {
+    let html: String = AboutTemplate::new().render().unwrap();
+
+    let mut file = FileDiff::new("dist/about/index.html");
+    file.write_diff(html);
+}
 
 fn gen_home(posts: &[SadPost]) {
     let v: Vec<_> = posts.iter().map(PostSummaryView::for_human).collect();
@@ -124,6 +131,7 @@ fn gen() {
     posts.reverse();
 
     gen_home(&posts);
+    gen_about();
     gen_feed(&posts);
     gen_posts(&posts);
 

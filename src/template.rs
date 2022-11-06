@@ -61,6 +61,14 @@ pub struct FeedTemplate {
     pub posts: Vec<PostSummaryView>,
 }
 
+impl<'a> AboutTemplate<'a> {
+    pub fn new() -> Self {
+        AboutTemplate {
+            title: "Sadraskol - About Me",
+        }
+    }
+}
+
 #[derive(Template)]
 #[template(path = "about.html")]
 pub struct AboutTemplate<'a> {

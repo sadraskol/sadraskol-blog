@@ -1,4 +1,4 @@
-use crate::{read_post, slugify, IndexTemplate, PostSummaryView, PostTemplate, SadPost};
+use crate::{read_post, slugify, AboutTemplate, IndexTemplate, PostSummaryView, PostTemplate, SadPost};
 use askama::Template;
 use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use rocket::fairing::AdHoc;
@@ -10,6 +10,13 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::time::Duration;
+
+#[get("/about")]
+fn about_page() -> (ContentType, String) {
+    let html: String = AboutTemplate::new().render().unwrap();
+
+    (ContentType::HTML, introduce_script(html))
+}
 
 #[get("/")]
 fn home_page() -> (ContentType, String) {
@@ -112,7 +119,7 @@ pub async fn server() {
     };
 
     rocket::build()
-        .mount("/", routes![home_page, post_page, img, favicon, changes])
+        .mount("/", routes![about_page, home_page, post_page, img, favicon, changes])
         .manage(reload)
         .configure(r)
         .attach(AdHoc::on_liftoff("reload_fairing", |r| {
