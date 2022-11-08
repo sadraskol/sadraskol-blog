@@ -305,9 +305,6 @@ http {
 sudo gpasswd -a www-data ubuntu
 sudo systemctl restart nginx
 
-# Wait for the DNS to be refreshed before setting up https
-sleep 400
-
 sudo certbot --nginx -d sadraskol.com -d www.sadraskol.com -n -m thchblog@gmail.com --agree-tos
 
 echo "[Unit]
@@ -336,5 +333,5 @@ Persistent=true
 WantedBy=timers.target" | sudo tee /etc/systemd/system/certbot-renew.timer
 
 sudo systemctl daemon-reload
-sudo start certbot-renew.service
-sudo start certbot-renew.timer
+sudo systemctl start certbot-renew.service
+sudo systemctl start certbot-renew.timer
