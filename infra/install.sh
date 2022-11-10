@@ -264,10 +264,7 @@ echo "server {
     index index.html;
     server_name sadraskol.com www.sadraskol.com;
 }
-server {
-    server_name sadraskol.com www.sadraskol.com;
-    listen 80;
-}" | sudo tee /etc/nginx/sites-available/default
+" | sudo tee /etc/nginx/sites-available/default
 
 echo "user www-data;
 worker_processes auto;
@@ -300,7 +297,8 @@ http {
 
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;
-}" | sudo tee /etc/nginx/nginx.conf
+}
+" | sudo tee /etc/nginx/nginx.conf
 
 sudo gpasswd -a www-data ubuntu
 sudo systemctl restart nginx
