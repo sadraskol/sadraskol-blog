@@ -1,4 +1,6 @@
 #!/bin/bash
 
 cargo run gen
-rsync -r dist/ sadraskol:/home/ubuntu/blog
+rm -f dist.tar.gz
+tar -czf dist.tar.gz dist/
+aws s3 cp --acl="public-read" dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz

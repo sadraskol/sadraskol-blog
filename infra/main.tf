@@ -15,8 +15,8 @@ provider "aws" {
 # KEY PAIR
 #
 resource "aws_key_pair" "deployer" {
-  key_name    = "lenovo"
-  public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaZodWDzevJd2iwbRwURODC3/WEIjCQ1hv+Q81xVj0JLN4B4ZAdM+6L1eeR6rqpKK48AZbi3ExdF3l663QUxC4BJjQJhUQQVrT/UNnexR2vpsDYSCkozeyvyiBk0ppX//bxbtQStRcsgEHBP0mRYIuVL9NvBkFXePIUE+HCkz0UpMP5jt4hroqRMborXFjytdjnNmS8wCSM6/dunoiWKlE9eEDgwMmkSejBSTPLyhIhcdIZfU1vpH+XDC+NDuRonYbJ4vjdO/IxabVCcWu/1bjHvuA2Ihdp8eKxGhmJRbDz87txx8yZ5eIhvyWEXqmYFS6xHOjNvM9y9Gcji2crT/7 lenovo"
+  key_name   = "lenovo"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaZodWDzevJd2iwbRwURODC3/WEIjCQ1hv+Q81xVj0JLN4B4ZAdM+6L1eeR6rqpKK48AZbi3ExdF3l663QUxC4BJjQJhUQQVrT/UNnexR2vpsDYSCkozeyvyiBk0ppX//bxbtQStRcsgEHBP0mRYIuVL9NvBkFXePIUE+HCkz0UpMP5jt4hroqRMborXFjytdjnNmS8wCSM6/dunoiWKlE9eEDgwMmkSejBSTPLyhIhcdIZfU1vpH+XDC+NDuRonYbJ4vjdO/IxabVCcWu/1bjHvuA2Ihdp8eKxGhmJRbDz87txx8yZ5eIhvyWEXqmYFS6xHOjNvM9y9Gcji2crT/7 lenovo"
 }
 
 #
@@ -94,7 +94,7 @@ resource "aws_eip" "lb" {
 
 output "lb_pulic_ip" {
   description = "Public IP address of the EC2 instance"
-  value = aws_eip.lb.public_ip
+  value       = aws_eip.lb.public_ip
 }
 
 #
@@ -164,4 +164,26 @@ resource "aws_route53_record" "soa" {
   records = [
     "ns-389.awsdns-48.com. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400"
   ]
+}
+
+#
+# S3 for deployment
+#
+resource "aws_s3_bucket" "deploy_bucket" {
+  bucket = "deploy.sadraskol.com"
+
+  tags = {
+    Name = "sadraskol deploy"
+  }
+}
+
+resource "aws_s3_bucket_acl" "acl" {
+  bucket = aws_s3_bucket.deploy_bucket.id
+  acl = "private"
+}
+
+resource "aws_s3_object" "dist" {
+  bucket = aws_s3_bucket.deploy_bucket.id
+  key = "dist.tar.gz"
+  acl = "public-read"
 }

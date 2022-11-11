@@ -330,6 +330,46 @@ Persistent=true
 [Install]
 WantedBy=timers.target" | sudo tee /etc/systemd/system/certbot-renew.timer
 
+echo '#!/usr/bin/bash
+set -e
+remote=$(curl -I https://s3.eu-west-3.amazonaws.com/deploy.sadraskol.com/dist.tar.gz | grep ETag)
+touch dist.etag
+if [[ "$remote" != "$(cat dist.etag)" ]]; then
+    echo $remote > dist.etag
+    curl https://s3.eu-west-3.amazonaws.com/deploy.sadraskol.com/dist.tar.gz --output dist.tar.gz
+    tar xfz dist.tar.gz
+    mv dist blog
+fi
+' | sudo -u ubuntu tee /home/deploy/update-sadraskol.sh
+
+sudo chmod +x /home/deploy/update-sadraskol.sh
+
+echo "[Unit]
+Description=Sadraskol Deploy Check
+Wants=sadraskol.timer
+
+[Service]
+User=ubuntu
+Type=oneshot
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/update-sadraskol.sh
+
+[Install]
+WantedBy=multi-user.target" | sudo tee /etc/systemd/system/sadraskol.service
+
+
+echo "[Unit]
+Description=Minutely Sadraskol Check
+
+[Timer]
+OnCalendar=minutely
+Persistent=true
+
+[Install]
+WantedBy=timers.target" | sudo tee /etc/systemd/system/sadraskol.timer
+
 sudo systemctl daemon-reload
 sudo systemctl start certbot-renew.service
 sudo systemctl start certbot-renew.timer
+sudo systemctl start sadraskol.service
+sudo systemctl start sadraskol.timer
