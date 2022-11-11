@@ -319,7 +319,6 @@ ExecStart=/usr/bin/systemctl restart nginx
 [Install]
 WantedBy=multi-user.target" | sudo tee /etc/systemd/system/certbot-renew.service
 
-
 echo "[Unit]
 Description=Daily Certbot renew
 
@@ -338,11 +337,13 @@ if [[ "$remote" != "$(cat dist.etag)" ]]; then
     echo $remote > dist.etag
     curl https://s3.eu-west-3.amazonaws.com/deploy.sadraskol.com/dist.tar.gz --output dist.tar.gz
     tar xfz dist.tar.gz
+    rm -rf blog
     mv dist blog
+    rm dist.tar.gz
 fi
-' | sudo -u ubuntu tee /home/deploy/update-sadraskol.sh
+' | sudo -u ubuntu tee /home/ubuntu/update-sadraskol.sh
 
-sudo chmod +x /home/deploy/update-sadraskol.sh
+sudo chmod +x /home/ubuntu/update-sadraskol.sh
 
 echo "[Unit]
 Description=Sadraskol Deploy Check
@@ -356,7 +357,6 @@ ExecStart=/home/ubuntu/update-sadraskol.sh
 
 [Install]
 WantedBy=multi-user.target" | sudo tee /etc/systemd/system/sadraskol.service
-
 
 echo "[Unit]
 Description=Minutely Sadraskol Check
