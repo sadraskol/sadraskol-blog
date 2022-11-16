@@ -1,0 +1,77 @@
+title="Reading Notes: Learning Chaos Engineering"
+publication_date="2022-11-16T00:00:26.920656851+00:00"
+language="en"
+---- sadraskol ----
+
+Chaos Engineering was introduced at Netflix to test the reliability of their platform.
+It has since gained traction in large tech companies.
+On the surface, it consists of injecting faults and verifying that everything goes according to plan.
+There's a lot more to it.
+In [Learning Chaos Engineering](https://www.oreilly.com/library/view/learning-chaos-engineering/9781492050995/),
+[Russ Miles](https://twitter.com/russmiles) introduces the discipline through the practical approach.
+
+## Software system
+
+Chaos engineering subject is the software system.
+It consists of the infrastructure, the platform, the application, and the process/people.
+
+![Software consists of 4 parts: application, platform, infrastructure and the process and people](/img/software-system.png)
+
+Chaos engineering can test each of these aspects.
+
+Following the Chaos Learning Loop, you can learn a lot on your system.
+It consists of the following steps:
+
+1. **Explore**: list hypothesis on your system ("Can it fail when an availability zone is down?", "Can we put the system back on its feet when Alice is not here?", etc.)
+2. **Discover**: experiment on your system
+3. **Analyze**: the results might confirm your hypothesis or not
+4. **Improve**: introduce remediation measures
+5. **Validate**: test your remediation measures
+6. **Repeat**: go back to step 1
+
+The book presents multiple examples of how to run this loop.
+It also suggests multiple approaches to run each step correctly.
+
+First, you need to collect hypotheses.
+Most likely you won't have a single hypothesis.
+And since everyone will have an idea, you need to prioritize.
+I would think a RICE would be good enough.
+Russ suggests using an even simpler format: likelihood vs impact.
+
+Once you have a hypothesis log, let's learn more about your system!
+But not in a chaotic way.
+Chaos engineering emphasizes applying a scientific approach.
+
+- Describe the steady-state hypothesis: metrics that make sure the system behaves normally
+- The turbulent condition-inducing agent: it create chaos in your system
+- The mitigation measures to stop the chaotic agent
+- Experiment reporting: a way to track what happened during the experiment
+
+Once you conceive all these tools, let's play the experiment.
+
+Firstly, check the steady-state hypothesis.
+If it's not normal, it means that your system is already not behaving as you expected.
+Abort the experiment and think about your hypothesis again.
+
+Secondly, Introduce the chaotic agent.
+Your reporting measures the steady-state hypothesis until the agent is done.
+
+Finally, you have a report in your hands that you can pass to your analysis step.
+
+## Conclusion
+
+Chaos Engineering is empirical engineering at its best.
+It is not magic thinking.
+It confronts hypotheses and plans to reality.
+Yet, it's not chaotic, it's very organized and disciplined!
+
+The book uses a lot the word "turbulent".
+Turbulence appears when systems are under high constraints, which is not the case for every company.
+This technique took off in big companies, where reliability is key.
+
+Our way of building software can benefit from the philosophy of Chaos engineering.
+It would advocate for "Just Enough Design" and empirical approaches.
+Instead of solving virtual issues, you first measure to prove problems exist.
+Only then can you think of solutions to mitigate them.
+
+Take care.

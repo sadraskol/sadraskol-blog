@@ -4,3 +4,4 @@ cargo run gen
 rm -f dist.tar.gz
 tar -czf dist.tar.gz dist/
 aws s3 cp --acl="public-read" dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz
+rm -rf dist.tar.gz dist/
