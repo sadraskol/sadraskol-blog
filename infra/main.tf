@@ -121,7 +121,9 @@ resource "aws_route53_record" "txt" {
   ttl     = "300"
   records = [
     "google-site-verification=zRcg7ny_ovzu8LbHhnepZuD_geb6_4TKmT6dpTxrYeQ",
-    "keybase-site-verification=VjoXVCDQAZRhDYShuqrzDgj0IQoF4V0sRMzZwc9nA34"
+    "keybase-site-verification=VjoXVCDQAZRhDYShuqrzDgj0IQoF4V0sRMzZwc9nA34",
+    "protonmail-verification=577c04355c422286497bca6d5bbefede3b812708",
+    "v=spf1 include:_spf.protonmail.ch mx ~all"
   ]
 }
 
@@ -143,6 +145,20 @@ resource "aws_route53_record" "www" {
   ]
 }
 
+resource "aws_route53_record" "proton" {
+  for_each = {
+    protonmail : "protonmail.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
+    protonmail2 : "protonmail2.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
+    protonmail3 : "protonmail3.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch."
+  }
+
+  zone_id  = aws_route53_zone.zone.zone_id
+  name     = "${each.key}.sadraskol.com"
+  type     = "CNAME"
+  ttl      = "3600"
+  records = [ each.value ]
+}
+
 resource "aws_route53_record" "ns" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = "sadraskol.com"
@@ -153,6 +169,17 @@ resource "aws_route53_record" "ns" {
     "ns-754.awsdns-30.net.",
     "ns-1575.awsdns-04.co.uk.",
     "ns-1495.awsdns-58.org."
+  ]
+}
+
+resource "aws_route53_record" "mx" {
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = "sadraskol.com"
+  type    = "MX"
+  ttl     = "3600"
+  records = [
+    "10 mail.protonmail.ch",
+    "20 mailsec.protonmail.ch"
   ]
 }
 
@@ -179,11 +206,11 @@ resource "aws_s3_bucket" "deploy_bucket" {
 
 resource "aws_s3_bucket_acl" "acl" {
   bucket = aws_s3_bucket.deploy_bucket.id
-  acl = "private"
+  acl    = "private"
 }
 
 resource "aws_s3_object" "dist" {
   bucket = aws_s3_bucket.deploy_bucket.id
-  key = "dist.tar.gz"
-  acl = "public-read"
+  key    = "dist.tar.gz"
+  acl    = "public-read"
 }
