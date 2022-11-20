@@ -152,11 +152,11 @@ resource "aws_route53_record" "proton" {
     protonmail3 : "protonmail3.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch."
   }
 
-  zone_id  = aws_route53_zone.zone.zone_id
-  name     = "${each.key}.sadraskol.com"
-  type     = "CNAME"
-  ttl      = "3600"
-  records = [ each.value ]
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = "${each.key}.sadraskol.com"
+  type    = "CNAME"
+  ttl     = "3600"
+  records = [each.value]
 }
 
 resource "aws_route53_record" "ns" {
@@ -213,4 +213,61 @@ resource "aws_s3_object" "dist" {
   bucket = aws_s3_bucket.deploy_bucket.id
   key    = "dist.tar.gz"
   acl    = "public-read"
+}
+
+#
+# OpenID Connect provider
+#
+resource "aws_iam_openid_connect_provider" "default" {
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = ["gh-deploy"]
+
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+}
+
+resource "aws_iam_role" "deploy_role" {
+  name = "deploy_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "policy" {
+  name        = "deploy-policy"
+  description = "Deploy policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = ["s3:PutObject"]
+        Effect = "Allow"
+        Resource = [
+          "${aws_s3_bucket.deploy_bucket.arn}/*"
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "deploy-attach" {
+  role       = aws_iam_role.deploy_role.name
+  policy_arn = aws_iam_policy.policy.arn
+}
+
+output "deploy_iam_arn" {
+  description = "IAM deploy role arn"
+  value       = aws_iam_role.deploy_role.arn
 }

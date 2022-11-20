@@ -57,6 +57,9 @@ jobs:
   publish:
     needs: [check, test]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -81,3 +84,13 @@ jobs:
 
       - name: tar
         run: tar -czf dist.tar.gz dist/
+
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          audience: gh-deploy
+          role-to-assume: arn:aws:iam::724822905508:role/deploy_role
+          aws-region: eu-west-3
+
+      - name: S3 cp
+        run: aws s3 cp --acl public-read dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz
