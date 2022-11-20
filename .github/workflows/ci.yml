@@ -10,10 +10,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo 'building'
-      - uses: actions/checkout@v1
-      - uses: icepuma/rust-action@master
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          args: cargo fmt -- --check && cargo clippy -- -Dwarnings && cargo build
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - name: Run Cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run Cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
 
   test:
     needs: [build]
