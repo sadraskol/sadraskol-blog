@@ -12,7 +12,7 @@ use crate::domain::date::Date;
 use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
 use crate::fs::{read_post, FileDiff};
-use crate::template::{FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate, AboutTemplate};
+use crate::template::{AboutTemplate, FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
 
 mod custom_markdown;
 mod domain;

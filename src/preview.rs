@@ -1,4 +1,6 @@
-use crate::{read_post, slugify, AboutTemplate, IndexTemplate, PostSummaryView, PostTemplate, SadPost};
+use crate::{
+    read_post, slugify, AboutTemplate, IndexTemplate, PostSummaryView, PostTemplate, SadPost,
+};
 use askama::Template;
 use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
 use rocket::fairing::AdHoc;
@@ -119,7 +121,10 @@ pub async fn server() {
     };
 
     rocket::build()
-        .mount("/", routes![about_page, home_page, post_page, img, favicon, changes])
+        .mount(
+            "/",
+            routes![about_page, home_page, post_page, img, favicon, changes],
+        )
         .manage(reload)
         .configure(r)
         .attach(AdHoc::on_liftoff("reload_fairing", |r| {
