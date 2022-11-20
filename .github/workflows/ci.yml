@@ -9,19 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: build
-        echo 'building'
+      - run: echo 'building'
 
   test:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - name: test
-        echo 'test'
+      - run: echo 'test'
 
   publish:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - name: publish
-        echo 'publishing'
+      - run: echo 'publishing'
