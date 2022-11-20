@@ -226,7 +226,7 @@ resource "aws_iam_openid_connect_provider" "default" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
-
+# Inspired by https://gist.github.com/guitarrapc/fc64be2fcfafc9bc13bb1e022bb0edf4
 data "aws_iam_policy_document" "github_oid_assume_role_policy" {
   statement {
     effect  = "Allow"

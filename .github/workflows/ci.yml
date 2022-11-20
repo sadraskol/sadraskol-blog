@@ -118,4 +118,4 @@ jobs:
           aws-region: eu-west-3
 
       - name: S3 cp
-        run: aws s3 cp --acl public-read dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz
+        run: aws --debug s3 cp --acl public-read dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz
