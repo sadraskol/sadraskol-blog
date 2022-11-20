@@ -1,0 +1,27 @@
+---
+name: CI
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: build
+        echo 'building'
+
+  test:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        echo 'test'
+
+  publish:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: publish
+        echo 'publishing'
