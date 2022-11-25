@@ -216,8 +216,44 @@ resource "aws_s3_object" "dist" {
 }
 
 #
-# Deployment user
+# OpenID Connect provider
 #
+resource "aws_iam_openid_connect_provider" "default" {
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = ["gh-deploy"]
+
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+}
+
+# Inspired by https://gist.github.com/guitarrapc/fc64be2fcfafc9bc13bb1e022bb0edf4
+data "aws_iam_policy_document" "github_oid_assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.default.arn]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["gh-deploy"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:sadraskol/sadraskol-blog:*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "deploy_role" {
+  name = "deploy_role"
+
+  assume_role_policy = data.aws_iam_policy_document.github_oid_assume_role_policy.json
+}
+
 resource "aws_iam_policy" "policy" {
   name        = "deploy-policy"
   description = "Deploy policy"
@@ -236,26 +272,12 @@ resource "aws_iam_policy" "policy" {
   })
 }
 
-resource "aws_iam_user" "deploy" {
-  name = "deployer"
-}
-
-resource "aws_iam_access_key" "deploy" {
-  user = aws_iam_user.deploy.name
-}
-
-resource "aws_iam_user_policy_attachment" "deploy-attach" {
-  user       = aws_iam_user.deploy.name
+resource "aws_iam_role_policy_attachment" "deploy-attach" {
+  role       = aws_iam_role.deploy_role.name
   policy_arn = aws_iam_policy.policy.arn
 }
 
-output "secret" {
-  sensitive   = true
-  description = "AWS_SECRET_ACCESS_KEY"
-  value       = aws_iam_access_key.deploy.secret
-}
-
-output "key" {
-  description = "AWS_ACCESS_KEY_ID"
-  value       = aws_iam_access_key.deploy.id
+output "deploy_iam_arn" {
+  description = "IAM deploy role arn"
+  value       = aws_iam_role.deploy_role.arn
 }

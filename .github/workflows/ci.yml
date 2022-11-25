@@ -110,9 +110,12 @@ jobs:
       - name: tar
         run: tar -czf dist.tar.gz dist/
 
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          audience: gh-deploy
+          role-to-assume: arn:aws:iam::724822905508:role/deploy_role
+          aws-region: eu-west-3
+
       - name: S3 cp
-        env:
-          AWS_REGION: eu-west-3
-          AWS_ACCESS_KEY_ID: ${{ secrets.KEY_ACCESS_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.KEY_ACCESS_SECRET }}
         run: aws s3 cp --acl public-read dist.tar.gz s3://deploy.sadraskol.com/dist.tar.gz
