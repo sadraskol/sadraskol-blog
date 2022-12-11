@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-use std::path::Path;
 use crate::{
     read_post, slugify, AboutTemplate, IndexTemplate, PostSummaryView, PostTemplate, SadPost,
 };
@@ -9,6 +7,8 @@ use rocket::fairing::AdHoc;
 use rocket::http::{ContentType, Status};
 use rocket::log::LogLevel;
 use rocket::State;
+use std::ffi::OsStr;
+use std::path::Path;
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
@@ -141,15 +141,22 @@ pub async fn server() {
                             sender,
                             notify::Config::default().with_poll_interval(Duration::from_secs(2)),
                         )
+                        .unwrap();
+                        watcher
+                            .watch(Path::new("posts"), RecursiveMode::Recursive)
                             .unwrap();
-                        watcher.watch(Path::new("posts"), RecursiveMode::Recursive).unwrap();
 
                         let mut last_reload = Instant::now();
 
                         loop {
                             match receiver.recv_timeout(Duration::from_millis(100)) {
                                 Ok(Ok(event)) => {
-                                    if last_reload.elapsed().ge(&Duration::from_millis(10)) && event.paths.iter().any(|p| p.extension() == Some(OsStr::new("sad"))) {
+                                    if last_reload.elapsed().ge(&Duration::from_millis(10))
+                                        && event
+                                            .paths
+                                            .iter()
+                                            .any(|p| p.extension() == Some(OsStr::new("sad")))
+                                    {
                                         last_reload = Instant::now();
                                         trigger.0.store(true, Ordering::Release);
                                     }
