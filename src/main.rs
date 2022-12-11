@@ -204,10 +204,11 @@ async fn main() {
             eprintln!("missing [title] argument to new command");
             return;
         }
+        let post_path = format!("posts/{}.sad", slugify(&args[2]));
         let mut f = std::fs::OpenOptions::new()
             .create(true)
             .write(true)
-            .open(format!("posts/{}.sad", slugify(&args[2])))
+            .open(&post_path)
             .unwrap();
 
         writeln!(f, "title=\"{}\"", args[2]).unwrap();
@@ -219,6 +220,7 @@ async fn main() {
         .unwrap();
         writeln!(f, "language=\"en\"").unwrap();
         writeln!(f, "---- sadraskol ----").unwrap();
+        println!("created: {}", &post_path);
     } else if args.len() > 1 && args[1] == "mv" {
         if args.len() < 3 {
             eprintln!("missing [from] argument to mv command");
