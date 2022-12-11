@@ -1,8 +1,10 @@
+use std::ffi::OsStr;
+use std::path::Path;
 use crate::{
     read_post, slugify, AboutTemplate, IndexTemplate, PostSummaryView, PostTemplate, SadPost,
 };
 use askama::Template;
-use notify::{watcher, DebouncedEvent, RecursiveMode, Watcher};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rocket::fairing::AdHoc;
 use rocket::http::{ContentType, Status};
 use rocket::log::LogLevel;
@@ -11,7 +13,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[get("/about")]
 fn about_page() -> (ContentType, String) {
@@ -135,16 +137,24 @@ pub async fn server() {
                     let t_abort = abort.clone();
                     rocket::tokio::spawn(async move {
                         let (sender, receiver) = channel();
-                        let mut watcher = watcher(sender, Duration::from_secs(2)).unwrap();
-                        watcher.watch("posts", RecursiveMode::Recursive).unwrap();
+                        let mut watcher: RecommendedWatcher = RecommendedWatcher::new(
+                            sender,
+                            notify::Config::default().with_poll_interval(Duration::from_secs(2)),
+                        )
+                            .unwrap();
+                        watcher.watch(Path::new("posts"), RecursiveMode::Recursive).unwrap();
+
+                        let mut last_reload = Instant::now();
+
                         loop {
                             match receiver.recv_timeout(Duration::from_millis(100)) {
-                                Ok(event) => match event {
-                                    DebouncedEvent::Write(_) => {}
-                                    _ => {
+                                Ok(Ok(event)) => {
+                                    if last_reload.elapsed().ge(&Duration::from_millis(10)) && event.paths.iter().any(|p| p.extension() == Some(OsStr::new("sad"))) {
+                                        last_reload = Instant::now();
                                         trigger.0.store(true, Ordering::Release);
                                     }
-                                },
+                                }
+                                Ok(_) => {}
                                 Err(_e) => {
                                     if t_abort.load(Ordering::Acquire) {
                                         break;

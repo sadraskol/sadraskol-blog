@@ -30,8 +30,8 @@ pub trait StrWrite {
 }
 
 impl<W> StrWrite for WriteWrapper<W>
-where
-    W: Write,
+    where
+        W: Write,
 {
     #[inline]
     fn write_str(&mut self, s: &str) -> io::Result<()> {
@@ -59,8 +59,8 @@ impl StrWrite for String {
 }
 
 impl<W> StrWrite for &'_ mut W
-where
-    W: StrWrite,
+    where
+        W: StrWrite,
 {
     #[inline]
     fn write_str(&mut self, s: &str) -> io::Result<()> {
@@ -90,8 +90,8 @@ static AMP_ESCAPE: &str = "&amp;";
 static SLASH_ESCAPE: &str = "&#x27;";
 
 pub fn escape_href<W>(mut w: W, s: &str) -> io::Result<()>
-where
-    W: StrWrite,
+    where
+        W: StrWrite,
 {
     let bytes = s.as_bytes();
     let mut mark = 0;
@@ -192,9 +192,9 @@ struct HtmlWriter<'a, I, W> {
 }
 
 impl<'a, I, W> HtmlWriter<'a, I, W>
-where
-    I: Iterator<Item = Event<'a>>,
-    W: StrWrite,
+    where
+        I: Iterator<Item=Event<'a>>,
+        W: StrWrite,
 {
     fn new(iter: I, writer: W) -> Self {
         Self {
@@ -294,7 +294,7 @@ where
                     self.write("\n<p>")
                 }
             }
-            Tag::Heading(level) => {
+            Tag::Heading(level, ..) => {
                 if self.end_newline {
                     self.end_newline = false;
                     write!(&mut self.writer, "<h{}>", level)
@@ -457,7 +457,7 @@ where
             Tag::Paragraph => {
                 self.write("</p>\n")?;
             }
-            Tag::Heading(level) => {
+            Tag::Heading(level, ..) => {
                 self.write("</h")?;
                 write!(&mut self.writer, "{}", level)?;
                 self.write(">\n")?;
@@ -552,8 +552,8 @@ where
 }
 
 pub fn sad_push_html<'a, I>(s: &mut String, iter: &mut I)
-where
-    I: Iterator<Item = Event<'a>>,
+    where
+        I: Iterator<Item=Event<'a>>,
 {
     HtmlWriter::new(iter, s).run().unwrap();
 }
