@@ -145,7 +145,7 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 && args[1] == "preview" {
         preview::server().await;
-    } else if args[1] == "publish" {
+    } else if args.len() > 1 && args[1] == "publish" {
         let now = Date::now();
         let posts_files = std::fs::read_dir("posts").unwrap();
         let drafts: Vec<_> = posts_files
