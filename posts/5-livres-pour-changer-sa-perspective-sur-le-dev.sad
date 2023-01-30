@@ -1,7 +1,8 @@
 title="5 livres pour changer sa perspective sur le dev"
-publication_date="2023-02-28T19:00:15.470282012+00:00"
+publication_date="2023-01-30T11:48:50.753366421+00:00"
 language="fr"
 ---- sadraskol ----
+
 
 Les listes de livres pour le dev populaires contiennent peu ou prou les mêmes références.
 Ces livres sont ennuyeux, voire promeuvent des pratiques toxiques.
@@ -36,7 +37,7 @@ Si on devait résumer ce livre en deux mots: pragmatisme et savoir.
 
 Commençons à rentrer dans l'inhabituel : si notre système est si parfait, montrons-le !
 Le livre présente l'historique de la pratique et le processus pour mener le Chaos Engineering.
-Vous me direz que je me répète vu que [j'ai déjà ecrit sur ce livre](https://sadraskol.com/posts/reading-notes-learning-chaos-engineering/) il n'y a pas longtemps.
+Vous me direz que je me répète vu que [j'ai déjà écrit sur ce livre](https://sadraskol.com/posts/reading-notes-learning-chaos-engineering/) il n'y a pas longtemps.
 L'originalité de cette approche : elle s'inscrit en direct lignée de la méthode scientifique.
 
 L'approche permet de prendre des décisions renseignées.
@@ -54,9 +55,9 @@ Il couvre tous les sujets principaux : du parsing à la machine virtuelle en pas
 Il propose d'écrire un langage orienté objet `lox` de deux façons différentes.
 Les déclarations, expressions et instructions n'auront plus de secrets !
 
-S'il semble de niche, ce livre contient moultes algorithmes qui ne se limitent pas aux interpretateurs.
-Les problématique de gestion d'erreurs, de simplification du code, de compatibilité sont amplifiés par l'amplitude de l'écriture d'un langage.
-Enfin ce livre permet de comprendre la difficulté d'implémenter un langage correctement.
+S'il semble de niche, ce livre contient moult algorithmes qui ne se limitent pas aux interpretateurs.
+Les problématique de gestion d'erreurs, de simplification du code, de compatibilité sont amplifiées par l'écriture d'un langage.
+Enfin, ce livre permet de comprendre la difficulté d'implémenter un langage correctement.
 
 ## _Resilient Management_ by Lara Hogan
 
@@ -65,7 +66,7 @@ Encore un livre dont [j'ai déjà parlé ici](https://sadraskol.com/posts/lara-h
 Pour certains, cette frustration s'est transformée en haine.
 On est dans la morale du faible : Je n'ai pas le pouvoir du management, donc je vais tout faire pour lui enlever ce pouvoir.
 
-Pourtant le rôle du management est crucial dans la réussite d'une équipe.
+Pourtant, le rôle du management est crucial dans la réussite d'une équipe.
 Le bon management permet d'accomplir le meilleur de nous-même.
 Il permet même de se dépasser et de trouver les opportunités là où on ne les envisageait pas.
 
@@ -93,11 +94,12 @@ Il suffit de comprendre comment le code réagit à ces valeurs pour vérifier sa
 Ces livres sont dans la technique et la technique sans sagesse n'est pas très utile.
 Bien des développeurs ont un ressentiment à l'encontre du management et du marketing.
 Beaucoup n'aiment pas le savoir académique, car "pas concret", etc.
-Or ce ressentiment se transforme par une médiocrité : celle de se venger en montrant combien le code compte.
+Or, ce ressentiment se transforme par une médiocrité : celle de se venger en montrant combien le code compte.
 C'est facile de faire la morale du "bon" ou du "mauvais" code, quand on ne cherche pas à résoudre un problème métier.
 
-Ce paragraphe vous ait peut-être cryptique, je vous invite à regarder ces vidéos pour mieux comprendre:
+Ce paragraphe vous ait peut-être cryptique, je vous invite à regarder ces vidéos pour mieux comprendre :
 
 - [Envy](https://www.youtube.com/watch?v=aPhrTOg1RUk) par Contrapoint, une vidéo essai sur la toxicité de l'envie
 - [DANY CALIGULA explique NIETZSCHE en SLIP SARDOCHE ?!](https://www.youtube.com/watch?v=0JJ5oF6ASkg&t=2326s)
 par Dany Caligula, qui est moins complet mais en français
+
