@@ -240,7 +240,7 @@ async fn main() {
         writeln!(dest, "title=\"{}\"", args[3]).unwrap();
         let str = std::fs::read_to_string(&from_file).unwrap();
         for line in str.lines().skip(1) {
-            writeln!(dest, "{}", line).unwrap();
+            writeln!(dest, "{line}").unwrap();
         }
 
         let mut redirects = std::fs::OpenOptions::new()

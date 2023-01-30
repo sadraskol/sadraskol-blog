@@ -270,7 +270,7 @@ where
                     escape_html(&mut self.writer, &name)?;
                     self.write("\">")?;
                     let number = *self.numbers.entry(name).or_insert(len);
-                    write!(&mut self.writer, "{}", number)?;
+                    write!(&mut self.writer, "{number}")?;
                     self.write("</a></sup>")?;
                 }
                 Event::TaskListMarker(true) => {
@@ -297,9 +297,9 @@ where
             Tag::Heading(level, ..) => {
                 if self.end_newline {
                     self.end_newline = false;
-                    write!(&mut self.writer, "<{}>", level)
+                    write!(&mut self.writer, "<{level}>")
                 } else {
-                    write!(&mut self.writer, "\n<{}>", level)
+                    write!(&mut self.writer, "\n<{level}>")
                 }
             }
             Tag::Table(alignments) => {
@@ -386,7 +386,7 @@ where
                 } else {
                     self.write("\n<ol start=\"")?;
                 }
-                write!(&mut self.writer, "{}", start)?;
+                write!(&mut self.writer, "{start}")?;
                 self.write("\">\n")
             }
             Tag::List(None) => {
@@ -446,7 +446,7 @@ where
                 self.write("\"><sup class=\"footnote-definition-label\">")?;
                 let len = self.numbers.len() + 1;
                 let number = *self.numbers.entry(name).or_insert(len);
-                write!(&mut self.writer, "{}", number)?;
+                write!(&mut self.writer, "{number}")?;
                 self.write("</sup>")
             }
         }
@@ -459,7 +459,7 @@ where
             }
             Tag::Heading(level, ..) => {
                 self.write("</")?;
-                write!(&mut self.writer, "{}", level)?;
+                write!(&mut self.writer, "{level}")?;
                 self.write(">\n")?;
             }
             Tag::Table(_) => {
@@ -541,7 +541,7 @@ where
                 Event::FootnoteReference(name) => {
                     let len = self.numbers.len() + 1;
                     let number = *self.numbers.entry(name).or_insert(len);
-                    write!(&mut self.writer, "[{}]", number)?;
+                    write!(&mut self.writer, "[{number}]")?;
                 }
                 Event::TaskListMarker(true) => self.write("[x]")?,
                 Event::TaskListMarker(false) => self.write("[ ]")?,

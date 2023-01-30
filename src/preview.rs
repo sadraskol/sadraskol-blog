@@ -79,7 +79,7 @@ fn favicon() -> (ContentType, Vec<u8>) {
 
 #[get("/img/<img>")]
 fn img(img: String) -> (ContentType, Vec<u8>) {
-    let content = std::fs::read(format!("img/{}", img)).unwrap();
+    let content = std::fs::read(format!("img/{img}")).unwrap();
     (ContentType::JPEG, content)
 }
 
