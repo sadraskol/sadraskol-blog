@@ -1,0 +1,111 @@
+title="Introducing entremets"
+publication_date="2023-02-02T17:44:02.892904554+00:00"
+language="en"
+---- sadraskol ----
+
+
+I'm releasing entremets: the sql isolation simulation engine.
+Isolations (read committed, repeatable reads, etc.) are difficult to understand for common devs.
+The goal of entremets is to check sql anomalies in your code.
+Let's take for instance this code:
+
+``` entremets
+init do
+  insert into users(id, age) values (1, 10)
+end
+
+process do
+  transaction tx1 read_committed do
+    let age_1 := select age from users where id = 1
+    update users set age := age_1 * 2
+  end
+end
+
+process do
+  transaction tx2 read_committed do
+    let age_2 := select age from users where id = 1
+    update users set age := age_2 + 1
+  end
+end
+
+property = eventually<select age from users where id = 1 in {21, 22}>
+```
+
+This code simulate two parallel transactions.
+We test the property that both operations occur.
+None should be lost right?
+
+Let's run entremets `cargo run spec.mets`:
+
+``` text
+Following property was violated: eventually<select age from users where id = 1 in {21, 22}>
+The following counter example was found:
+users: {(age: 10, id: 1)}
+Process 0: begin ReadCommitted (tx1)
+users: {(age: 10, id: 1)}
+Process 0: age_1 := select age from users where id = 1
+Local State {"age_1": Integer(10)}
+users: {(age: 10, id: 1)}
+Process 0: update users set age := age_1 * 2
+Local State {"age_1": Integer(10)}
+users: {(age: 10, id: 1)}
+Process 1: begin ReadCommitted (tx2)
+Local State {"age_1": Integer(10)}
+users: {(age: 10, id: 1)}
+Process 1: age_2 := select age from users where id = 1
+Local State {"age_1": Integer(10), "age_2": Integer(10)}
+users: {(age: 10, id: 1)}
+Process 0: commit
+Local State {"age_1": Integer(10), "age_2": Integer(10)}
+users: {(age: 20, id: 1)}
+Process 1: update users set age := age_2 + 1
+Local State {"age_1": Integer(10), "age_2": Integer(10)}
+users: {(age: 20, id: 1)}
+Process 1: commit
+Local State {"age_1": Integer(10), "age_2": Integer(10)}
+users: {(age: 11, id: 1)}
+
+States explored: 36
+```
+
+Entremets is capable of finding a trace where the property failed.
+This is a typical instance of a [lost update](https://dzone.com/articles/what-is-a-lost-update-in-database-systems).
+
+## Why did I create entremets?
+
+Firstly, why not?!
+This project is fun for many reasons: implementing a language, simulating sql queries, etc.
+
+Secondly, it solves a problem in the industry.
+Most developers heard of isolation, but few thought of its implication for their code.
+Any codebase I've read was sensible to concurrency bugs.
+This project aim at helping developers uncover these hard to test bugs.
+
+Finally, I'm a big fan of TLA+.
+One of it's adoption limitation is the lack of direct application to industry work.
+I hope that developers will discover formal methods through this project.
+
+## I want to try this!
+
+Fair warning: this project is its enfancy and we're far from simulating sql completely.
+Do not hesitate to open issues on [github](https://github.com/sadraskol/entremets) if you find issues.
+
+For now, you need to have [rust installed](https://www.rust-lang.org/fr/tools/install) to make it work.
+There's no distribution of the binary, so you'll need to clone the repo to try it.
+
+## What's next?
+
+Better SQL coverage: there's a lot of features that are not covered yet.
+It's going to be my focus as its the promise of the tool :/
+
+Improve the UI: it would be perfect to have an IDE integration like TLA+.
+Reading the traces in the terminal is not the best experience.
+
+Improve feedbacks: What made the serialization fail?
+We could easily detect serializability issues to make SQL isolation rules more clearer to the user.
+
+Overall language adjustements.
+
+---
+
+I'm really excited to release this project to the public and I hope you start testing it yourself!
