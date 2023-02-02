@@ -17,6 +17,7 @@ pub enum SadLang {
     Text,
     Sql,
     Bash,
+    Entremets,
 }
 
 pub fn highlight<W: StrWrite>(mut w: W, s: &str, l: SadLang) -> io::Result<()> {

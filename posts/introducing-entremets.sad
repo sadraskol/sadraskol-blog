@@ -28,7 +28,7 @@ process do
   end
 end
 
-property = eventually<select age from users where id = 1 in {21, 22}>
+property = eventually&lt;select age from users where id = 1 in {21, 22}&gt;
 ```
 
 This code simulate two parallel transactions.
@@ -38,7 +38,7 @@ None should be lost right?
 Let's run entremets `cargo run spec.mets`:
 
 ``` text
-Following property was violated: eventually<select age from users where id = 1 in {21, 22}>
+Following property was violated: eventually&lt;select age from users where id = 1 in {21, 22}&gt;
 The following counter example was found:
 users: {(age: 10, id: 1)}
 Process 0: begin ReadCommitted (tx1)

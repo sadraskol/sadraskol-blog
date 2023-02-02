@@ -6,7 +6,7 @@ use std::str::from_utf8;
 use pulldown_cmark::{Alignment, CodeBlockKind, CowStr, Event, LinkType, Tag};
 
 use crate::highlight::SadLang::{
-    Alloy, Bash, Elixir, Erlang, Haskell, Java, Javascript, Rust, Sql, Text, Tla,
+    Alloy, Bash, Elixir, Entremets, Erlang, Haskell, Java, Javascript, Rust, Sql, Text, Tla,
 };
 use crate::highlight::{highlight, SadLang};
 
@@ -360,6 +360,7 @@ where
                                 "rust" => self.within_code = Some(Rust),
                                 "sql" => self.within_code = Some(Sql),
                                 "bash" => self.within_code = Some(Bash),
+                                "entremets" => self.within_code = Some(Entremets),
                                 _ => self.within_code = Some(Text),
                             }
                             self.write("<pre><code class=\"language-")?;

@@ -208,5 +208,21 @@ pub fn langs(lang: SadLang) -> SadLangConf {
             .identifier("fi")
             .identifier("then")
             .identifier("case"),
+        SadLang::Entremets => SadLangConf::init()
+            .identifier("init")
+            .identifier("process")
+            .identifier("insert")
+            .identifier("into")
+            .identifier("values")
+            .identifier("select")
+            .identifier("from")
+            .identifier("where")
+            .identifier("update")
+            .identifier("set")
+            .identifier("property")
+            .identifier("eventually")
+            .identifier("do")
+            .identifier("let")
+            .identifier("end"),
     }
 }
