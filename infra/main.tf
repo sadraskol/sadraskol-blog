@@ -12,14 +12,6 @@ provider "aws" {
 }
 
 #
-# KEY PAIR
-#
-resource "aws_key_pair" "deployer" {
-  key_name   = "lenovo"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaZodWDzevJd2iwbRwURODC3/WEIjCQ1hv+Q81xVj0JLN4B4ZAdM+6L1eeR6rqpKK48AZbi3ExdF3l663QUxC4BJjQJhUQQVrT/UNnexR2vpsDYSCkozeyvyiBk0ppX//bxbtQStRcsgEHBP0mRYIuVL9NvBkFXePIUE+HCkz0UpMP5jt4hroqRMborXFjytdjnNmS8wCSM6/dunoiWKlE9eEDgwMmkSejBSTPLyhIhcdIZfU1vpH+XDC+NDuRonYbJ4vjdO/IxabVCcWu/1bjHvuA2Ihdp8eKxGhmJRbDz87txx8yZ5eIhvyWEXqmYFS6xHOjNvM9y9Gcji2crT/7 lenovo"
-}
-
-#
 # VPC
 #
 resource "aws_default_vpc" "default" {
@@ -69,8 +61,6 @@ resource "aws_security_group" "blog_security" {
 resource "aws_instance" "blog" {
   ami           = "ami-02ea0a967c57de2d3"
   instance_type = "t4g.nano"
-
-  key_name = aws_key_pair.deployer.key_name
 
   tags = {
     Name = "BlogServer"
