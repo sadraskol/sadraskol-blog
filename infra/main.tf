@@ -5,6 +5,11 @@ terraform {
       version = "~> 4.16"
     }
   }
+  backend "s3" {
+    bucket = "sadraskol-tf-state"
+    key    = "terraform.tfstate"
+    region = "eu-west-3"
+  }
 }
 
 provider "aws" {
@@ -137,9 +142,9 @@ resource "aws_route53_record" "www" {
 
 resource "aws_route53_record" "proton" {
   for_each = {
-    protonmail : "protonmail.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
-    protonmail2 : "protonmail2.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
-    protonmail3 : "protonmail3.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch."
+    protonmail  = "protonmail.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
+    protonmail2 = "protonmail2.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch.",
+    protonmail3 = "protonmail3.domainkey.dknhsmf2w5ng3cpl6lqwf2agdgfkaqyl3oeeeoppk4muniovoyhla.domains.proton.ch."
   }
 
   zone_id = aws_route53_zone.zone.zone_id
