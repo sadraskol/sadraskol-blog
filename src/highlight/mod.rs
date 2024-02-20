@@ -147,8 +147,7 @@ impl<'a> Parser<'a> {
             self.advance();
             n += 1;
 
-            candidates
-                .retain(|ident| ident.chars().nth(n) == Some(self.previous()));
+            candidates.retain(|ident| ident.chars().nth(n) == Some(self.previous()));
         }
 
         let matching = candidates
