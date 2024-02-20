@@ -140,24 +140,21 @@ impl<'a> Parser<'a> {
             .identifiers
             .clone()
             .iter()
+            .filter(|&ident| ident.chars().next().unwrap() == self.previous())
             .cloned()
-            .filter(|ident| ident.chars().next().unwrap() == self.previous())
             .collect();
         while !self.is_at_end() && (self.peek() == '_' || self.peek().is_alphanumeric()) {
             self.advance();
             n += 1;
 
-            candidates = candidates
-                .iter()
-                .cloned()
-                .filter(|ident| ident.chars().nth(n) == Some(self.previous()))
-                .collect();
+            candidates
+                .retain(|ident| ident.chars().nth(n) == Some(self.previous()));
         }
 
         let matching = candidates
             .iter()
-            .cloned()
-            .find(|s| s == &self.current_lexeme());
+            .find(|&s| s == &self.current_lexeme())
+            .cloned();
 
         if matching.is_none() {
             self.make_token(TokenType::Transparent)

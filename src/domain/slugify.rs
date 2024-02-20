@@ -18,7 +18,6 @@ pub fn slugify<T: ToString>(string: T) -> String {
                 if !is_sep {
                     is_sep = true;
                     slug.push(b'-');
-                } else {
                 }
             }
         }
