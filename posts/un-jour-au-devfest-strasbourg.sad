@@ -1,0 +1,56 @@
+title="Un jour au devfest Strasbourg"
+publication_date="2024-02-20T14:51:31.169721315+00:00"
+language="fr"
+---- sadraskol ----
+
+
+Voici les notes que j'ai prise lors du Devfest Strasbourg du 15 Novembre 2023.
+J'en profite pour remercier [Émeline](https://www.linkedin.com/in/emeline-tardivon-bab236b6/) pour son chaleureux accueil !
+
+Les leçons apprises :
+
+- Mieux vaut un retour d'expérience concret qu'un talk sur les concepts
+- Mieux vaut un bon speaker qu'un bon sujet
+- Mieux vaut se laisser surprendre que de se concentrer sur un sujet
+
+20 minutes de queues m'ont fait loupé la keynote d'ouverture.
+
+1. Refondre la CI/CD chez bedrock
+	1. Jenkins + bash = bof
+	2. Automatiser helm + terraform = bien
+	3. Ça prend du temps, mais ça en vaut la peine
+
+2. Chopping the monolith
+	1. Hey! vous avez vu, on a un gateway api, mais on est pas là pour vendre notre produit, mais on utilise un gateway api, etc.
+  	2. Des généralités sur le monolith
+
+3. Agilité, Craftmanship & Cargo cult
+	1. Encore des généralités (faire mal = mal faire)
+  	2. Toujours des généralités (c'est bien de réflechir à ce qu'on fait)
+
+4. Vite, la nouvelle ere du tooling front
+	1. Un bon tuto sur vite
+  	2. Un peu trop tuto
+
+5. Où en est PHP en 2023 ?
+	1. Je me suis perdu je crois...
+  	2. Ça a l'air sympa tous ces outils que je n'utiliserai pas
+
+6. La page de pub AWS
+	1. Que tu utilises kube, lambda ou des VM, il y a de la place chez AWS
+
+7. Comment j'ai fait la paix avec Github Copilot
+	1. Ça peut avoir son utilité
+  	2. En gros ça pond un code de la qualité de son contexte (onglets ouverts)
+  	3. Toujours check pour les bugs
+  	4. Comment Driven Design
+
+8. Construire soi-même son clavier mécanique
+	1. Si tu crois qu'on ne peut pas plus creuser un sujet, sache que tu n'as fait qu'effleurer la surface
+
+9. Faux départ ! Les femmes quittent la course !
+	1. C'est triste mais c'est ainsi :'(
+  	2. Les groupes de soutien se mettent en place et c'est cool
+
+Bisous
+
