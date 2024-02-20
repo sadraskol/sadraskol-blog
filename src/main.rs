@@ -245,7 +245,6 @@ async fn main() {
 
         let mut redirects = std::fs::OpenOptions::new()
             .append(true)
-            .write(true)
             .create(false)
             .create_new(false)
             .open("slugs.sad")
