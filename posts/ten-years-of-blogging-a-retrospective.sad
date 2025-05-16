@@ -1,0 +1,72 @@
+title="Ten years of blogging: a retrospective"
+publication_date="2025-05-19T08:25:11.406238718+00:00"
+language="en"
+---- sadraskol ----
+
+I'm breaking a year-long streak of not writing on this blog to retrospect on ten years of blogging.
+
+## Crunching the numbers
+
+I have proudly crunched some numbers on the blog:
+
+- 72 blog posts
+- Biggest year: 2020 with 21388 words (rough estimate) and 16 posts
+- Proudest year: 2021 with the Paxos series and very thorough reading notes
+- Most outreach: "Luttons contre les pouvoirs réactionnaires et autoritaires" which spread like wildfire, I don't have stats but I guess it's still my most read piece to date
+
+It's been 10 years I haven't used any audience tool to monitor the traffic on the blog.
+I believe it's still a good choice: small interactions irl is way more valuable than a large passive audience.
+
+
+## Still haven't decided on a language :/
+
+First things first: I still don't know if I should write in French or English.
+I think English is still the main language that I associate to technology since I mostly write in it.
+But whenever I read a French book, I want to talk about it in French.
+
+I've never received complaints, so I guess most of my audience is okay with this language ambiguity.
+
+## Evolution of the writing
+
+My first three articles were opinionated pieces with not a lot of research.
+These articles lack depth and coherent tone.
+But they really got me into writing, and they are the foundation of the goal of the blog: excruciatingly extract thoughts from my brain.
+
+Then until 2018 I wrote a lot of technical pieces, sprinkled with small thought pieces.
+This era allowed to write better articles and pushed myself to write reviews about each of my tech watch findings.
+
+Then there's a transition: I started writing about management and toxic masculinity.
+This is when I wrote "Luttons contre les pouvoirs réactionnaires et autoritaires" which had quite some success.
+It is an era that I would call my idealist revolutionary time.
+I would be very much influenced by the thought of Michel Foucault and Didier Eribon, and would not shut up about fighting reactionaries.
+This piece was my first time really digging into my thoughts and searching for data to support it.
+I still stand by it 100%.
+I would elaborate even more on some points, I could even go further but it's still a nice read.
+
+You'd might expect this article to spark more political pieces.
+No.
+It opened an era of distributed system and formal methods.
+I was quite influenced by Hillel Wayne and Leslie Lamport.
+So I read a lot of research papers and write about them.
+It culminated in my understanding of the Paxos algorithm (I'm quite proud of that!).
+2020 and 2021 were very intense because of the discipline in writing article of anything I'd read.
+Also I was reading quite a lot of papers at the time.
+
+I'm a bit disappointed as I never really used this knowledge in my different jobs.
+Even in platform engineering teams I was quite far from system design questions.
+I guess it's okay to be wrong in our choices, but next time I want my time investment to convert to concrete applications.
+
+Finally, from 2021 the writing became less a priority for me.
+The articles until 2025 are not as much researched and nicely written.
+I don't know how this will evolve but since I'm slowly moving away from tech, I don't expect to enrich this blog a lot the coming years.
+
+## What's next?
+
+Writing this retrospective is super useful for me.
+Once again I've discover myself a little better: I realize how much writing has been useful for the growth of my knowledge.
+The things I've wrote about are deeply engraved.
+Through exploration and research, I grew my ideas into strong foundations for my current thoughts.
+I wonder if I shouldn't do it more now!
+I'll let that sink in, maybe you'll read a lot more from me.
+
+As always, take care.
