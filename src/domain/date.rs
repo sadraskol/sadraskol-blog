@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Date(DateTime<Utc>);
@@ -26,6 +26,10 @@ impl Date {
             format_month(self.0.month0(), lang),
             self.0.year()
         )
+    }
+
+    pub fn year(&self) -> i32 {
+        self.0.year()
     }
 }
 

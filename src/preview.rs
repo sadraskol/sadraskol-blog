@@ -108,7 +108,7 @@ pub async fn server() {
         candidate += 1;
     };
 
-    Command::new("firefox")
+    let mut cmd = Command::new("firefox")
         .args([format!("http://localhost:{port}")])
         .spawn()
         .expect("could not open browser");
@@ -178,4 +178,6 @@ pub async fn server() {
         .launch()
         .await
         .unwrap();
+
+    cmd.wait();
 }

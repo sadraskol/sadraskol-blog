@@ -2,17 +2,17 @@
 extern crate rocket;
 extern crate askama;
 
+use std::collections::HashMap;
 use std::io::{BufRead, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
-
-use askama::Template;
 
 use crate::domain::date::Date;
 use crate::domain::slugify::slugify;
 use crate::domain::types::SadPost;
 use crate::fs::{read_post, FileDiff};
 use crate::template::{AboutTemplate, FeedTemplate, IndexTemplate, PostSummaryView, PostTemplate};
+use askama::Template;
 
 mod custom_markdown;
 mod domain;
@@ -145,6 +145,44 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 && args[1] == "preview" {
         preview::server().await;
+    } else if args.len() > 1 && args[1] == "stats" {
+        let posts_files = std::fs::read_dir("posts").unwrap();
+        let mut posts: Vec<SadPost> = posts_files
+            .flat_map(|post| post.map(|p| p.path()))
+            .filter(|path| path.extension().unwrap() == "sad")
+            .map(|path| read_post(path.as_path()))
+            .collect();
+        posts.sort_by_key(|p| p.publication_date.clone());
+        posts.reverse();
+        println!("{} posts", posts.len());
+        let posts_by_year = posts.iter().fold(HashMap::new(), |mut acc, post| {
+            let ve: &mut Vec<_> = acc.entry(post.publication_date.year()).or_default();
+            ve.push(post.clone());
+            acc
+        });
+        let mut iter_by_year: Vec<(&i32, &Vec<SadPost>)> = posts_by_year.iter().collect();
+        iter_by_year.sort_by_key(|x| x.0);
+        for (year, posts) in iter_by_year {
+            println!("--------");
+            println!(
+                "{} posts in {} total of {} words",
+                posts.len(),
+                year,
+                posts
+                    .iter()
+                    .map(|p| p.saddown_content.words_count())
+                    .sum::<usize>()
+            );
+            println!("--------");
+            for post in posts {
+                println!(
+                    "\t{} - {} - words {}",
+                    post.publication_date.human_format(&post.language),
+                    post.title,
+                    post.saddown_content.words_count()
+                );
+            }
+        }
     } else if args.len() > 1 && args[1] == "publish" {
         let now = Date::now();
         let posts_files = std::fs::read_dir("posts").unwrap();
@@ -208,6 +246,7 @@ async fn main() {
         let mut f = std::fs::OpenOptions::new()
             .create(true)
             .write(true)
+            .truncate(true)
             .open(&post_path)
             .unwrap();
 

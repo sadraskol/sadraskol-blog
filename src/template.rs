@@ -37,7 +37,7 @@ pub struct IndexTemplate<'a> {
     pub posts: Vec<PostSummaryView>,
 }
 
-impl<'a> IndexTemplate<'a> {
+impl IndexTemplate<'_> {
     pub fn new(posts: Vec<PostSummaryView>) -> Self {
         IndexTemplate {
             title: "Sadraskol",
@@ -61,7 +61,7 @@ pub struct FeedTemplate {
     pub posts: Vec<PostSummaryView>,
 }
 
-impl<'a> AboutTemplate<'a> {
+impl AboutTemplate<'_> {
     pub fn new() -> Self {
         AboutTemplate {
             title: "Sadraskol - About Me",

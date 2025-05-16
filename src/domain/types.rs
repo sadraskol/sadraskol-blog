@@ -29,6 +29,10 @@ impl Markdown {
     pub fn raw(&self) -> &str {
         &self.raw
     }
+
+    pub fn words_count(&self) -> usize {
+        self.raw.split_whitespace().count()
+    }
 }
 
 #[derive(Clone)]
